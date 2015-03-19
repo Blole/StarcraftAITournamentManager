@@ -8,3 +8,6 @@ client/client.jar
 server/server.jar
 server/replays/
 server/bots/
+server/games.txt
+server/results.txt
+server/winpercentage.txt
