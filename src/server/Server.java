@@ -22,8 +22,6 @@ public class Server  extends Thread
 	
 	public ServerGUI 						gui;
 	
-	private Game							previousScheduledGame = null;
-	
 	private static final Server INSTANCE = new Server();
 
     Server()
@@ -55,77 +53,63 @@ public class Server  extends Thread
 
 	public void run()
 	{
-		if (!games.hasMoreGames())
-		{
-			System.err.println("Server: Games list had no valid games in it");
-			System.exit(-1);
-		}
-		
 		int neededClients = 2;
-		
-		Game nextGame = games.getNextGame();
 		int iterations = 0;
+		Game previousScheduledGame = null;
 		
-		// keep trying to schedule games
-		while (true)
+		while (games.hasMoreGames())
 		{
+			// schedule a game once every few seconds
+			sleep(gameRescheduleTimer);
+			Game game = games.getNextGame();
+			
 			try
 			{
-				// schedule a game once every few seconds
-				Thread.sleep(gameRescheduleTimer);
 				writeHTMLFiles("index.html", iterations++);
 				
-				if (!games.hasMoreGames())
-				{
-					log("No more games in games list, please shut down tournament!");
-				}
-				
-				String gameString = "Game(" + nextGame.getGameID() + " / " + nextGame.getRound() + ")";
-			
 				// we can't start a game if we don't have enough clients
 				if (free.size() < neededClients) 
-				{
-					//log(gameString + " Can't start: Not Enough Clients\n");
 					continue;
-				}
 				// also don't start a game if a game is currently in the lobby
 				else if (isAnyGameStarting())
-				{
-					//log(gameString + " Can't start: Another Game Starting\n");
 					continue;
-				}
 				
-				// if this game is a higher round than the last game
-				if (previousScheduledGame != null && (nextGame.getRound() > previousScheduledGame.getRound()))
+				// if new round
+				if (previousScheduledGame != null && game.getRound() > previousScheduledGame.getRound())
 				{
+					int round = previousScheduledGame.getRound();
 					// put some polling code here to wait until all games from this round are free
-					while (free.size() < clients.size())
+					if (free.size() < clients.size())
 					{
-						log(gameString + " Can't start: Waiting for Previous Round to Finish\n");
-						Thread.sleep(gameRescheduleTimer);
+						log("Waiting for ongoing games in round "+round+" to finish\n");
+						while (free.size() < clients.size())
+							sleep(gameRescheduleTimer);
 					}
 					
-					log("Moving Write Directory to Read Directory");
-					
-					// move the write dir to the read dir
+					log("Round "+round+" finished, moving write directory to read directory\n");
 					ServerCommands.Server_MoveWriteToRead();
 				}
 						
-				log(gameString + " SUCCESS: Starting Game\n");
-				start1v1Game(nextGame);
-				
-				if (games.hasMoreGames())
-				{
-					nextGame = games.getNextGame();
-				}
+		    	previousScheduledGame = game;
+				log(game + " starting\n");
+				start1v1Game(game);
 			}
 			catch (Exception e)
 			{
 				e.printStackTrace();
 				log(e.toString() + "\n");
-				continue;
 			}
 		}
+		
+		if (previousScheduledGame == null)
+			log("No more games in games list\n");
+		else
+		{
+			log("No more games in games list, waiting for all ongoing games to finish\n");
+			while (free.size() < clients.size())
+				sleep(gameRescheduleTimer);
+		}
+		log("Done\n");
 	}
 	
 	public synchronized void writeHTMLFiles(String filename, int iter) throws Exception
@@ -364,16 +348,11 @@ public class Server  extends Thread
      */
     private synchronized void start1v1Game(Game game) throws Exception
 	{	
-    	previousScheduledGame = game;
-    	
 		// get the clients and their instructions
 		ServerClientThread hostClient = free.get(0);
 		ServerClientThread awayClient = free.get(1);
 		InstructionMessage hostInstructions = new InstructionMessage(ServerSettings.Instance().bwapi, true, game);
 		InstructionMessage awayInstructions = new InstructionMessage(ServerSettings.Instance().bwapi, false, game);
-		
-		log("Starting Game: (" + hostInstructions.game_id + " / " + hostInstructions.round_id + ") " 
-								  + hostInstructions.hostBot.getName() + " vs. " + hostInstructions.awayBot.getName() + "\n");
 		
 		// set the clients to starting
         hostClient.setStatus(ClientStatus.STARTING);
@@ -506,6 +485,17 @@ public class Server  extends Thread
             }
         }
     }
+	
+	public static void sleep(long millis)
+	{
+		try
+		{
+			Thread.sleep(millis);
+		}
+		catch (InterruptedException e)
+		{
+		}
+	}
 }
 class FileCopyThread extends Thread
 {

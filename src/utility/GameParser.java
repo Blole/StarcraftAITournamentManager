@@ -63,23 +63,16 @@ public class GameParser
 	
 	private static void parseGames(BufferedReader br) throws NumberFormatException, Exception 
 	{
-		String line = br.readLine();
-		while (line.startsWith("#")) 
+		String line;
+		while ((line = br.readLine()) != null) 
 		{
-			line = br.readLine();
-		}
-		
-		line = line.trim();
-		while (line != null) 
-		{
-			if(!line.startsWith("#") && line.length() > 0)
+			line = line.trim();
+			if (!line.startsWith("#") && line.length() > 0)
 			{
-				line = line.trim();
 				String[] args = line.split("\\s+");
 				Game newGame = new Game(Integer.parseInt(args[0]), Integer.parseInt(args[1]), findBot(args[2]), findBot(args[3]), findMap(args[4])); 
 				games.addGame(newGame, newGame.getRound());
 			}
-			line = br.readLine();
 		}
 	}
 	

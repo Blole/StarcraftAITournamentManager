@@ -443,4 +443,10 @@ public class Game implements Serializable
             }
 		}
 	}
+	
+	@Override
+	public String toString()
+	{
+		return String.format("[Game %d/%d: %s vs. %s]", getGameID(), getRound(), homebot.getName(), awaybot.getName());
+	}
 }

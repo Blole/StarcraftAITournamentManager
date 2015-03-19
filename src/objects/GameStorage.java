@@ -7,13 +7,11 @@ import utility.ResultsParser;
 
 public class GameStorage 
 {
-	private Vector<Game> allGames;
-	
-	private int currentGameIndex = 0;
+	private Vector<Game> allGames = new Vector<Game>();
+	private int nextGameIndex = 0;
 	
 	public GameStorage()
 	{
-		allGames = new Vector<Game>();
 	}
 	
 	public void addGame(Game game, int round)
@@ -35,14 +33,12 @@ public class GameStorage
 	
 	public boolean hasMoreGames()
 	{
-		return currentGameIndex < allGames.size() - 1;
+		return nextGameIndex < allGames.size();
 	}
 	
 	public Game getNextGame()
 	{
-		Game g = allGames.get(currentGameIndex);
-		currentGameIndex++;
-		return g;
+		return allGames.get(nextGameIndex++);
 	}
 
 	public Game lookupGame(int gameID, int round) 
