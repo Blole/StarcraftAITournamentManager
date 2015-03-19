@@ -1,0 +1,10 @@
+.metadata/
+.recommenders/
+.classpath
+.project
+*.class
+
+client/client.jar
+server/server.jar
+server/replays/
+server/bots/
