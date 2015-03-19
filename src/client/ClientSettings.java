@@ -1,7 +1,6 @@
 package client;
 
 import java.io.*;
-import java.util.StringTokenizer;
 
 import objects.BWAPISettings;
 
@@ -61,34 +60,40 @@ public class ClientSettings
 	
 	private void parseLine(String line) throws Exception
 	{
-		StringTokenizer st = new StringTokenizer(line, " +");	
-		String type = st.nextToken();
+		String[] keyvalue = line.split("[ \t]+", 2);
+		if (keyvalue.length != 2)
+			throw new Exception("unable to split line '"+line+"' into '<key> <value>'");
+		String key = keyvalue[0];
+		String value = keyvalue[1];
 		
-		if (type.equalsIgnoreCase("ClientChaoslauncherDir"))
+		boolean unknownKey = false;
+		
+		switch (key.toLowerCase())
 		{
-			ClientChaoslauncherDir = st.nextToken();
+		case "clientchaoslauncherdir":
+			ClientChaoslauncherDir = value;
+			break;
+		case "clientstarcraftdir":
+			ClientStarcraftDir = value;
+			break;
+		case "serveraddress":
+			ServerAddress = value;
+			break;
+		case "tournamentmodule":
+			TournamentModuleFilename = value;
+			break;
+		case "defaultbwapisettings":
+			DefaultBWAPISettingsFileName = value;
+			break;
+		default:
+			unknownKey = true;
+			break;
 		}
-		else if (type.equalsIgnoreCase("ClientStarcraftDir"))
-		{
-			ClientStarcraftDir = st.nextToken();
-			System.out.println("StarCraft Dir:   " + ClientStarcraftDir);
-		}
-		else if (type.equalsIgnoreCase("ServerAddress"))
-		{
-			ServerAddress = st.nextToken();
-		}
-		else if (type.equalsIgnoreCase("TournamentModule"))
-		{
-			TournamentModuleFilename = st.nextToken();
-		}
-		else if (type.equalsIgnoreCase("DefaultBWAPISettings"))
-		{
-			DefaultBWAPISettingsFileName = st.nextToken();
-		}
+		
+		if (unknownKey)
+			System.err.printf("%-22s = %s ignoring unkown key '%s'\n", key, value, key);
 		else
-		{
-			System.err.println("Ignoring incorrect setting type in settings file:    " + type);
-		}
+			System.out.printf("%-22s = %s\n", key, value);
 	}
 
 }
