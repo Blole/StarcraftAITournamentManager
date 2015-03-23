@@ -29,10 +29,10 @@ import javax.swing.SpinnerNumberModel;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 
-import objects.Bot;
-import utility.FileUtils;
-import utility.GameListGenerator;
-import utility.ResultsParser;
+import common.Bot;
+import common.utils.FileUtils;
+import common.utils.GameListGenerator;
+import common.utils.ResultsParser;
 
 public class ServerGUI
 {

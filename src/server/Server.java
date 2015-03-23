@@ -12,27 +12,27 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Vector;
 
-import objects.BWAPISettings;
-import objects.Bot;
-import objects.ClientCommandMessage;
-import objects.ClientStatus;
-import objects.Environment;
-import objects.FileMessage;
-import objects.Game;
-import objects.GameStatus;
-import objects.GameStorage;
-import objects.InstructionMessage;
-import objects.Map;
-import objects.RequestClientScreenshotMessage;
-import objects.ServerShutdownMessage;
-import objects.StartGameMessage;
-import objects.TournamentModuleState;
-import utility.FileUtils;
-import utility.GameParser;
-import utility.ResultsParser;
-import utility.WindowsCommandTools;
+import common.BWAPISettings;
+import common.Bot;
+import common.ClientCommandMessage;
+import common.ClientStatus;
+import common.Environment;
+import common.FileMessage;
+import common.Game;
+import common.GameStatus;
+import common.GameStorage;
+import common.InstructionMessage;
+import common.Map;
+import common.RequestClientScreenshotMessage;
+import common.ServerShutdownMessage;
+import common.StartGameMessage;
+import common.TournamentModuleState;
+import common.utils.FileUtils;
+import common.utils.GameParser;
+import common.utils.ResultsParser;
+import common.utils.WindowsCommandTools;
 
-public class Server  extends Thread
+public class Server extends Thread
 {
     private Vector<ServerClientThread> 		clients;
     private Vector<ServerClientThread> 		free;

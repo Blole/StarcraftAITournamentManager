@@ -11,20 +11,20 @@ import java.util.Vector;
 
 import javax.imageio.ImageIO;
 
-import objects.ClientCommandMessage;
-import objects.ClientStatus;
-import objects.ClientStatusMessage;
-import objects.Environment;
-import objects.FileMessage;
-import objects.Game;
-import objects.InstructionMessage;
-import objects.Message;
-import objects.RequestClientScreenshotMessage;
-import objects.ScreenshotMessage;
-import objects.ServerShutdownMessage;
-import objects.StartGameMessage;
-import objects.TournamentModuleState;
-import utility.WindowsCommandTools;
+import common.ClientCommandMessage;
+import common.ClientStatus;
+import common.ClientStatusMessage;
+import common.Environment;
+import common.FileMessage;
+import common.Game;
+import common.InstructionMessage;
+import common.Message;
+import common.RequestClientScreenshotMessage;
+import common.ScreenshotMessage;
+import common.ServerShutdownMessage;
+import common.StartGameMessage;
+import common.TournamentModuleState;
+import common.utils.WindowsCommandTools;
 
 public class Client extends Thread
 {

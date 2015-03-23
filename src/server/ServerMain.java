@@ -2,7 +2,7 @@ package server;
 
 import java.io.File;
 
-import objects.Environment;
+import common.Environment;
 
 
 public class ServerMain

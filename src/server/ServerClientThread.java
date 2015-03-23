@@ -12,13 +12,13 @@ import java.net.SocketException;
 
 import javax.imageio.ImageIO;
 
-import objects.ClientStatus;
-import objects.ClientStatusMessage;
-import objects.FileMessage;
-import objects.ImageWindow;
-import objects.InstructionMessage;
-import objects.Message;
-import objects.ScreenshotMessage;
+import common.ClientStatus;
+import common.ClientStatusMessage;
+import common.FileMessage;
+import common.ImageWindow;
+import common.InstructionMessage;
+import common.Message;
+import common.ScreenshotMessage;
 
 public class ServerClientThread extends Thread implements Comparable<ServerClientThread>
 {

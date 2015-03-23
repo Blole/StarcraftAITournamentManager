@@ -8,11 +8,11 @@ tm_settings:    required/tm_settings.zip
 replays:        replays/
 
 bots:
-  - !!objects.Bot [Aiur       , Protoss, dll, BWAPI_374]
-  - !!objects.Bot [Bonjwa     , Terran , dll, BWAPI_374]
+  - !!common.Bot [Aiur       , Protoss, dll, BWAPI_374]
+  - !!common.Bot [Bonjwa     , Terran , dll, BWAPI_374]
 
 maps:
-  - !!objects.Map aiide/(2)Benzene.zip
+  - !!common.Map aiide/(2)Benzene.zip
 
 # SERVER PORT - Port to listen for clients on
 port: 1337

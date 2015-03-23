@@ -5,8 +5,8 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
 
-import objects.ClientStatus;
-import objects.Message;
+import common.ClientStatus;
+import common.Message;
 
 public class ClientListenerThread extends Thread
 {

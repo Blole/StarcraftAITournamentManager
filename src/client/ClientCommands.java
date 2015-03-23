@@ -5,12 +5,12 @@ import java.io.File;
 import java.io.FileWriter;
 import java.util.Vector;
 
-import objects.BWAPISettings;
-import objects.Bot;
-import objects.Environment;
-import objects.InstructionMessage;
-import utility.FileUtils;
-import utility.WindowsCommandTools;
+import common.BWAPISettings;
+import common.Bot;
+import common.Environment;
+import common.InstructionMessage;
+import common.utils.FileUtils;
+import common.utils.WindowsCommandTools;
 
 public class ClientCommands
 {
