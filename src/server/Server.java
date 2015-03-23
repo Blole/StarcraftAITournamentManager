@@ -1,19 +1,41 @@
-
 package server;
 
-import java.io.*;
-import java.util.*;
-import java.text.*;
-
-import utility.*;
-import objects.*;
-
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.nio.channels.FileChannel;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Vector;
 
-public class Server  extends Thread 
+import objects.BWAPISettings;
+import objects.Bot;
+import objects.ClientCommandMessage;
+import objects.ClientStatus;
+import objects.Environment;
+import objects.FileMessage;
+import objects.Game;
+import objects.GameStatus;
+import objects.GameStorage;
+import objects.InstructionMessage;
+import objects.Map;
+import objects.RequestClientScreenshotMessage;
+import objects.ServerShutdownMessage;
+import objects.StartGameMessage;
+import objects.TournamentModuleState;
+import utility.FileUtils;
+import utility.GameParser;
+import utility.ResultsParser;
+import utility.WindowsCommandTools;
+
+public class Server  extends Thread
 {
-    private Vector<ServerClientThread> 		clients;							
-    private Vector<ServerClientThread> 		free;								
+    private Vector<ServerClientThread> 		clients;
+    private Vector<ServerClientThread> 		free;
 	
     private ServerListenerThread			listener;
 	private GameStorage						games;
@@ -22,18 +44,28 @@ public class Server  extends Thread
 	
 	public ServerGUI 						gui;
 	
-	private static final Server INSTANCE = new Server();
+	private static Server INSTANCE = null;
+	public final Environment env;
 
-    Server()
+    public Server(Environment env)
 	{
+    	if (INSTANCE != null)
+    		throw new RuntimeException("can only create one server!");
+    	else
+    		INSTANCE = this;
+    	
+    	this.env = env;
     	gui = new ServerGUI(this);
 		boolean resumed = gui.handleTournamentResume();
 		gui.handleFileDialogues();
     	
-		games = GameParser.getGames(ServerSettings.Instance().BotVector, ServerSettings.Instance().MapVector);
+		ArrayList<Bot> bots = env.get("bots");
+		ArrayList<Map> maps = env.get("maps");
+		
+		games = GameParser.getGames(bots, maps);
 		if (resumed)
 		{
-			ResultsParser rp = new ResultsParser(ServerSettings.Instance().ResultsFile);
+			ResultsParser rp = new ResultsParser(env.get("ResultsFile"));
 			games.removePlayedGames(rp);
 		}
 		
@@ -46,11 +78,12 @@ public class Server  extends Thread
 		listener.start();
     }
     
-    public static Server Instance() 
+    public static Server Instance()
 	{
         return INSTANCE;
-    } 
+    }
 
+	@Override
 	public void run()
 	{
 		int neededClients = 2;
@@ -61,14 +94,14 @@ public class Server  extends Thread
 		{
 			// schedule a game once every few seconds
 			sleep(gameRescheduleTimer);
-			Game game = games.getNextGame();
+			Game game = games.peekNextGame();
 			
 			try
 			{
 				writeHTMLFiles("index.html", iterations++);
 				
 				// we can't start a game if we don't have enough clients
-				if (free.size() < neededClients) 
+				if (free.size() < neededClients)
 					continue;
 				// also don't start a game if a game is currently in the lobby
 				else if (isAnyGameStarting())
@@ -87,12 +120,20 @@ public class Server  extends Thread
 					}
 					
 					log("Round "+round+" finished, moving write directory to read directory\n");
-					ServerCommands.Server_MoveWriteToRead();
+					Iterable<Bot> bots = env.get("bots");
+			    	for (Bot bot : bots)
+					{
+						FileUtils.CopyDirectory(bot.getWriteDir(env), bot.getReadDir(env));
+						//String copy = "xcopy " + ServerSettings.Instance().ServerBotDir + bot.getName() + "/write/*.* " + ServerSettings.Instance().ServerBotDir + bot.getName() + "/read/ /E /V /Y";
+						//WindowsCommandTools.RunWindowsCommand(copy, true, false);
+						//WindowsCommandTools.CopyDirectory(ServerSettings.Instance().ServerBotDir + bot.getName() + "/write/", ServerSettings.Instance().ServerBotDir + bot.getName() + "/read/");
+			    	}
 				}
 						
 		    	previousScheduledGame = game;
 				log(game + " starting\n");
 				start1v1Game(game);
+				games.advanceToNextGame();
 			}
 			catch (Exception e)
 			{
@@ -115,8 +156,8 @@ public class Server  extends Thread
 	public synchronized void writeHTMLFiles(String filename, int iter) throws Exception
 	{
 		try
-		{			
-			ResultsParser rp = new ResultsParser(ServerSettings.Instance().ResultsFile);
+		{
+			ResultsParser rp = new ResultsParser(env.get("ResultsFile"));
 			
 			String schedulerHTML = gui.getHTML();
 			String entrantsHTML = rp.getEntrantsHTML();
@@ -131,7 +172,7 @@ public class Server  extends Thread
 			}
 			
 			// only write the all results file every 30 reschedules, saves time
-			if (ServerSettings.Instance().DetailedResults.equalsIgnoreCase("yes") && iter % 30 == 0)
+			if (env.get("DetailedResults").toString().equalsIgnoreCase("yes") && iter % 30 == 0)
 			{
 				log("Generating All Results File...\n");
 				writeHTMLFile(rp.getAllResultsHTML(), "html/results.html");
@@ -165,21 +206,21 @@ public class Server  extends Thread
 		int fps = 24;
 		int minutes = state.frameCount / fpm;
 		int seconds = (state.frameCount / fps) % 60;
-		gui.UpdateRunningStats(	client, 
-								state.selfName, 
-								state.enemyName, 
-								state.mapName, 
-								"" + minutes + ":" + (seconds < 10 ? "0" + seconds : seconds), 
+		gui.UpdateRunningStats(	client,
+								state.selfName,
+								state.enemyName,
+								state.mapName,
+								"" + minutes + ":" + (seconds < 10 ? "0" + seconds : seconds),
 								state.selfWin == 1 ? "Victory" : "");
 	}
 	
 		public synchronized void updateStartingStats(String client, int startingTime)
 	{
-		gui.UpdateRunningStats(	client, 
-								"", 
-								"", 
-								"", 
-								"" + startingTime + "s", 
+		gui.UpdateRunningStats(	client,
+								"",
+								"",
+								"",
+								"" + startingTime + "s",
 								"");
 	}
 
@@ -189,7 +230,7 @@ public class Server  extends Thread
 		
 		try
 		{
-			for (int i = 0; i < clients.size(); i++) 
+			for (int i = 0; i < clients.size(); i++)
 			{
 				if (clients.get(i).getAddress().toString().contains(client))
 				{
@@ -217,7 +258,7 @@ public class Server  extends Thread
 		
 		try
     	{
-	        for (int i = 0; i < clients.size(); i++) 
+	        for (int i = 0; i < clients.size(); i++)
 			{
 	            clients.get(i).sendMessage(message);
 	        }
@@ -230,7 +271,7 @@ public class Server  extends Thread
 		
 	public synchronized void updateStatusTable()
 	{
-		for (int i = 0; i < clients.size(); i++) 
+		for (int i = 0; i < clients.size(); i++)
 		{
 			ServerClientThread c = clients.get(i);
 			
@@ -254,8 +295,8 @@ public class Server  extends Thread
 			if (ins != null)
 			{
 				gameNumber = "" + ins.game_id + " / " + ins.round_id;
-				hostBotName = ins.hostBot.getName();
-				awayBotName = ins.awayBot.getName();
+				hostBotName = ins.hostBot.name;
+				awayBotName = ins.awayBot.name;
 			}
 			
 			if (status.equals("READY"))
@@ -279,11 +320,11 @@ public class Server  extends Thread
 		gui.logText(getTimeStamp() + " " + s);
 	}
 	
-	private synchronized void removeNonFreeClientsFromFreeList() 
+	private synchronized void removeNonFreeClientsFromFreeList()
 	{
-		for (int i = 0; i < free.size(); i++) 
+		for (int i = 0; i < free.size(); i++)
 		{
-            if (free.get(i).getStatus() != ClientStatus.READY) 
+            if (free.get(i).getStatus() != ClientStatus.READY)
 			{
                 free.remove(i);
                 log("AddClient(): Non-Free Client in Free List\n");
@@ -293,16 +334,14 @@ public class Server  extends Thread
 	
 	public synchronized void updateClientStatus(ServerClientThread c)
 	{
-		if (c != null) 
+		if (c != null)
 		{
-            if (!clients.contains(c)) 
+            if (!clients.contains(c))
 			{
                 clients.add(c);
                 log("New Client Added: " + c.toString() + "\n");
-                c.sendChaoslauncherFiles();
-                c.sendTournamentModuleSettings();
             }
-            if (c.getStatus() == ClientStatus.READY && !free.contains(c)) 
+            if (c.getStatus() == ClientStatus.READY && !free.contains(c))
 			{
                 free.add(c);
                 log("Client Ready: " + c.toString() + "\n");
@@ -310,7 +349,7 @@ public class Server  extends Thread
         }
 	}
 	 
-    public synchronized boolean updateClient(ServerClientThread c) 
+    public synchronized boolean updateClient(ServerClientThread c)
 	{
 		// double check to make sure the free list is correct
         removeNonFreeClientsFromFreeList();
@@ -323,14 +362,9 @@ public class Server  extends Thread
         return true;
     }
     
-    public synchronized int getNeededClients(Game game) 
-	{
-		return 2;
-	}
-	
 	private synchronized boolean isAnyGameStarting()
 	{
-		for (int i = 0; i < clients.size(); i++) 
+		for (int i = 0; i < clients.size(); i++)
 		{
 			ServerClientThread c = clients.get(i);
 			
@@ -346,28 +380,20 @@ public class Server  extends Thread
     /**
      * Handles all of the code needed to start a 1v1 game
      */
-    private synchronized void start1v1Game(Game game) throws Exception
-	{	
-		// get the clients and their instructions
-		ServerClientThread hostClient = free.get(0);
-		ServerClientThread awayClient = free.get(1);
-		InstructionMessage hostInstructions = new InstructionMessage(ServerSettings.Instance().bwapi, true, game);
-		InstructionMessage awayInstructions = new InstructionMessage(ServerSettings.Instance().bwapi, false, game);
+    private synchronized void start1v1Game(Game game) throws IOException
+	{
+		// remove the clients from the free list
+		ServerClientThread hostClient = free.remove(0);
+		ServerClientThread awayClient = free.remove(0);
 		
 		// set the clients to starting
         hostClient.setStatus(ClientStatus.STARTING);
 		awayClient.setStatus(ClientStatus.STARTING);
 		
 		// send instructions and files to the host machine
-        hostClient.sendMessage(hostInstructions);
-		hostClient.sendRequiredFiles(hostInstructions.hostBot);
-		hostClient.sendBotFiles(hostInstructions.hostBot);
-		
-		// send instructions and files to the away machine
-		awayClient.sendMessage(awayInstructions);
-		awayClient.sendRequiredFiles(awayInstructions.awayBot);
-		awayClient.sendBotFiles(awayInstructions.awayBot);
-		
+        sendFiles(hostClient, game, true);
+        sendFiles(awayClient, game, false);
+        
 		// start games on those machines
 		hostClient.sendMessage(new StartGameMessage());
 		awayClient.sendMessage(new StartGameMessage());
@@ -376,19 +402,28 @@ public class Server  extends Thread
         game.setStatus(GameStatus.RUNNING);
         game.startTime();
 		
-		// remove the clients from the free list
-        free.remove(hostClient);
-        free.remove(awayClient);
-		
 		updateClientGUI(hostClient);
 		updateClientGUI(awayClient);
     }
     
-    void shutDown() 
+    private void sendFiles(ServerClientThread client, Game game, boolean isHost) throws IOException
+    {
+    	Bot bot = isHost ? game.getHomebot() : game.getAwaybot();
+		
+        client.sendMessage(new InstructionMessage(new BWAPISettings(), isHost, game));
+        client.sendMessage(new FileMessage(env.lookupFile("$"+bot.bwapiVersion), "$starcraft/"));
+        client.sendMessage(new FileMessage(env.lookupFile("$chaoslauncher"), "$chaoslauncher"));
+        client.sendMessage(new FileMessage(env.lookupFile("$bot_dir/"+bot.name), "$starcraft/bwapi-data/"));
+        client.sendMessage(new FileMessage(env.lookupFile("$map_dir/"+game.getMap().path), "$starcraft/maps/"));
+        client.sendMessage(new FileMessage(env.lookupFile("$tm_settings"), "$starcraft/bwapi-data/"));
+        //client.sendMessage(new FileMessage(env.lookupFile("$TournamentModule"), "$starcraft/bwapi-data/"));
+    }
+    
+    void shutDown()
 	{
     	try
     	{
-	        for (int i = 0; i < clients.size(); i++) 
+	        for (int i = 0; i < clients.size(); i++)
 			{
 	            clients.get(i).sendMessage(new ServerShutdownMessage());
 	        }
@@ -403,14 +438,9 @@ public class Server  extends Thread
     	}
     }
 	
-	public void setListener(ServerListenerThread l) 
+    public synchronized void receiveGameResults(Game game)
 	{
-        listener = l;
-    }
-
-    public synchronized void receiveGameResults(Game game) 
-	{
-		try 
+		try
 		{
 			log("Recieving Replay: (" + game.getGameID() + " / " + game.getRound() + ")\n");				// EXCEPTION HERE
 			System.out.println("Recieving Replay: (" + game.getGameID() + " / " + game.getRound() + ")\n");
@@ -422,7 +452,7 @@ public class Server  extends Thread
 		{
 			e.printStackTrace();
 			log("Error Receiving Game Results\n");
-		}	
+		}
     }
 
     public int getClientIndex(ServerClientThread c)
@@ -430,17 +460,17 @@ public class Server  extends Thread
     	return clients.indexOf(c);
     }
     
-    private synchronized void appendGameData(Game game) 
+    private synchronized void appendGameData(Game game)
 	{
     	System.out.println("Writing out replay data for gameID " + game.getGameID());
-        try 
+        try
 		{
-            FileWriter fstream = new FileWriter(ServerSettings.Instance().ResultsFile, true);
+            FileWriter fstream = new FileWriter(env.lookupFile("$ResultsFile"), true);
             BufferedWriter out = new BufferedWriter(fstream);
             out.write(game.getResultString());
             out.close();
-        } 
-		catch (Exception e) 
+        }
+		catch (Exception e)
 		{
 			e.printStackTrace();
         }
@@ -448,20 +478,24 @@ public class Server  extends Thread
     
     
     
-    public int getPort() 
-	{
-        return ServerSettings.Instance().ServerPort;
-    }
-
-    public void setupServer() 
+    public void setupServer()
 	{
 		log("Server: Created, Running Setup...\n");
      	//runCommand("ServerSetup.bat");
-		ServerCommands.Server_InitialSetup();
+		if (System.getProperty("os.name").contains("Windows"))
+		{
+			WindowsCommandTools.RunWindowsCommand("netsh firewall add allowedprogram program = server.jar name = AIIDEServer mode = ENABLE scope = ALL", true, false);
+			WindowsCommandTools.RunWindowsCommand("netsh firewall add portopening TCP 12345 \"Open Port 12345TCP\"", true, false);
+			WindowsCommandTools.RunWindowsCommand("netsh firewall add portopening UDP 12345 \"Open Port 12345UDP\"", true, false);
+			WindowsCommandTools.RunWindowsCommand("netsh firewall add portopening TCP 1337 \"Open Port 1337TCP\"", true, false);
+			WindowsCommandTools.RunWindowsCommand("netsh firewall add portopening UDP 1337 \"Open Port 1337UDP\"", true, false);
+			WindowsCommandTools.RunWindowsCommand("netsh firewall add portopening TCP 11337 \"Open Port 11337TCP\"", true, false);
+			WindowsCommandTools.RunWindowsCommand("netsh firewall add portopening UDP 11337 \"Open Port 11337UDP\"", true, false);
+		}
 		log("Server: Setup Successful. Ready!\n");
     }
 
-    synchronized public void removeClient(ServerClientThread c) 
+    synchronized public void removeClient(ServerClientThread c)
 	{
         this.clients.remove(c);
         this.free.remove(c);
@@ -470,12 +504,12 @@ public class Server  extends Thread
 		updateStatusTable();
     }
 
-    synchronized public void killClient(String ip) 
+    synchronized public void killClient(String ip)
 	{
         System.out.println("Attempting to kill client: " + ip);
-        for (int i = 0; i < clients.size(); i++) 
+        for (int i = 0; i < clients.size(); i++)
 		{
-            if (clients.get(i).getAddress().toString().contentEquals(ip)) 
+            if (clients.get(i).getAddress().toString().contentEquals(ip))
 			{
                 System.out.println("Client Found and Stopped\n");
                 free.remove(clients.get(i));
@@ -512,6 +546,7 @@ class FileCopyThread extends Thread
 		server.log("File Copy Thread Initialized\n");
 	}
 
+	@Override
 	public void run()
 	{
 		server.log("File Copy Thread Started()\n");
@@ -541,12 +576,12 @@ class FileCopyThread extends Thread
 		p.waitFor();
 	}
 	
-	public void copyFile() throws IOException 
+	public void copyFile() throws IOException
 	{
 		File sourceFile = new File(source);
 		File destFile = new File(dest);
 	
-		if(!destFile.exists()) 
+		if(!destFile.exists())
 		{
 			destFile.createNewFile();
 		}
@@ -554,19 +589,19 @@ class FileCopyThread extends Thread
 		FileChannel source = null;
 		FileChannel destination = null;
 
-		try 
+		try
 		{
 			source = new FileInputStream(sourceFile).getChannel();
 			destination = new FileOutputStream(destFile).getChannel();
 			destination.transferFrom(source, 0, source.size());
 		}
-		finally 
+		finally
 		{
-			if(source != null) 
+			if(source != null)
 			{
 				source.close();
 			}
-			if(destination != null) 
+			if(destination != null)
 			{
 				destination.close();
 			}

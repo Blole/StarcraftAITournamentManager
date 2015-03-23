@@ -36,9 +36,19 @@ public class GameStorage
 		return nextGameIndex < allGames.size();
 	}
 	
+	public Game peekNextGame()
+	{
+		return allGames.get(nextGameIndex);
+	}
+	
 	public Game getNextGame()
 	{
 		return allGames.get(nextGameIndex++);
+	}
+	
+	public void advanceToNextGame()
+	{
+		nextGameIndex++;
 	}
 
 	public Game lookupGame(int gameID, int round) 

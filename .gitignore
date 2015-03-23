@@ -6,8 +6,8 @@
 
 client/client.jar
 server/server.jar
+server/required/bots/
 server/replays/
-server/bots/
 server/games.txt
 server/results.txt
 server/winpercentage.txt

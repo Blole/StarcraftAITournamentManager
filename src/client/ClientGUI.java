@@ -58,8 +58,8 @@ public class ClientGUI
 	    {
 	    	public void windowClosing(WindowEvent e) 
 	    	{
-    			int confirmed = JOptionPane.showConfirmDialog(mainFrame, "Shutdown Client: Are you sure?", "Shutdown Confirmation", JOptionPane.YES_NO_OPTION);
-    			if (confirmed == JOptionPane.YES_OPTION)
+    			//int confirmed = JOptionPane.showConfirmDialog(mainFrame, "Shutdown Client: Are you sure?", "Shutdown Confirmation", JOptionPane.YES_NO_OPTION);
+	    		//if (confirmed == JOptionPane.YES_OPTION)
     			{
 					shutDown();
     			}     

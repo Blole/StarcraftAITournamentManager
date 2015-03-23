@@ -1,33 +1,46 @@
 
 package server;
 
-import java.awt.*;
-
-import javax.swing.*;
-
 import java.awt.Color;
-
-import javax.swing.table.*;
-
-import objects.Bot;
-import utility.FileUtils;
-import utility.GameListGenerator;
-import utility.ResultsParser;
-
-import java.awt.event.*;
+import java.awt.Component;
+import java.awt.GridLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 
-public class ServerGUI 
+import javax.swing.JFrame;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JSpinner;
+import javax.swing.JTable;
+import javax.swing.JTextArea;
+import javax.swing.SpinnerNumberModel;
+import javax.swing.table.DefaultTableCellRenderer;
+import javax.swing.table.DefaultTableModel;
+
+import objects.Bot;
+import utility.FileUtils;
+import utility.GameListGenerator;
+import utility.ResultsParser;
+
+public class ServerGUI
 {
 	Server		server;
 	
     private 	JFrame		mainFrame;
     private 	JTable		mainTable;
-    private 	JTextArea	bottomText;	
+    private 	JTextArea	bottomText;
     private 	JPanel		bottomPanel;
     private 	JMenuBar	menuBar;
     private 	JMenu		fileMenu;
@@ -37,7 +50,7 @@ public class ServerGUI
     private 	JMenuItem	sendClientCommandMenuItem;
     private		JMenuItem	viewClientScreenMenuItem;
     
-    private String [] 		columnNames = {"Client", "Status", "Game #", "Self", "Enemy", "Map", "Duration", "Win"};	
+    private String [] 		columnNames = {"Client", "Status", "Game #", "Self", "Enemy", "Map", "Duration", "Win"};
 	private Object [][] 	data = 	{ };
 
 	private boolean resumedTournament = false;
@@ -71,16 +84,17 @@ public class ServerGUI
         menuBar.add(actionsMenu);
         
         generateResultsMenuItem = new JMenuItem("Generate Detailed Results HTML", KeyEvent.VK_G);
-        generateResultsMenuItem.addActionListener(new ActionListener() 
+        generateResultsMenuItem.addActionListener(new ActionListener()
         {
-            public void actionPerformed(ActionEvent e) 
+            @Override
+			public void actionPerformed(ActionEvent e)
             {
             	int confirmed = JOptionPane.showConfirmDialog(mainFrame, "Generate Detailed Results? This may take a while for large files.", "Detailed Results Confirmation", JOptionPane.YES_NO_OPTION);
     			if (confirmed == JOptionPane.YES_OPTION)
     			{
     				try
     				{
-    					ResultsParser rp = new ResultsParser(ServerSettings.Instance().ResultsFile);
+    					ResultsParser rp = new ResultsParser(server.env.get("ResultsFile"));
     					logText(getTimeStamp() + " Generating All Results File...\n");
     					writeHTMLFile(rp.getAllResultsHTML(), "html/results.html");
     					logText(getTimeStamp() + " Generating All Results File Complete!\n");
@@ -89,36 +103,38 @@ public class ServerGUI
     				{
     					logText(getTimeStamp() + " Generating results failed :(\n");
     				}
-    			}   
+    			}
             }
         });
         actionsMenu.add(generateResultsMenuItem);
 
         exitMenuItem = new JMenuItem("Quit Server", KeyEvent.VK_Q);
-        exitMenuItem.addActionListener(new ActionListener() 
+        exitMenuItem.addActionListener(new ActionListener()
         {
-            public void actionPerformed(ActionEvent e) 
+            @Override
+			public void actionPerformed(ActionEvent e)
             {
-            	int confirmed = JOptionPane.showConfirmDialog(mainFrame, "Shutdown Server: This will stop the entire tournament.", "Shutdown Confirmation", JOptionPane.YES_NO_OPTION);
-    			if (confirmed == JOptionPane.YES_OPTION)
+            	//int confirmed = JOptionPane.showConfirmDialog(mainFrame, "Shutdown Server: This will stop the entire tournament.", "Shutdown Confirmation", JOptionPane.YES_NO_OPTION);
+    			//if (confirmed == JOptionPane.YES_OPTION)
     			{
     				server.shutDown();
-    			}   
+    			}
             }
         });
         fileMenu.add(exitMenuItem);
         
         sendClientCommandMenuItem = new JMenuItem("Send Command to all Clients", KeyEvent.VK_C);
-        sendClientCommandMenuItem.addActionListener(new ActionListener() 
+        sendClientCommandMenuItem.addActionListener(new ActionListener()
         {
-            public void actionPerformed(ActionEvent e) 
+            @Override
+			public void actionPerformed(ActionEvent e)
             {
-            	String command = (String)JOptionPane.showInputDialog(mainFrame, 
+            	String command = (String)JOptionPane.showInputDialog(mainFrame,
             				"Enter Windows command to be executed on all Client machines.\n\n"
             				+ "Will run as if typed into the client's Windows command line.\n\n"
             				+ "Execution is asynchronous to client, no error on failure.\n\n"
             				+ "Example:     notepad.exe\n"
-            				+ "Example:     taskkill /im notepad.exe\n\n", 
+            				+ "Example:     taskkill /im notepad.exe\n\n",
             				"Send Command to Clients", JOptionPane.PLAIN_MESSAGE, null, null, "");
             	
             	if (command != null && command.trim().length() > 0)
@@ -130,11 +146,12 @@ public class ServerGUI
         actionsMenu.add(sendClientCommandMenuItem);
         
         viewClientScreenMenuItem = new JMenuItem("Take Client Screenshot", KeyEvent.VK_S);
-        viewClientScreenMenuItem.addActionListener(new ActionListener() 
+        viewClientScreenMenuItem.addActionListener(new ActionListener()
         {
-            public void actionPerformed(ActionEvent e) 
+            @Override
+			public void actionPerformed(ActionEvent e)
             {
-            	String client = (String)JOptionPane.showInputDialog(mainFrame, 
+            	String client = (String)JOptionPane.showInputDialog(mainFrame,
         				"Enter Address of Client\n\n"
         				+ "Will match if substring of address in client window\n\n"
         				+ "If multiple match, multiple will display\n\n"
@@ -144,7 +161,7 @@ public class ServerGUI
             	if (client != null && client.trim().length() > 0)
             	{
             		server.sendScreenshotRequestToClient(client);
-            	} 
+            	}
             }
         });
         actionsMenu.add(viewClientScreenMenuItem);
@@ -160,15 +177,16 @@ public class ServerGUI
 	    
 	    
 	    
-	    mainFrame.addWindowListener(new WindowAdapter() 
+	    mainFrame.addWindowListener(new WindowAdapter()
 	    {
-	    	public void windowClosing(WindowEvent e) 
+	    	@Override
+			public void windowClosing(WindowEvent e)
 	    	{
-    			int confirmed = JOptionPane.showConfirmDialog(mainFrame, "Shutdown Server: Are you sure?", "Shutdown Confirmation", JOptionPane.YES_NO_OPTION);
-    			if (confirmed == JOptionPane.YES_OPTION)
+    			//int confirmed = JOptionPane.showConfirmDialog(mainFrame, "Shutdown Server: Are you sure?", "Shutdown Confirmation", JOptionPane.YES_NO_OPTION);
+    			//if (confirmed == JOptionPane.YES_OPTION)
     			{
     				server.shutDown();
-    			}     
+    			}
             }
 	    });
 	}
@@ -201,11 +219,12 @@ public class ServerGUI
 	public boolean handleTournamentResume()
 	{
 		int resumeTournament = JOptionPane.NO_OPTION;
-		ResultsParser rp = new ResultsParser(ServerSettings.Instance().ResultsFile);
+		String resultsFile = server.env.get("ResultsFile");
+		ResultsParser rp = new ResultsParser(resultsFile);
 		
 		if (rp.numResults() > 0)
 		{
-			resumeTournament = JOptionPane.showConfirmDialog(mainFrame, "Results found in " + ServerSettings.Instance().ResultsFile + ", resume tournament from games list in " + ServerSettings.Instance().GamesListFile + " ?" , "Resume Tournament Confirmation", JOptionPane.YES_NO_OPTION);
+			resumeTournament = JOptionPane.showConfirmDialog(mainFrame, "Results found in " + resultsFile + ", resume tournament from games list in " + server.env.get("GamesListFile") + " ?" , "Resume Tournament Confirmation", JOptionPane.YES_NO_OPTION);
 		}
 			
 		if (resumeTournament == JOptionPane.YES_OPTION)
@@ -221,11 +240,11 @@ public class ServerGUI
 		try
 		{
 			int resClear = JOptionPane.NO_OPTION;
-			if (ServerSettings.Instance().ClearResults.equalsIgnoreCase("ask"))
+			if (server.env.get("ClearResults", String.class).equalsIgnoreCase("ask"))
 			{
 				resClear = JOptionPane.showConfirmDialog(mainFrame, "Clear existing tournament data?\nThis will clear all existing results, replays and bot read/write folders.", "Clear Tournament Data", JOptionPane.YES_NO_OPTION);
 			}
-			else if (ServerSettings.Instance().ClearResults.equalsIgnoreCase("yes"))
+			else if (server.env.get("ClearResults", String.class).equalsIgnoreCase("yes"))
 			{
 				resClear = JOptionPane.YES_OPTION;
 			}
@@ -237,7 +256,7 @@ public class ServerGUI
 			if (resClear == JOptionPane.YES_OPTION)
 			{
 				logText(getTimeStamp() + " Clearing Results File\n");
-				File resultsFile = new File(ServerSettings.Instance().ResultsFile);
+				File resultsFile = server.env.lookupFile("$ResultsFile");
 				if (resultsFile.exists())
 				{
 					resultsFile.delete();
@@ -248,17 +267,15 @@ public class ServerGUI
 				//fos.close();
 				
 				logText(getTimeStamp() + " Clearing Bot Read / Write Directories\n");
-    			for (Bot b : ServerSettings.Instance().BotVector)
+				Iterable<Bot> bots = server.env.get("bots");
+    			for (Bot bot : bots)
     			{
-    				String botRead = b.getServerDir() + "read/";
-    				String botWrite = b.getServerDir() + "write/";
-    				
-    				FileUtils.CleanDirectory(new File(botRead)); 
-    				FileUtils.CleanDirectory(new File(botWrite)); 
+    				FileUtils.CleanDirectory(bot.getReadDir(server.env));
+    				FileUtils.CleanDirectory(bot.getWriteDir(server.env));
     			}
     			
     			logText(getTimeStamp() + " Clearing Replay Directory\n");
-    			FileUtils.CleanDirectory(new File(ServerSettings.Instance().ServerReplayDir)); 
+    			FileUtils.CleanDirectory(server.env.lookupFile("$replays/"));
 			}
 		}
 		catch (Exception e)
@@ -270,7 +287,8 @@ public class ServerGUI
 	private void handleNoGamesFile()
 	{
 		// if the games list file doesn't exist
-		if (!new File(ServerSettings.Instance().GamesListFile).exists())
+		File gameslist = server.env.lookupFile("$GamesListFile");
+		if (!gameslist.exists())
 		{
 			int generate = JOptionPane.showConfirmDialog(mainFrame, "No games list was found.\nGenerate a new round robin games list file?", "Generate Games List?", JOptionPane.YES_NO_OPTION);
 			
@@ -280,12 +298,16 @@ public class ServerGUI
 				JSpinner spinner = new JSpinner(sModel);
 	
 				JOptionPane.showOptionDialog(mainFrame, spinner, "Enter Number of Rounds Per Map:", JOptionPane.PLAIN_MESSAGE, JOptionPane.QUESTION_MESSAGE, null, null, null);
-				GameListGenerator.GenerateGames(Integer.parseInt("" + spinner.getValue()), ServerSettings.Instance().MapVector, ServerSettings.Instance().BotVector);
+				GameListGenerator.GenerateGames(Integer.parseInt("" + spinner.getValue()), server.env.get("maps"), server.env.get("bots"));
 			
 				logText(getTimeStamp() + " " + "Generating Round Robin Tournament With " + spinner.getValue() + " Rounds.\n");
 			}
 
-			if (!new File(ServerSettings.Instance().GamesListFile).exists()) { System.err.println("ServerSettings: GamesListFile (" + ServerSettings.Instance().GamesListFile + ") does not exist"); System.exit(-1); }
+			if (!gameslist.exists())
+			{
+				System.err.printf("ServerSettings: GamesListFile (%s) does not exist\n", gameslist.getAbsolutePath());
+				System.exit(-1);
+			}
 		}
 	}
 	
@@ -429,6 +451,7 @@ public class ServerGUI
 	{
 		private static final long serialVersionUID = -6642925623417572930L;
 
+		@Override
 		public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column)
 		{
 			Component cell = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
@@ -451,7 +474,7 @@ public class ServerGUI
 			{
 				cell.setBackground(Color.orange);
 			}
-			else 
+			else
 			{
 				 //this shouldn't happen
 				cell.setBackground(Color.red);

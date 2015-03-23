@@ -9,14 +9,14 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 
-public class FileUtils 
+public class FileUtils
 {
 
-	private static void DeleteRecursive(File f) 
+	private static void DeleteRecursive(File f)
 	{
 		try
 		{
-			if (f.isDirectory()) 
+			if (f.isDirectory())
 			{
 				for (File c : f.listFiles())
 				{
@@ -32,7 +32,7 @@ public class FileUtils
 		}
 	}
 	
-	public static void CleanDirectory(File f) 
+	public static void CleanDirectory(File f)
 	{
 		try
 		{
@@ -47,7 +47,7 @@ public class FileUtils
 		}
 	}
 	
-	public static void DeleteDirectory(File f) 
+	public static void DeleteDirectory(File f)
 	{
 		DeleteRecursive(f);
 	}
@@ -69,16 +69,14 @@ public class FileUtils
 		}
 	}
 	
-	public static void CopyDirectory(String source, String dest)
+	public static boolean CopyDirectory(File src, File dst)
 	{
 		try
 		{
-			File sourceDir = new File(source);
-			File destDir = new File(dest);	
-			destDir.mkdirs();
+			dst.mkdirs();
 			
-			Path destPath = destDir.toPath();
-			for (File sourceFile : sourceDir.listFiles()) 
+			Path destPath = dst.toPath();
+			for (File sourceFile : src.listFiles())
 			{
 			    Path sourcePath = sourceFile.toPath();
 			    File newFile = new File(sourcePath.toString());
@@ -86,7 +84,7 @@ public class FileUtils
 			    if (newFile.isDirectory())
 			    {
 			    	newFile.mkdirs();
-			    	CopyDirectory(sourceFile.toString(), destPath.resolve(sourcePath.getFileName()).toString());
+			    	CopyDirectory(sourceFile, destPath.resolve(sourcePath.getFileName()).toFile());
 			    }
 			    else
 			    {
@@ -97,7 +95,10 @@ public class FileUtils
 		catch (Exception e)
 		{
 			e.printStackTrace();
+			return false;
 		}
+		
+		return true;
 	}
 	
 	public static void CopyFilesInDirectory(File source, File dest)
@@ -112,15 +113,15 @@ public class FileUtils
 		}
 	}
 
-	private static void copy(InputStream in, OutputStream out) 
+	private static void copy(InputStream in, OutputStream out)
 	{
 		try
 		{
 			byte[] buffer = new byte[1024];
-			while (true) 
+			while (true)
 			{
 				int readCount = in.read(buffer);
-				if (readCount < 0) 
+				if (readCount < 0)
 				{
 					break;
 				}

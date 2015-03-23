@@ -5,7 +5,8 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
 
-import objects.*;
+import objects.ClientStatus;
+import objects.Message;
 
 public class ClientListenerThread extends Thread
 {
@@ -16,14 +17,14 @@ public class ClientListenerThread extends Thread
 	
 	public boolean connected = false;
 
-	public ClientListenerThread(Client client) 
+	public ClientListenerThread(Client client)
 	{
 		this.client = client;
 	}
 
 	private void setupSocket()
 	{
-		String temp = client.getServer();
+		String temp = client.env.get("ServerAddress");
 		int port = Integer.parseInt(temp.substring(temp.indexOf(':') + 1));
 		String address = temp.substring(0, temp.indexOf(':'));
 		
@@ -31,15 +32,15 @@ public class ClientListenerThread extends Thread
 		
 		while(true)
 		{
-			try 
+			try
 			{
 				Client.updateFunc("Connecting");
 				socket = new Socket(address, port);
 				socket.setKeepAlive(true);
 				connected = true;
 				break;
-			} 
-			catch (Exception e) 
+			}
+			catch (Exception e)
 			{
 				Client.log("Couldn't connect to server, trying again in 5 seconds.\n");
 				connected = false;
@@ -51,7 +52,7 @@ public class ClientListenerThread extends Thread
 	
 	private void setupStreams()
 	{
-		try 
+		try
 		{
 			ois = new ObjectInputStream(socket.getInputStream());
 			oos = new ObjectOutputStream(socket.getOutputStream());
@@ -67,6 +68,7 @@ public class ClientListenerThread extends Thread
 		return "" + socket.getInetAddress();
 	}
 	
+	@Override
 	public void run()
 	{
 		setupSocket();
@@ -74,16 +76,16 @@ public class ClientListenerThread extends Thread
 
 		client.setStatus(ClientStatus.READY);
 		
-		while (true) 
+		while (true)
 		{
-			try 
+			try
 			{
 				//Client.log("CListner: Waiting for Message...\n");
 				Message m = (Message) ois.readObject();
 				Client.log("CListner: Message recieved: " + m.toString() + "\n");
 				client.receiveMessage(m);
-			} 
-			catch (Exception e1) 
+			}
+			catch (Exception e1)
 			{
 				connected = false;
 				Client.log("Server disconnected, shutting down...\n");
@@ -91,18 +93,19 @@ public class ClientListenerThread extends Thread
 				e1.printStackTrace();
 				client.shutDown();
 			}
-		}	
+		}
 	}
 
-	public void sendMessageToServer(Message m)
+	public void sendMessageToServer(Message msg)
 	{
-		try 
+		Client.log(msg+" sending\n");
+		try
 		{
-			oos.writeObject(m);
+			oos.writeObject(msg);
 			oos.flush();
 			oos.reset();
 		}
-		catch (IOException e) 
+		catch (IOException e)
 		{
 			System.err.println("sendMessageToServer() exception");
 			e.printStackTrace();

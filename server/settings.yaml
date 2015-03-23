@@ -1,0 +1,46 @@
+chaoslauncher:  required/Chaoslauncher.zip
+BWAPI_374:      required/Required_BWAPI_374.zip
+BWAPI_401B:     required/Required_BWAPI_401B.zip
+bot_dir:        required/bots/
+map_dir:        required/maps/
+tm_settings:    required/tm_settings.zip
+
+replays:        replays/
+
+bots:
+  - !!objects.Bot [Aiur       , Protoss, dll, BWAPI_374]
+  - !!objects.Bot [Bonjwa     , Terran , dll, BWAPI_374]
+
+maps:
+  - !!objects.Map aiide/(2)Benzene.zip
+
+# SERVER PORT - Port to listen for clients on
+port: 1337
+
+# Games List File - Tournament games to be played
+GamesListFile: games.txt
+
+# Results File - Tournament results file
+ResultsFile: results.txt
+
+#################################################################
+# Auto Generate Detailed Results every 1 minute?
+# Syntax - DetailedResults [yes/no]
+# Note - Generating detailed results gets very slow for large
+#        tournaments, so default is no. You can manually
+#        generate the results from the Actions menu in the
+#        serever, which is recommended
+#################################################################
+DetailedResults: no
+
+#################################################################
+# Clear Existing Results - Clear results on server start?
+# Syntax - ClearResultsFile [yes|no|ask]
+#################################################################
+ClearResults: ask
+
+#################################################################
+# Resume Tournament - Resume tournament if results exist?
+# Syntax - ClearResultsFile [yes|no|ask]
+#################################################################
+ResumeTournament: ask

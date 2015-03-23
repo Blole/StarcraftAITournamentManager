@@ -2,32 +2,21 @@ package objects;
 
 import java.io.File;
 
-public class Map{
-
-	private String mapName;
-
-	private String mapLocation;
-
-	public Map(String mapLocation) 
+public class Map
+{
+	public final String name;
+	public final String path;
+	
+	
+	public Map(String path)
 	{
-		this.mapLocation = mapLocation;
-		
-		File f = new File(mapLocation);
-		mapName = f.getName();
+		this.path = path;
+		this.name = new File(path).getName();
 	}
 
-	public String getMapName() 
+	@Override
+	public String toString()
 	{
-		return mapName;
-	}
-
-	public String getMapLocation() 
-	{
-		return mapLocation;
-	}
-
-	public void print() 
-	{
-		System.out.println(this.mapName + " -> " + this.mapLocation);
+		return name;
 	}
 }

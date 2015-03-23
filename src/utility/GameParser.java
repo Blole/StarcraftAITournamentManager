@@ -1,27 +1,30 @@
 package utility;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
-import java.io.File;
-import java.util.Vector;
+import java.util.ArrayList;
 
-import objects.*;
-import server.ServerSettings;
+import objects.Bot;
+import objects.Game;
+import objects.GameStorage;
+import objects.Map;
+import server.Server;
 
-public class GameParser 
+public class GameParser
 {
 	private static GameStorage games;
-	private static Vector<Bot> bots;
-	private static Vector<Map> maps;
+	private static ArrayList<Bot> bots;
+	private static ArrayList<Map> maps;
 
-	public static GameStorage getGames(Vector<Bot> p_bots, Vector<Map> p_maps)
+	public static GameStorage getGames(ArrayList<Bot> bots, ArrayList<Map> maps)
 	{
+		GameParser.bots = bots;
+		GameParser.maps = maps;
 		try
 		{
-			maps = p_maps;
-			bots = p_bots;
 			parse();
 		}
 		catch (Exception e)
@@ -34,43 +37,41 @@ public class GameParser
 		return games;
 	}
 
-	private static void parse() throws NumberFormatException, Exception 
+	private static void parse() throws NumberFormatException, Exception
 	{
 		games = new GameStorage();
-		try 
+		try
 		{
-		
-			if (!new File(ServerSettings.Instance().GamesListFile).exists())
+			File gameslist = Server.Instance().env.lookupFile("$GamesListFile");
+			if (gameslist.exists())
 			{
-				return;
+				BufferedReader br = new BufferedReader(new FileReader(gameslist));
+				parseGames(br);
+				br.close();
 			}
-		
-			BufferedReader br = new BufferedReader(new FileReader(ServerSettings.Instance().GamesListFile));
-			parseGames(br);
-			br.close();
-		} 
-		catch (FileNotFoundException e) 
+		}
+		catch (FileNotFoundException e)
 		{
 			System.out.println("Could not read settings file");
 			e.printStackTrace();
-		} 
-		catch (IOException e) 
+		}
+		catch (IOException e)
 		{
 			System.out.println("IOException while reading settings.ini");
 			e.printStackTrace();
 		}
 	}
 	
-	private static void parseGames(BufferedReader br) throws NumberFormatException, Exception 
+	private static void parseGames(BufferedReader br) throws NumberFormatException, Exception
 	{
 		String line;
-		while ((line = br.readLine()) != null) 
+		while ((line = br.readLine()) != null)
 		{
 			line = line.trim();
 			if (!line.startsWith("#") && line.length() > 0)
 			{
 				String[] args = line.split("\\s+");
-				Game newGame = new Game(Integer.parseInt(args[0]), Integer.parseInt(args[1]), findBot(args[2]), findBot(args[3]), findMap(args[4])); 
+				Game newGame = new Game(Integer.parseInt(args[0]), Integer.parseInt(args[1]), findBot(args[2]), findBot(args[3]), findMap(args[4]));
 				games.addGame(newGame, newGame.getRound());
 			}
 		}
@@ -78,27 +79,27 @@ public class GameParser
 	
 	private static Bot findBot(String name) throws Exception
 	{
-		for(Bot b : bots)
+		for(Bot bot : bots)
 		{
-			if(b.getName().equals(name))
+			if(bot.name.equals(name))
 			{
-				return b;
+				return bot;
 			}
 		}
 		
-		throw new Exception("Bot not found!!\n Was looking for \"" + name + "\"");
+		throw new Exception("Bot '" + name + "' not found!");
 	}
 	
 	private static Map findMap(String name) throws Exception
 	{
-		for (Map m : maps)
+		for (Map map : maps)
 		{
-			if (m.getMapName().equals(name))
+			if (map.name.equals(name))
 			{
-				return m;
+				return map;
 			}
 		}
 		
-		throw new Exception("Map not found!!\n Was looking for\"" + name + "\"");
+		throw new Exception("Map '" + name + "' not found!");
 	}
 }

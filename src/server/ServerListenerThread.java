@@ -3,42 +3,42 @@ package server;
 import java.net.Inet4Address;
 import java.net.ServerSocket;
 
-import server.ServerClientThread;
-
-class ServerListenerThread extends Thread 
+class ServerListenerThread extends Thread
 {
 	private ServerSocket 	serverSocket = null;
 	private Server 			server;
 
-	ServerListenerThread(Server s) 
+	ServerListenerThread(Server server)
 	{
-		server = s;
+		this.server = server;
+		int port = server.env.get("port");
 		
-		try 
+		try
 		{
-			serverSocket = new ServerSocket(server.getPort());
-			server.log("Server: Server address " + Inet4Address.getLocalHost().getHostAddress() + " Listening on port " + server.getPort() + "\n");
-		} 
-		catch (Exception e) 
+			serverSocket = new ServerSocket(port);
+			server.log("Server: Server address " + Inet4Address.getLocalHost().getHostAddress() + " Listening on port " + port + "\n");
+		}
+		catch (Exception e)
 		{
-			System.out.println("Listener: Could not listen on port " + server.getPort());
+			System.out.println("Listener: Could not listen on port " + port);
 			System.exit(-1);
 		}
 	}
 
-	public void run() 
+	@Override
+	public void run()
 	{
-		while (true) 
+		while (true)
 		{
 			ServerClientThread c = null;
-			try 
+			try
 			{
 				c = new ServerClientThread(serverSocket.accept(), server);
 				server.log("Listener: New client connected\n");
 				c.start();
 				server.log("Listener: New client thread started\n");
-			} 
-			catch (Exception e) 
+			}
+			catch (Exception e)
 			{
 				System.out.println("Listener: Error in run() main loop");
 				e.printStackTrace();
@@ -48,18 +48,19 @@ class ServerListenerThread extends Thread
 		
 	}
 
-	synchronized void stopThread() 
+	synchronized void stopThread()
 	{
 		this.interrupt();
 	}
 
-	protected void finalize() 
+	@Override
+	protected void finalize()
 	{
-		try 
+		try
 		{
 			serverSocket.close();
-		} 
-		catch (Exception e) 
+		}
+		catch (Exception e)
 		{
 			System.out.println("Listener: Could not close.");
 			e.printStackTrace();

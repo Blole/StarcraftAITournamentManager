@@ -11,8 +11,14 @@ import java.net.Socket;
 import java.net.SocketException;
 
 import javax.imageio.ImageIO;
-import objects.*;
-import server.Server;
+
+import objects.ClientStatus;
+import objects.ClientStatusMessage;
+import objects.FileMessage;
+import objects.ImageWindow;
+import objects.InstructionMessage;
+import objects.Message;
+import objects.ScreenshotMessage;
 
 public class ServerClientThread extends Thread implements Comparable<ServerClientThread>
 {
@@ -29,7 +35,7 @@ public class ServerClientThread extends Thread implements Comparable<ServerClien
 	
 	ImageWindow					imageWindow;
 
-	public ServerClientThread(Socket con, Server man) throws SocketException 
+	public ServerClientThread(Socket con, Server man) throws SocketException
 	{
 		address = con.getInetAddress();
 		this.con = con;
@@ -38,18 +44,19 @@ public class ServerClientThread extends Thread implements Comparable<ServerClien
 		status = ClientStatus.READY;
 	}
 
-	public void run() 
+	@Override
+	public void run()
 	{
 		setupConnectionStreams();
 
 		while (run)
 		{
-			try 
+			try
 			{
 				Message m = (Message) ois.readObject();
 				handleClientMessage(m);
 			}
-			catch (Exception e) 
+			catch (Exception e)
 			{
 				server.log("Excpetion in ManagerClientThread, removing client\n");
 				e.printStackTrace();
@@ -61,56 +68,42 @@ public class ServerClientThread extends Thread implements Comparable<ServerClien
 	
 	private void setupConnectionStreams()
 	{
-		try 
+		try
 		{
 			oos = new ObjectOutputStream(con.getOutputStream());
 			ois = new ObjectInputStream(con.getInputStream());
-		} 
-		catch (Exception e) 
+		}
+		catch (Exception e)
 		{
 			server.log("ManagerClientThread Object Streams could not initialize\n");
 			e.printStackTrace();
 		}
 	}
 	
-	private void handleClientMessage(Message m) throws Exception
+	private void handleClientMessage(Message msg) throws IOException
 	{
-		if (m != null) 
+		if (msg != null)
 		{
-			if (m instanceof ClientStatusMessage)
-			{
-				updateClientStatus((ClientStatusMessage)m);
-			}
-			else if (m instanceof DataMessage)
-			{
-				DataMessage dm = (DataMessage)m;
-				
-				if (dm.type == DataType.REPLAY)
-				{
-					server.log("Message from Client " + server.getClientIndex(this) + " : " + m.toString() + "\n");
-					dm.write(ServerSettings.Instance().ServerReplayDir);
-				}
-				else if (dm.type == DataType.WRITE_DIR)
-				{
-					dm.write(ServerSettings.Instance().ServerBotDir + dm.botName + "\\write");
-				}
-				else if (dm.type == DataType.SCREENSHOT)
-				{
-					InputStream in = new ByteArrayInputStream(dm.getRawData());
-					BufferedImage screenshot = ImageIO.read(in);
-					
-					if (imageWindow == null)
-					{
-						imageWindow = new ImageWindow(this.getAddress().toString(), screenshot);					
-					}
-					else
-					{
-						imageWindow.refresh(screenshot);
-					}
-				
-				}
-			}
+			server.log(msg+" received from client "+server.getClientIndex(this)+"\n");
 			
+			if (msg instanceof ClientStatusMessage)
+			{
+				updateClientStatus((ClientStatusMessage)msg);
+			}
+			else if (msg instanceof FileMessage)
+			{
+				((FileMessage) msg).write(server.env);
+			}
+			else if (msg instanceof ScreenshotMessage)
+			{
+				InputStream in = new ByteArrayInputStream(((ScreenshotMessage) msg).data);
+				BufferedImage screenshot = ImageIO.read(in);
+				
+				if (imageWindow == null)
+					imageWindow = new ImageWindow(this.getAddress().toString(), screenshot);
+				else
+					imageWindow.refresh(screenshot);
+			}
 		}
 	}
 	
@@ -122,7 +115,7 @@ public class ServerClientThread extends Thread implements Comparable<ServerClien
 		// if the status is sending, grab the replay
 		if (status == ClientStatus.SENDING)
 		{
-			server.receiveGameResults(m.game); 
+			server.receiveGameResults(m.game);
 		}
 		
 		if (m.status == ClientStatus.RUNNING && m.gameState != null)
@@ -136,9 +129,9 @@ public class ServerClientThread extends Thread implements Comparable<ServerClien
 		}
 	}
 
-	public synchronized void sendMessage(Message m) throws Exception
+	public synchronized void sendMessage(Message m) throws IOException
 	{
-		server.log("Sending Message to Client " + server.getClientIndex(this) + " : " + m.toString() + "\n");
+		server.log(m+" sending to Client " + server.getClientIndex(this) + "\n");
 		
 		oos.writeObject(m);
 		oos.flush();
@@ -150,85 +143,31 @@ public class ServerClientThread extends Thread implements Comparable<ServerClien
 		}
 	}
 	
-	public void sendChaoslauncherFiles()
-	{
-		try
-		{
-			Message m = new DataMessage(DataType.CHAOSLAUNCHER, ServerSettings.Instance().ServerRequiredDir + "Chaoslauncher.zip");
-			sendMessage(m);
-		}
-		catch (Exception e)
-		{
-			e.printStackTrace();
-			System.exit(-1);
-		}
-	}
-	
-	public void sendTournamentModuleSettings()
-	{
-		try
-		{
-			sendMessage(ServerSettings.Instance().tmSettings);
-		}
-		catch (Exception e)
-		{
-			e.printStackTrace();
-			System.exit(-1);
-		}
-	}
-	
-	public void sendBotFiles(Bot bot)
-	{
-		try
-		{
-			Message m = new DataMessage(DataType.BOT_DIR, bot.getName(), ServerSettings.Instance().ServerBotDir + bot.getName());
-			sendMessage(m);
-		}
-		catch (Exception e)
-		{
-			e.printStackTrace();
-			System.exit(-1);
-		}
-	}
-	
-	public void sendRequiredFiles(Bot bot)
-	{
-		try
-		{
-			Message m = new DataMessage(DataType.REQUIRED_DIR, ServerSettings.Instance().ServerRequiredDir + "Required_" + bot.getBWAPIVersion() + ".zip");
-			sendMessage(m);
-		}
-		catch (Exception e)
-		{
-			e.printStackTrace();
-			System.exit(-1);
-		}
-	}
-	
+	@Override
 	public String toString()
 	{
-		return "" + this.getAddress().toString().replaceAll("/", "");
+		return getAddress().toString().replaceAll("/", "");
 	}
 	
-	public synchronized InetAddress getAddress() 
+	public synchronized InetAddress getAddress()
 	{
 		return address;
 	}
 
-	public synchronized ClientStatus getStatus() 
+	public synchronized ClientStatus getStatus()
 	{
 		return status;
 	}
 
-	public void stopThread() 
+	public void stopThread()
 	{
-		this.interrupt();
-		try 
+		interrupt();
+		try
 		{
-			this.con.close();
-		} 
-		catch 
-		(IOException e) 
+			con.close();
+		}
+		catch
+		(IOException e)
 		{
 			e.printStackTrace();
 		}
@@ -236,14 +175,14 @@ public class ServerClientThread extends Thread implements Comparable<ServerClien
 		run = false;
 	}
 
-	public synchronized void setStatus(ClientStatus status) 
+	public synchronized void setStatus(ClientStatus status)
 	{
 		this.status = status;
 	}
 
 	@Override
-	public int compareTo(ServerClientThread arg0) 
+	public int compareTo(ServerClientThread arg0)
 	{
-		return this.address.equals((arg0).getAddress()) ? 0 : 1;
+		return address.equals((arg0).getAddress()) ? 0 : 1;
 	}
 }

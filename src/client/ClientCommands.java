@@ -1,15 +1,20 @@
 package client;
 
-import java.io.*;
-import java.util.*;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.util.Vector;
 
-import objects.*;
+import objects.BWAPISettings;
+import objects.Bot;
+import objects.Environment;
+import objects.InstructionMessage;
 import utility.FileUtils;
 import utility.WindowsCommandTools;
 
 public class ClientCommands
 {
-	public static void Client_InitialSetup()
+	public static void Client_InitialSetup(Environment env)
 	{
 		Client.log("      Client_InitialSetup()\n");
 		
@@ -17,7 +22,7 @@ public class ClientCommands
 		Client_KillStarcraftAndChaoslauncher();
 		
 		// Set up local firewall access
-		WindowsCommandTools.RunWindowsCommand("netsh firewall add allowedprogram program = " + ClientSettings.Instance().ClientStarcraftDir + "starcraft.exe name = Starcraft mode = ENABLE scope = ALL", true, false);
+		WindowsCommandTools.RunWindowsCommand("netsh firewall add allowedprogram program = " + env.get("starcraft") + "starcraft.exe name = Starcraft mode = ENABLE scope = ALL", true, false);
 		WindowsCommandTools.RunWindowsCommand("netsh firewall add allowedprogram program = client.jar name = AIIDEClient mode = ENABLE scope = ALL", true, false);
 		WindowsCommandTools.RunWindowsCommand("netsh firewall add portopening TCP 12345 \"Open Port 12345TCP\"", true, false);
 		WindowsCommandTools.RunWindowsCommand("netsh firewall add portopening UDP 12345 \"Open Port 12345UDP\"", true, false);
@@ -26,39 +31,39 @@ public class ClientCommands
 		//WindowsCommandTools.RunWindowsCommand("rmdir /S /Q " + ClientSettings.Instance().ClientStarcraftDir + "SentReplays", true, false);
 		//WindowsCommandTools.RunWindowsCommand("mkdir " + ClientSettings.Instance().ClientStarcraftDir + "SentReplays", true, false);
 		
-		FileUtils.CleanDirectory(new File(ClientSettings.Instance().ClientStarcraftDir + "SentReplays"));
+		FileUtils.CleanDirectory(new File(env.get("starcraft") + "SentReplays"));
 		
 		// Delete the old Chaoslauncher folder just in case
-		Client_DeleteChaoslauncherDirectory();
+		Client_DeleteChaoslauncherDirectory(env);
 		
 		// Clean the Starcraft directory of old files and folders
-		Client_CleanStarcraftDirectory();
+		Client_CleanStarcraftDirectory(env);
 	}
 		
-	public static void Client_RunProxyScript()
+	public static void Client_RunProxyScript(Environment env)
 	{
-		WindowsCommandTools.RunWindowsCommand(ClientSettings.Instance().ClientStarcraftDir + "bwapi-data/AI/run_proxy.bat", false, false);
+		WindowsCommandTools.RunWindowsCommand(env.get("starcraft") + "bwapi-data/AI/run_proxy.bat", false, false);
 	}
 	
 	// makes edits to windows registry so Chaoslauncher knows where StarCraft is installed
-	public static void Client_RegisterStarCraft()
+	public static void Client_RegisterStarCraft(Environment env)
 	{
 		Client.log("      Client_RegisterStarCraft()\n");
 		
 		// 32-bit machine StarCraft settings
 		String sc32KeyName =     "HKEY_LOCAL_MACHINE\\SOFTWARE\\Blizzard Entertainment\\Starcraft";
 		String sc32UserKeyName = "HKEY_CURRENT_USER\\SOFTWARE\\Blizzard Entertainment\\Starcraft";
-		WindowsCommandTools.RegEdit(sc32KeyName,     "InstallPath", "REG_SZ",    ClientSettings.Instance().ClientStarcraftDir + "\\");
-		WindowsCommandTools.RegEdit(sc32KeyName,     "Program",     "REG_SZ",    ClientSettings.Instance().ClientStarcraftDir + "StarCraft.exe");
-		WindowsCommandTools.RegEdit(sc32KeyName,     "GamePath",    "REG_SZ",    ClientSettings.Instance().ClientStarcraftDir + "StarCraft.exe");
+		WindowsCommandTools.RegEdit(sc32KeyName,     "InstallPath", "REG_SZ",    env.get("starcraft") + "\\");
+		WindowsCommandTools.RegEdit(sc32KeyName,     "Program",     "REG_SZ",    env.get("starcraft") + "StarCraft.exe");
+		WindowsCommandTools.RegEdit(sc32KeyName,     "GamePath",    "REG_SZ",    env.get("starcraft") + "StarCraft.exe");
 		WindowsCommandTools.RegEdit(sc32UserKeyName, "introX",      "REG_DWORD", "00000000");
 		
 		// 64-bit machine StarCraft settings
 		String sc64KeyName =     "HKEY_LOCAL_MACHINE\\SOFTWARE\\Wow6432Node\\Blizzard Entertainment\\Starcraft";
 		String sc64UserKeyName = "HKEY_CURRENT_USER\\SOFTWARE\\Wow6432Node\\Blizzard Entertainment\\Starcraft";
-		WindowsCommandTools.RegEdit(sc64KeyName, "InstallPath", "REG_SZ", ClientSettings.Instance().ClientStarcraftDir + "\\");
-		WindowsCommandTools.RegEdit(sc64KeyName, "Program",     "REG_SZ", ClientSettings.Instance().ClientStarcraftDir + "StarCraft.exe");
-		WindowsCommandTools.RegEdit(sc64KeyName, "GamePath",    "REG_SZ", ClientSettings.Instance().ClientStarcraftDir + "StarCraft.exe");
+		WindowsCommandTools.RegEdit(sc64KeyName, "InstallPath", "REG_SZ", env.get("starcraft") + "\\");
+		WindowsCommandTools.RegEdit(sc64KeyName, "Program",     "REG_SZ", env.get("starcraft") + "StarCraft.exe");
+		WindowsCommandTools.RegEdit(sc64KeyName, "GamePath",    "REG_SZ", env.get("starcraft") + "StarCraft.exe");
 		WindowsCommandTools.RegEdit(sc64UserKeyName, "introX",      "REG_DWORD", "00000000");
 		
 		// Chaoslauncher Settings
@@ -77,7 +82,7 @@ public class ClientCommands
 		WindowsCommandTools.RegEdit(clpKeyName,  "BWAPI Injector (1.16.1) RELEASE", "REG_SZ", "1");
 		WindowsCommandTools.RegEdit(clpKeyName,  "W-MODE 1.02",                     "REG_SZ", "1");
 		WindowsCommandTools.RegEdit(clpKeyName,  "Chaosplugin for 1.16.1",          "REG_SZ", "0");
-	}	
+	}
 	
 	public static void Client_KillStarcraftAndChaoslauncher()
 	{
@@ -88,7 +93,7 @@ public class ClientCommands
 			System.out.println("Killing Starcraft...  ");
 			WindowsCommandTools.RunWindowsCommand("taskkill /F /IM StarCraft.exe", true, false);
 			try { Thread.sleep(100); } catch (InterruptedException e) {}
-		} 
+		}
 		
 		while (WindowsCommandTools.IsWindowsProcessRunning("Chaoslauncher.exe"))
 		{
@@ -114,17 +119,17 @@ public class ClientCommands
 		WindowsCommandTools.KillExcessWindowsProccess(startingProc);
 	}
 	
-	public static void Client_DeleteChaoslauncherDirectory()
+	public static void Client_DeleteChaoslauncherDirectory(Environment env)
 	{
 		Client.log("      Client_DeleteChaoslauncherDirectory()\n");
 		
 		// Sleep for a second before deleting local directories
-		try 
-		{ 
-			Thread.sleep(2000); 
+		try
+		{
+			Thread.sleep(2000);
 		
 			// Delete local folders which now contain old data
-			FileUtils.DeleteDirectory(new File(ClientSettings.Instance().ClientChaoslauncherDir));
+			FileUtils.DeleteDirectory(new File(env.get("chaoslauncher", String.class)));
 		}
 		catch (Exception e)
 		{
@@ -132,23 +137,23 @@ public class ClientCommands
 		}
 	}
 	
-	public static void Client_CleanStarcraftDirectory()
+	public static void Client_CleanStarcraftDirectory(Environment env)
 	{
 		Client.log("      Client_CleanStarcraftDirectory()\n");
 		
 		// Sleep for a second before deleting local directories
-		try 
-		{ 
-			Thread.sleep(2000); 
+		try
+		{
+			Thread.sleep(2000);
 		
 			// Delete local folders which now contain old data
-			FileUtils.DeleteDirectory(new File(ClientSettings.Instance().ClientStarcraftDir + "bwapi-data"));
-			FileUtils.DeleteDirectory(new File(ClientSettings.Instance().ClientStarcraftDir + "characters"));
-			FileUtils.DeleteDirectory(new File(ClientSettings.Instance().ClientStarcraftDir + "maps"));
+			FileUtils.DeleteDirectory(new File(env.get("starcraft") + "bwapi-data"));
+			FileUtils.DeleteDirectory(new File(env.get("starcraft") + "characters"));
+			FileUtils.DeleteDirectory(new File(env.get("starcraft") + "maps"));
 			
 			// Delete the old game state file
-			File oldGameState = new File(ClientSettings.Instance().ClientStarcraftDir + "gameState.txt");
-			while (oldGameState.exists()) 
+			File oldGameState = new File(env.get("starcraft") + "gameState.txt");
+			while (oldGameState.exists())
 			{
 				System.out.println("Old game state file exists, deleting... ");
 				oldGameState.delete();
@@ -161,49 +166,30 @@ public class ClientCommands
 		}
 	}
 
-	public static void Client_RenameCharacterFile(InstructionMessage instructions)
+	public static void Client_RenameCharacterFile(Environment env, InstructionMessage instructions)
 	{
 		Client.log("      Client_RenameCharacterFile()\n");
-		String botName = instructions.isHost ? instructions.hostBot.getName() : instructions.awayBot.getName();
-		String charDir = ClientSettings.Instance().ClientStarcraftDir + "characters\\";
+		String botName = instructions.isHost ? instructions.hostBot.name : instructions.awayBot.name;
+		String charDir = env.get("starcraft") + "characters\\";
 		
 		WindowsCommandTools.RunWindowsCommand("RENAME " + charDir + "*.mpc " + botName + ".mpc", true, false);
 		WindowsCommandTools.RunWindowsCommand("RENAME " + charDir + "*.spc " + botName + ".spc", true, false);
 	}
 	
-	public static void Client_StartChaoslauncher()
+	public static void Client_StartChaoslauncher(Environment env)
 	{
 		Client.log("      Client_StartChaoslauncher()\n");
 		
 		// Launch Chaoslauncher, do not wait for this to finish, exit if it fails (false, true)
-		WindowsCommandTools.RunWindowsExeLocal(ClientSettings.Instance().ClientChaoslauncherDir, "Chaoslauncher.exe", false, true);
-	}
-
-	public static void Client_WriteTournamentModuleSettings(TournamentModuleSettingsMessage tmSettings)  
-	{
-		Client.log("      Client_WriteTournamentModuleSettings()\n");
-		String tmSettingsFile = ClientSettings.Instance().ClientStarcraftDir + "\\bwapi-data\\tm_settings.ini";
-		
-		String tm = tmSettings.getSettingsFileString();
-		
-		try 
-		{
-			BufferedWriter out = new BufferedWriter(new FileWriter(new File(tmSettingsFile)));
-			out.write(tm);
-			out.close();
-		} 
-		catch (Exception e) 
-		{
-			System.err.println("Error: " + e.getMessage());
-		}
+		WindowsCommandTools.RunWindowsExeLocal(env.get("chaoslauncher"), "Chaoslauncher.exe", false, true);
 	}
 	
-	public static void Client_WriteBWAPISettings(InstructionMessage instructions)  
+	public static void Client_WriteBWAPISettings(Environment env, InstructionMessage instructions)
 	{
 		String newLine = System.getProperty("line.separator");
 		
 		Client.log("      Client_WriteBWAPISettings()\n");
-		String bwapiDest = ClientSettings.Instance().ClientStarcraftDir + "\\bwapi-data\\bwapi.ini";
+		String bwapiDest = env.get("starcraft") + "\\bwapi-data\\bwapi.ini";
 		BWAPISettings bwapi = instructions.bwapi;
 		Bot thisBot  = instructions.isHost ? instructions.hostBot : instructions.awayBot;
 		Bot otherBot = instructions.isHost ? instructions.awayBot : instructions.hostBot;
@@ -220,12 +206,12 @@ public class ClientCommands
 		BWINI += ";         DLLs specified, then the last entry is used." + newLine;
 		BWINI += ";   - Use a colon to forcefully load the revision specified." + newLine;
 		BWINI += ";   - Example: SomeAI.dll:3400, SecondInstance.dll, ThirdInstance.dll" + newLine;
-		BWINI += "ai     = bwapi-data\\AI\\" + thisBot.getName() + ".dll" + newLine;
-		BWINI += "ai_dbg = bwapi-data\\AI\\" + thisBot.getName() + ".dll" + newLine + newLine;
+		BWINI += "ai     = bwapi-data\\AI\\" + thisBot.name + ".dll" + newLine;
+		BWINI += "ai_dbg = bwapi-data\\AI\\" + thisBot.name + ".dll" + newLine + newLine;
 
 		BWINI += "; Used only for tournaments" + newLine;
 		BWINI += "; Tournaments can only be run in RELEASE mode" + newLine;
-		BWINI += "tournament =" + ClientSettings.Instance().TournamentModuleFilename + newLine + newLine;
+		BWINI += "tournament =" + env.get("TournamentModule") + newLine + newLine;
 
 		BWINI += "[auto_menu]" + newLine;
 		BWINI += "; auto_menu = OFF | SINGLE_PLAYER | LAN | BATTLE_NET" + newLine;
@@ -258,14 +244,14 @@ public class ClientCommands
 		BWINI += ";	will join the game called \"BWAPI\"" + newLine;
 		BWINI += ";	If the game does not exist and the \"map\" entry is not blank, then the game will be created instead" + newLine;
 		BWINI += ";	If this entry is blank, then it will follow the rules of the \"map\" entry" + newLine;
-		BWINI += "game =" + id + newLine + newLine; 
+		BWINI += "game =" + id + newLine + newLine;
 
 		BWINI += "; mapiteration =  RANDOM | SEQUENCE" + newLine;
 		BWINI += "; type of iteration that will be done on a map name with a wildcard" + newLine;
 		BWINI += "mapiteration = " + bwapi.mapiteration + newLine + newLine;
 
 		BWINI += "; race = Terran | Protoss | Zerg | Random" + newLine;
-		BWINI += "race = " + thisBot.getRace() + newLine + newLine;
+		BWINI += "race = " + thisBot.race + newLine + newLine;
 
 		BWINI += "; enemy_count = 1-7, for 1v1 games, set enemy_count = 1" + newLine;
 		BWINI += "; only used in single player games" + newLine;
@@ -291,10 +277,10 @@ public class ClientCommands
 
 		BWINI += "; save_replay = path to save replay to" + newLine;
 		BWINI += "; Accepts all environment variables including custom variables. See wiki for more info." + newLine;
-		int thisBotNameLength = Math.min(4, thisBot.getName().length());
-		int otherBotNameLength = Math.min(4, otherBot.getName().length());
-		String repString = "maps\\replays\\" + thisBot.getName().toUpperCase() + "\\" + String.format("%05d", id) + "-" + thisBot.getName().substring(0,thisBotNameLength).toUpperCase() + "_" + otherBot.getName().substring(0,otherBotNameLength).toUpperCase() + ".REP" + newLine + newLine;
-		BWINI += "save_replay = " + repString; 
+		int thisBotNameLength = Math.min(4, thisBot.name.length());
+		int otherBotNameLength = Math.min(4, otherBot.name.length());
+		String repString = "maps\\replays\\" + thisBot.name.toUpperCase() + "\\" + String.format("%05d", id) + "-" + thisBot.name.substring(0,thisBotNameLength).toUpperCase() + "_" + otherBot.name.substring(0,otherBotNameLength).toUpperCase() + ".REP" + newLine + newLine;
+		BWINI += "save_replay = " + repString;
 
 		BWINI += "; wait_for_min_players = #" + newLine;
 		BWINI += "; # of players to wait for in a network game before starting." + newLine;
@@ -352,13 +338,13 @@ public class ClientCommands
 		BWINI += "[paths]" + newLine;
 		BWINI += "log_path = " + bwapi.log_path + "" + newLine;
 
-		try 
+		try
 		{
 			BufferedWriter out = new BufferedWriter(new FileWriter(new File(bwapiDest)));
 			out.write(BWINI);
 			out.close();
-		} 
-		catch (Exception e) 
+		}
+		catch (Exception e)
 		{
 			System.err.println("Error: " + e.getMessage());
 		}

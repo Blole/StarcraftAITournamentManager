@@ -39,7 +39,7 @@ public class Game implements Serializable
 	private long 			guestTime = 0;
 
 
-	public Game(int iD, int roundt, Bot home, Bot away, Map map) 
+	public Game(int iD, int roundt, Bot home, Bot away, Map map)
 	{
 		this.round = roundt;
 		finalFrame = 0;
@@ -59,22 +59,22 @@ public class Game implements Serializable
 	}
 
 
-	public String getResultString() 
+	public String getResultString()
 	{
 		String s = String
 				.format("%7d %5d %20s %20s %35s %6b %6b %6b %6b %8d %8d %8d %10d %10d",
-						this.gameID, 
+						this.gameID,
 						this.round,
-						this.homebot.getName(),
-						this.awaybot.getName(),
-						this.map.getMapName().replace(' ', '_'), 
+						this.homebot.name,
+						this.awaybot.name,
+						this.map.name.replace(' ', '_'),
 						this.hostwon,
-						this.hostcrash, 
-						this.awaycrash, 
+						this.hostcrash,
+						this.awaycrash,
 						this.wasDraw,
 						this.hostScore,
-						this.awayScore, 
-						this.finalFrame, 
+						this.awayScore,
+						this.finalFrame,
 						(int) this.hostTime,
 						(int) this.guestTime);
 
@@ -131,13 +131,12 @@ public class Game implements Serializable
 	public String print(boolean detailed) {
 		String ret = "";
 		ret = ret
-				+ ("(" + gameID + ") -> " + this.status + " -> Map: " + this.map
-						.getMapName());
+				+ ("(" + gameID + ") -> " + this.status + " -> Map: " + this.map.name);
 		if (status == GameStatus.DONE) {
 			if (hostwon) {
-				ret = ret + (" ## " + this.homebot.getName() + " WON");
+				ret = ret + (" ## " + this.homebot.name + " WON");
 			} else {
-				ret = ret + (" ## " + this.awaybot.getName() + " WON");
+				ret = ret + (" ## " + this.awaybot.name + " WON");
 			}
 
 			if (detailed) {
@@ -184,8 +183,8 @@ public class Game implements Serializable
 	 */
 	public long estimateTime() {
 		int factor = 2;
-		if (this.homebot.getName().equals("BuiltIn")
-				|| this.awaybot.getName().equals("BuiltIn")) {
+		if (this.homebot.name.equals("BuiltIn")
+				|| this.awaybot.name.equals("BuiltIn")) {
 			factor = 1;
 		}
 		if (this.time == 0) {
@@ -298,12 +297,12 @@ public class Game implements Serializable
 		this.awaycrash = awaycrash;
 	}
 
-	public Vector<Integer> getHostTimers() 
+	public Vector<Integer> getHostTimers()
 	{
 		return hostTimers;
 	}
 
-	public void setHostTimers(Vector<Integer> timers) 
+	public void setHostTimers(Vector<Integer> timers)
 	{
 		if (this.awayTimers.size() == 0)
 		{
@@ -316,12 +315,12 @@ public class Game implements Serializable
 		this.hostTimers = timers;
 	}
 
-	public Vector<Integer> getAwayTimers() 
+	public Vector<Integer> getAwayTimers()
 	{
 		return awayTimers;
 	}
 
-	public void setAwayTimers(Vector<Integer> timers) 
+	public void setAwayTimers(Vector<Integer> timers)
 	{
 		if (this.hostTimers.size() == 0)
 		{
@@ -447,6 +446,6 @@ public class Game implements Serializable
 	@Override
 	public String toString()
 	{
-		return String.format("[Game %d/%d: %s vs. %s]", getGameID(), getRound(), homebot.getName(), awaybot.getName());
+		return String.format("[Game %d/%d: %s vs. %s]", getGameID(), getRound(), homebot.name, awaybot.name);
 	}
 }

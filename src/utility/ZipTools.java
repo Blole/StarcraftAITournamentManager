@@ -1,9 +1,20 @@
 package utility;
 
-import java.io.*;
-import java.util.*;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.Closeable;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.URI;
-import java.util.zip.*;
+import java.util.Deque;
+import java.util.LinkedList;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
+import java.util.zip.ZipOutputStream;
 
 public class ZipTools
 {
@@ -34,15 +45,21 @@ public class ZipTools
 	
 	// Loads a zip file into an output stream
 	public static byte[] LoadZipFileToByteArray(String filename) throws IOException
-	{	
+	{
+		return LoadZipFileToByteArray(new File(filename));
+	}
+	
+	// Loads a zip file into an output stream
+	public static byte[] LoadZipFileToByteArray(File file) throws IOException
+	{
 		ByteArrayOutputStream bos = new ByteArrayOutputStream();
-		LoadZipFileToStream(new File(filename), bos);
+		LoadZipFileToStream(file, bos);
 		return bos.toByteArray();
 	}
 	
 	// Zips a file to an output stream
 	// If the file is a directory, all files in the directory are zipped
-	public static void ZipDirToStream(File file, OutputStream out) throws IOException 
+	public static void ZipDirToStream(File file, OutputStream out) throws IOException
 	{
 		System.out.println("Zipping Dir: " + file.getPath());
 			
@@ -51,29 +68,29 @@ public class ZipTools
 		queue.add(file);
 		Closeable res = out;
 		
-		try 
+		try
 		{
 			ZipOutputStream zout = new ZipOutputStream(out);
 			res = zout;
 
 			// if it's a directory
-			while (!queue.isEmpty()) 
+			while (!queue.isEmpty())
 			{
 				file = queue.pop();
 				
 				// if the file is a directory
 				if (file.isDirectory())
 				{
-					for (File kid : file.listFiles()) 
+					for (File kid : file.listFiles())
 					{
 						String name = base.relativize(kid.toURI()).getPath();
-						if (kid.isDirectory()) 
+						if (kid.isDirectory())
 						{
 							queue.push(kid);
 							name = name.endsWith("/") ? name : name + "/";
 							zout.putNextEntry(new ZipEntry(name));
-						} 
-						else 
+						}
+						else
 						{
 							zout.putNextEntry(new ZipEntry(name));
 							FileInputStream fis = new FileInputStream(kid);
@@ -94,8 +111,8 @@ public class ZipTools
 					zout.closeEntry();
 				}
 			}
-		} 
-		finally 
+		}
+		finally
 		{
 			res.close();
 		}
@@ -103,7 +120,7 @@ public class ZipTools
 	
 	// Zips a file to a given filename
 	// If the file is a directory, all files in the directory are zipped
-	public static void ZipDirToFile(File file, File zipfile) throws IOException 
+	public static void ZipDirToFile(File file, File zipfile) throws IOException
 	{
 		ZipDirToStream(file, new FileOutputStream(zipfile));
 	}
@@ -112,25 +129,33 @@ public class ZipTools
 	// If the file is a directory, all files in the directory are zipped
 	public static byte[] ZipDirToByteArray(String filename) throws IOException
 	{
+		return ZipDirToByteArray(new File(filename));
+	}
+	
+	// Zips a file to a byte[]
+	// If the file is a directory, all files in the directory are zipped
+	public static byte[] ZipDirToByteArray(File file) throws IOException
+	{
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
-		ZipDirToStream(new File(filename), out);
+		ZipDirToStream(file, out);
 		return out.toByteArray();
 	}
 	
 	// Unzip all files from a given stream to the given directory
-	public static void UnzipStreamToDir(InputStream is, File directory) throws IOException 
+	public static void UnzipStreamToDir(InputStream is, File directory) throws IOException
 	{
 		ZipInputStream zis = new ZipInputStream(is);
 		
 		ZipEntry entry;
-		while ((entry = zis.getNextEntry()) != null) 
+		while ((entry = zis.getNextEntry()) != null)
 		{
 			File file = new File(directory, entry.getName());
-			if (entry.isDirectory()) 
+			//System.err.printf("entry %s (%s), file: %s\n", entry.getName(), entry.isDirectory()?"dir":"file", file.toString());
+			if (entry.isDirectory())
 			{
 				file.mkdirs();
-			} 
-			else 
+			}
+			else
 			{
 				file.getParentFile().mkdirs();
 				FileOutputStream fos = new FileOutputStream(file);
@@ -142,23 +167,23 @@ public class ZipTools
 		zis.close();
 	}
 	
-	public static void UnzipByteArrayToDir(byte[] zipdata, String directory) throws IOException 
+	public static void UnzipByteArrayToDir(byte[] zipdata, String directory) throws IOException
 	{
 		UnzipStreamToDir(new ByteArrayInputStream(zipdata), new File(directory));
 	}
 	
-	public static void UnzipFileToDir(File zipfile, File directory) throws IOException 
+	public static void UnzipFileToDir(File zipfile, File directory) throws IOException
 	{
 		UnzipStreamToDir(new FileInputStream(zipfile), directory);
 	}
 
-	private static void copy(InputStream in, OutputStream out) throws IOException 
+	private static void copy(InputStream in, OutputStream out) throws IOException
 	{
 		byte[] buffer = new byte[1024];
-		while (true) 
+		while (true)
 		{
 			int readCount = in.read(buffer);
-			if (readCount < 0) 
+			if (readCount < 0)
 			{
 				break;
 			}

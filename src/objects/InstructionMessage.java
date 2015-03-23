@@ -1,6 +1,6 @@
 package objects;
 
-public class InstructionMessage implements Message 
+public class InstructionMessage implements Message
 {
 	private static final long serialVersionUID = 9062722137863042773L;
 	
@@ -13,11 +13,6 @@ public class InstructionMessage implements Message
 	
 	public int 					game_id;
 	public int 					round_id;
-	
-	public String toString()
-	{
-		return hostBot.getName() + " " + awayBot.getName() + " " + isHost + " (" + game_id + "/" + round_id + ")";
-	}
 	
 	public InstructionMessage()
 	{
@@ -35,7 +30,13 @@ public class InstructionMessage implements Message
 		
 		bwapi.enemy_count = "1";
         bwapi.wait_for_max_players = 2;
-        bwapi.map = host ? game.getMap().getMapLocation() : "";
+        bwapi.map = host ? game.getMap().path : "";
         bwapi.auto_menu = "LAN";
+	}
+	
+	@Override
+	public String toString()
+	{
+		return hostBot.name + " " + awayBot.name + " " + isHost + " (" + game_id + "/" + round_id + ")";
 	}
 }

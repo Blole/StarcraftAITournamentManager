@@ -1,23 +1,34 @@
 package client;
 
-import java.util.*;
 import java.awt.Rectangle;
 import java.awt.Robot;
 import java.awt.Toolkit;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
-import java.text.*;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Vector;
 
 import javax.imageio.ImageIO;
 
-import objects.*;
-import utility.*;
+import objects.ClientCommandMessage;
+import objects.ClientStatus;
+import objects.ClientStatusMessage;
+import objects.Environment;
+import objects.FileMessage;
+import objects.Game;
+import objects.InstructionMessage;
+import objects.Message;
+import objects.RequestClientScreenshotMessage;
+import objects.ScreenshotMessage;
+import objects.ServerShutdownMessage;
+import objects.StartGameMessage;
+import objects.TournamentModuleState;
+import utility.WindowsCommandTools;
 
-public class Client extends Thread 
+public class Client extends Thread
 {
 	protected ClientStatus status;
-	
-	public ClientSettings settings;
 	
 	private long startTime;
 	private long endTime;
@@ -40,25 +51,21 @@ public class Client extends Thread
 	public boolean 		shutDown = false;
 
 	public static 		ClientGUI gui;
+
+	public final Environment env;
 	
-	private DataMessage	requiredFiles			= null;
-	private DataMessage	botFiles				= null;
-	private boolean 	haveChaoslauncher		= false;
-	
-	private TournamentModuleSettingsMessage	tmSettings = null;
-	
-	public Client() 
+	public Client(Environment env)
 	{
+		this.env = env;
 		gui = new ClientGUI(this);
 		
-		settings 				= ClientSettings.Instance();
 		startTime 				= 0;
 		endTime 				= 0;
 		startingproc 			= WindowsCommandTools.GetRunningProcesses();
 		status 					= ClientStatus.READY;
 		previousInstructions 	= null;
 				
-		ClientCommands.Client_InitialSetup();
+		ClientCommands.Client_InitialSetup(env);
 	}
 
 	
@@ -74,7 +81,7 @@ public class Client extends Thread
 	
 	private void updateGUI(String currentStatus, String haveState, String scRun, String func, String data)
 	{
-		gui.UpdateClient(listener.getAddress(), currentStatus, haveGameStateFile ? "STATEFILE" : "NOSTATE", starcraftIsRunning ? "STARCRAFT" : "NOSTARCRAFT", func, data);		
+		gui.UpdateClient(listener.getAddress(), currentStatus, haveGameStateFile ? "STATEFILE" : "NOSTATE", starcraftIsRunning ? "STARCRAFT" : "NOSTARCRAFT", func, data);
 	}
 	
 	public void setListener(ClientListenerThread l)
@@ -93,7 +100,7 @@ public class Client extends Thread
 		gui.logText(getTimeStamp() + " " + s);
 	}
 	
-	public synchronized void setStatus(ClientStatus s, Game g) 
+	public synchronized void setStatus(ClientStatus s, Game g)
 	{
 		System.out.println("\n\nNEW STATUS: " + s + "\n\n");
 		this.status = s;
@@ -112,17 +119,18 @@ public class Client extends Thread
 		listener.sendMessageToServer(new ClientStatusMessage(this.status, null, null, previousInstructions.isHost, startingDuration));
 	}
 	
-	public synchronized void setStatus(ClientStatus s) 
+	public synchronized void setStatus(ClientStatus s)
 	{
 		setStatus(s, null);
 	}
 	
+	@Override
 	public void run()
 	{
 		TournamentModuleState gameState = new TournamentModuleState();
 	
-		while (true) 
-		{	
+		while (true)
+		{
 			// run this loop every so often
 			try
 			{
@@ -136,14 +144,14 @@ public class Client extends Thread
 			}
 			
 			// try to read in the game state file
-			haveGameStateFile = gameState.readData(settings.ClientStarcraftDir + "gameState.txt");
+			haveGameStateFile = gameState.readData(env.get("starcraft") + "gameState.txt");
 			starcraftIsRunning = WindowsCommandTools.IsWindowsProcessRunning("StarCraft.exe");
 			
 			//System.out.println("Client Main Loop: " + status + " " + haveGameStateFile + " " + starcraftIsRunning);
 			
 			if (status == ClientStatus.READY)
-			{	
-				updateGUI("" + status, haveGameStateFile ? "STATEFILE" : "NOSTATE", starcraftIsRunning ? "STARCRAFT" : "NOSTARCRAFT", "MainLoop", "WAIT");	
+			{
+				updateGUI("" + status, haveGameStateFile ? "STATEFILE" : "NOSTATE", starcraftIsRunning ? "STARCRAFT" : "NOSTARCRAFT", "MainLoop", "WAIT");
 			
 				if (haveGameStateFile)
 				{
@@ -158,7 +166,7 @@ public class Client extends Thread
 				{
 					//System.out.println("MONITOR: No Game State File Yet " );
 					gameStateReadAttempts++;
-					updateGUI("" + status, haveGameStateFile ? "STATEFILE" : "NOSTATE", starcraftIsRunning ? "STARCRAFT" : "NOSTARCRAFT", "MainLoop", "" + (gameStateReadAttempts * monitorLoopTimer));	
+					updateGUI("" + status, haveGameStateFile ? "STATEFILE" : "NOSTATE", starcraftIsRunning ? "STARCRAFT" : "NOSTARCRAFT", "MainLoop", "" + (gameStateReadAttempts * monitorLoopTimer));
 					sendStartingUpdate((gameStateReadAttempts * monitorLoopTimer)/1000);
 					
 					// if the game didn't start within our threshold time
@@ -190,7 +198,7 @@ public class Client extends Thread
 				}
 				
 				// if the game ended gracefully
-				if (gameState.gameEnded != 0) 
+				if (gameState.gameEnded != 0)
 				{
 					log("MainLoop: Game ended normally, prepping reply\n");
 					setEndTime();
@@ -213,51 +221,22 @@ public class Client extends Thread
 		}
 	}
 	
-	public synchronized void receiveMessage(Message m) 
+	public synchronized void receiveMessage(Message msg)
 	{
-		if (m instanceof InstructionMessage)
+		log(msg+" received");
+		if (msg instanceof InstructionMessage)
 		{
-			receiveInstructions((InstructionMessage)m);
+			receiveInstructions((InstructionMessage)msg);
 		}
-		else if (m instanceof DataMessage)
+		else if (msg instanceof FileMessage)
 		{
-			DataMessage dm = (DataMessage)m;
-		
-			if (dm.type == DataType.REQUIRED_DIR)
-			{
-				requiredFiles = dm;
-				log("Client: Required files received\n");
-			}
-			else if (dm.type == DataType.BOT_DIR)
-			{
-				botFiles = dm;
-				log("Client: Bot files received\n");
-			}
-			else if (dm.type == DataType.CHAOSLAUNCHER)
-			{
-				log("Client: Chaoslauncher data received\n");
-				dm.write(ClientSettings.Instance().ClientChaoslauncherDir);
-				ClientCommands.Client_RegisterStarCraft();
-				haveChaoslauncher = true;
-				log("Client: Ready, waiting for Instructions from Server...\n");
-			}
+			((FileMessage) msg).write(env);
 		}
-		else if (m instanceof StartGameMessage)
+		else if (msg instanceof StartGameMessage)
 		{
-			if (canStartStarCraft())
-			{
-				startStarCraft(previousInstructions);
-			}
-			else
-			{
-				log("Error: StartGameMessage while StarCraft not ready to start\n");
-			}
+			startStarCraft(previousInstructions);
 		}
-		else if (m instanceof TournamentModuleSettingsMessage)
-		{
-			tmSettings = (TournamentModuleSettingsMessage)m;
-		}
-		else if (m instanceof RequestClientScreenshotMessage)
+		else if (msg instanceof RequestClientScreenshotMessage)
 		{
 			try
 			{
@@ -269,34 +248,29 @@ public class Client extends Thread
 			    ImageIO.write(bufferedImage, "png", baos);
 			    byte[] bytes = baos.toByteArray();
 
-				listener.sendMessageToServer(new DataMessage(DataType.SCREENSHOT, bytes));
+				listener.sendMessageToServer(new ScreenshotMessage(bytes));
 			}
 			catch (Exception ex)
 			{
 				log("Error taking screenshot :(\n");
 			}
 		}
-		else if (m instanceof ClientCommandMessage)
+		else if (msg instanceof ClientCommandMessage)
 		{
-			log("Server told us to execute command: " + ((ClientCommandMessage)m).getCommand() + "\n");
-			WindowsCommandTools.RunWindowsCommandAsync(((ClientCommandMessage)m).getCommand());
+			log("Server told us to execute command: " + ((ClientCommandMessage)msg).getCommand() + "\n");
+			WindowsCommandTools.RunWindowsCommandAsync(((ClientCommandMessage)msg).getCommand());
 		}
-		else if (m instanceof ServerShutdownMessage)
+		else if (msg instanceof ServerShutdownMessage)
 		{
 			shutDown();
 		}
 	}
 	
-	public boolean canStartStarCraft()
-	{
-		return haveChaoslauncher && (previousInstructions != null) && (requiredFiles != null) && (botFiles != null);
-	}
-	
-	public void receiveInstructions(InstructionMessage instructions) 
+	public void receiveInstructions(InstructionMessage instructions)
 	{
 		System.out.println("Recieved Instructions");
 		System.out.println("Game id -> " + instructions.game_id);
-		System.out.println(instructions.hostBot.getName() + " vs. " + instructions.awayBot.getName());
+		System.out.println(instructions.hostBot.name + " vs. " + instructions.awayBot.name);
 		
 		previousInstructions = instructions;
 	}
@@ -333,36 +307,26 @@ public class Client extends Thread
 			
 			// Prepare the machine for Starcraft launching
 			ClientCommands.Client_KillStarcraftAndChaoslauncher();
-			ClientCommands.Client_CleanStarcraftDirectory();
-			
-			// Write the required starcraft files to the client machine
-			requiredFiles.write(ClientSettings.Instance().ClientStarcraftDir);
-			
-			// Write the bot files to the client machine
-			botFiles.write(ClientSettings.Instance().ClientStarcraftDir + "bwapi-data");
+			//ClientCommands.Client_CleanStarcraftDirectory(env);
 			
 			// Rename the character files to match the bot names
-			ClientCommands.Client_RenameCharacterFile(instructions);
+			ClientCommands.Client_RenameCharacterFile(env, instructions);
+			ClientCommands.Client_RegisterStarCraft(env);
 			
 			// Write out the BWAPI and TournamentModule settings files
-			ClientCommands.Client_WriteBWAPISettings(instructions);
-			ClientCommands.Client_WriteTournamentModuleSettings(tmSettings);
+			ClientCommands.Client_WriteBWAPISettings(env, instructions);
 			
 			// If this is a proxy bot, start the proxy bot script before StarCraft starts
 			if (isProxyBot(previousInstructions))
 			{
-				ClientCommands.Client_RunProxyScript();
+				ClientCommands.Client_RunProxyScript(env);
 			}
 			
 			// Start chaoslauncher and starcraft
-			ClientCommands.Client_StartChaoslauncher();
+			ClientCommands.Client_StartChaoslauncher(env);
 
 			// Record the time that we tried to start the game
 			startTime = System.currentTimeMillis();
-			
-			// Reset the files for next game
-			requiredFiles = null;
-			botFiles = null;
 		}
 		else
 		{
@@ -370,18 +334,13 @@ public class Client extends Thread
 		}
 	}
 	
-	public String getServer() 
+	void prepReply(TournamentModuleState gameState)
 	{
-		return settings.ServerAddress;
-	}
-	
-	void prepReply(TournamentModuleState gameState) 
-	{
-		Game retGame = new Game(	previousInstructions.game_id, 
+		Game retGame = new Game(	previousInstructions.game_id,
 									previousInstructions.round_id,
-									previousInstructions.hostBot, 
-									previousInstructions.awayBot, 
-									null 
+									previousInstructions.hostBot,
+									previousInstructions.awayBot,
+									null
 									);
 							
 		retGame.setWasDraw(gameState.gameHourUp > 0);
@@ -394,8 +353,8 @@ public class Client extends Thread
 			retGame.setTimeout(gameState.gameHourUp == 1);
 			retGame.setHostwon(gameState.selfWin == 1);
 			retGame.setHostScore(gameState.selfScore);
-		} 
-		else 
+		}
+		else
 		{
 			retGame.setGuestTime(getElapsedTime());
 			retGame.setAwayTimers(gameState.timeOutExceeded);
@@ -410,23 +369,23 @@ public class Client extends Thread
 		setStatus(ClientStatus.READY);
 	}
 
-	void prepCrash(TournamentModuleState gameState) 
-	{		
-		Game retGame = new Game(	previousInstructions.game_id, 
+	void prepCrash(TournamentModuleState gameState)
+	{
+		Game retGame = new Game(	previousInstructions.game_id,
 									previousInstructions.round_id,
-									previousInstructions.hostBot, 
-									previousInstructions.awayBot, 
+									previousInstructions.hostBot,
+									previousInstructions.awayBot,
 									null);
 		
 		retGame.setFinalFrame(gameState.frameCount);
-		if (previousInstructions.isHost) 
+		if (previousInstructions.isHost)
 		{
 			retGame.setHostcrash(true);
 			retGame.setHostTime(getElapsedTime());
 			retGame.setHostTimers(gameState.timeOutExceeded);
 			retGame.setHostScore(gameState.selfScore);
-		} 
-		else 
+		}
+		else
 		{
 			retGame.setAwaycrash(true);
 			retGame.setGuestTime(getElapsedTime());
@@ -445,7 +404,7 @@ public class Client extends Thread
 		sendFilesToServer();
 		ClientCommands.Client_KillStarcraftAndChaoslauncher();
 		ClientCommands.Client_KillExcessWindowsProccess(startingproc);
-		ClientCommands.Client_CleanStarcraftDirectory();
+		ClientCommands.Client_CleanStarcraftDirectory(env);
 	}
 	
 	public void shutDown()
@@ -461,37 +420,31 @@ public class Client extends Thread
 		// sleep 5 seconds to make sure starcraft wrote the replay file correctly
 		try { Thread.sleep(5000); } catch (Exception e) {}
 		
-		// send the replay data to the server
-		DataMessage replayMessage = new DataMessage(DataType.REPLAY, ClientSettings.Instance().ClientStarcraftDir + "maps\\replays");
-		log("Sending Data to Sever: " + replayMessage.toString() + "\n");
-		listener.sendMessageToServer(replayMessage);
+		// send the replay to the server
+		listener.sendMessageToServer(new FileMessage(env.lookupFile("$starcraft/maps/replays/"), "$replays/"));
 		
 		// send the write folder back to the server
 		if (previousInstructions != null)
-		{
-			DataMessage writeDirMessage = new DataMessage(DataType.WRITE_DIR, previousBotName(), ClientSettings.Instance().ClientStarcraftDir + "bwapi-data\\write");
-			log("Sending Data to Sever: " + writeDirMessage.toString() + "\n");
-			listener.sendMessageToServer(writeDirMessage);
-		}
+			listener.sendMessageToServer(new FileMessage(env.lookupFile("$starcraft/bwapi-data/write/"), "$bot_dir/"+previousBotName()+"/write/"));
 	}
 	
 	public String previousBotName()
 	{
-		return previousInstructions.isHost ? previousInstructions.hostBot.getName() : previousInstructions.awayBot.getName();
+		return previousInstructions.isHost ? previousInstructions.hostBot.name : previousInstructions.awayBot.name;
 	}
 	
-	public void setFinalFrame(String substring) 
+	public void setFinalFrame(String substring)
 	{
 		Integer.parseInt(substring.trim());
 	}
 
-	public void setEndTime() 
+	public void setEndTime()
 	{
 		this.endTime = System.currentTimeMillis();
 		System.out.println("Game lasted " + (this.endTime - this.startTime) + " ms");
 	}
 	
-	public long getElapsedTime() 
+	public long getElapsedTime()
 	{
 		return (this.endTime - this.startTime);
 	}

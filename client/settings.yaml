@@ -1,0 +1,11 @@
+# STARCRAFT DIR - Directory of Starcraft on Client Machine
+starcraft:            C:\TM\StarCraft\
+# CHAOSLAUNCHER DIR - Directory of Chaoslauncher on Client Machine
+chaoslauncher:        C:\TM\Chaoslauncher\
+# DEFAULT BWAPI SETTINGS - File of default BWAPI settings
+DefaultBWAPISettings: BWAPI.ini
+# TOURNAMENT MODULE - BWAPI Tournament Module Location
+TournamentModule:     C:\TM\StarCraft\bwapi-data\TournamentModule.dll
+# SERVER ADDRESS - IP address and port of server
+# Syntax - ServerAddress [address]:[port]
+ServerAddress:        bjorn-cellar:1337

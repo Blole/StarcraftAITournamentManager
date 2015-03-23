@@ -1,11 +1,26 @@
 package utility;
 
-import java.util.*;
-import java.io.*;
-import java.text.*;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.text.DecimalFormat;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Calendar;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.Vector;
 
+import objects.Bot;
 import objects.GameResult;
-import server.ServerSettings;
+import objects.Map;
+import server.Server;
 
 public class ResultsParser
 {
@@ -14,8 +29,11 @@ public class ResultsParser
 	Vector<GameResult> results 		= new Vector<GameResult>();
 	Set<Integer> gameIDs 			= new HashSet<Integer>();
 	
-	private int numBots 			= ServerSettings.Instance().BotVector.size();
-	private int numMaps 			= ServerSettings.Instance().MapVector.size();
+	ArrayList<Bot> bots = Server.Instance().env.get("bots");
+	ArrayList<Map> maps = Server.Instance().env.get("maps");
+	
+	private int numBots 			= bots.size();
+	private int numMaps 			= maps.size();
 	
 	private String[] botNames 		= new String[numBots];;
 	private String[] shortBotNames 	= new String[numBots];;
@@ -40,13 +58,13 @@ public class ResultsParser
 		// set the bot names and map names
 		for (int i=0; i<botNames.length; ++i)
 		{
-			botNames[i] = ServerSettings.Instance().BotVector.get(i).getName();
+			botNames[i] = bots.get(i).name;
 			shortBotNames[i] = botNames[i].substring(0, Math.min(5, botNames[i].length()));
 		}
 		
 		for (int i=0; i<mapNames.length; ++i)
 		{
-			mapNames[i] = ServerSettings.Instance().MapVector.get(i).getMapName();
+			mapNames[i] = maps.get(i).name;
 		}
 		
 		try
@@ -153,15 +171,15 @@ public class ResultsParser
 			
 			if (result.roundID >= winsAfterRound.get(b1).size())
 			{
-				winsAfterRound.get(b1).add(winsAfterRound.get(b1).lastElement());		
+				winsAfterRound.get(b1).add(winsAfterRound.get(b1).lastElement());
 			}
 			
 			if (result.roundID >= winsAfterRound.get(b2).size())
 			{
-				winsAfterRound.get(b2).add(winsAfterRound.get(b2).lastElement());		
+				winsAfterRound.get(b2).add(winsAfterRound.get(b2).lastElement());
 			}
 			
-			winsAfterRound.get(winner).set(result.roundID, winsAfterRound.get(winner).get(result.roundID) + 1);	
+			winsAfterRound.get(winner).set(result.roundID, winsAfterRound.get(winner).get(result.roundID) + 1);
 		}
 		
 		printWinPercentageGraph();
@@ -216,13 +234,13 @@ public class ResultsParser
 	
 	public String getAllResultsHTML()
 	{
-		int numTimers = ServerSettings.Instance().tmSettings.TimeoutLimits.size();
+		int numTimers = 3; //TODO: read from file. ServerSettings.Instance().tmSettings.TimeoutLimits.size()
 		int width = 89;
 		String html = "<html><head>\n";
 		html += "<script type=\"text/javascript\" src=\"javascript/jquery-1.10.2.min.js\"></script>	<script type=\"text/javascript\" src=\"javascript/jquery.tablesorter.js\"></script> <style> td { text-align:center; } </style>\n";
 		html += "<link rel=\"stylesheet\" href=\"javascript/themes/blue/style.css\" type=\"text/css\" media=\"print, projection, screen\" />\n";
 		html += "<script type=\"text/javascript\"> $(function() { $(\"#resultsTable\").tablesorter({widgets: ['zebra']}); });</script>\n";
-		html += "</head>\n"; 
+		html += "</head>\n";
 		html += "<p style=\"font: 16px/1.5em Verdana\">Go To: <a href=\"index.html\">Results Overview</a>. Click column header to sort. Sort multiple columns by holding shift.</p>\n";
 		html += "<table cellpadding=2 rules=all style=\"font: 10px/1.5em Verdana\" id=\"resultsTable\" class=\"tablesorter\">\n";
 		html += "  <thead><tr>\n";
@@ -238,11 +256,11 @@ public class ResultsParser
 		html += "    <th width=" + 100 + ">(W-L)/Max</td>\n";
 		for (int t=0; t<numTimers; ++t)
 		{
-			html += "    <th width=" + width + ">W " + ServerSettings.Instance().tmSettings.TimeoutLimits.get(t) + "</td>\n";
+			html += "    <th width=" + width + ">W " + "blole broke this" + "</td>\n"; //TODO: ServerSettings.Instance().tmSettings.TimeoutLimits.get(t)
 		}
 		for (int t=0; t<numTimers; ++t)
 		{
-			html += "    <th width=" + width + ">L " + ServerSettings.Instance().tmSettings.TimeoutLimits.get(t) + "</td>\n";
+			html += "    <th width=" + width + ">L " + "blole broke this" + "</td>\n"; //TODO: ServerSettings.Instance().tmSettings.TimeoutLimits.get(t)
 		}
 		html += "  </tr></thead><tbody>\n";
 				
@@ -294,9 +312,9 @@ public class ResultsParser
 			html += "    <td>" + (r.hostWon ? r.awayScore : r.hostScore) + "</td>\n";
 			
 			double maxScore = Math.max(r.hostScore, r.awayScore) + 1;
-			double maxSq = (double)maxScore;// * (double)maxScore;
-			double hostSq = (double)r.hostScore;// * (double)r.hostScore;
-			double awaySq = (double)r.awayScore;// * (double)r.awayScore;
+			double maxSq = maxScore;// * (double)maxScore;
+			double hostSq = r.hostScore;// * (double)r.hostScore;
+			double awaySq = r.awayScore;// * (double)r.awayScore;
 			double closeNess = (r.hostWon ?  (hostSq-awaySq)/(maxSq) : (awaySq-hostSq)/(maxSq));
 			closeNess = (double)Math.round(closeNess * 100000) / 100000;
 			html += "    <td>" + closeNess + "</td>\n";
@@ -365,7 +383,7 @@ public class ResultsParser
 	
 	
 	public String getResultsHTML()
-	{	
+	{
 		
 		String html = "";
 		int[] allgames = new int[botNames.length];
@@ -419,21 +437,21 @@ public class ResultsParser
 			int ii = allPairs.get(i).botIndex;
 			String color = ((i%2) == 1 ? "#ffffff" : "#E8E8E8");
 			html += "  <tr>\n";
-			html += "    <td align=center bgcolor=#CCCCCC>" + botNames[ii] + "</td>\n"; 
+			html += "    <td align=center bgcolor=#CCCCCC>" + botNames[ii] + "</td>\n";
 			html += "    <td align=center bgcolor=" + color + ">" + allgames[ii] + "</td>\n";
-			dataTotals[0] += allgames[ii];			
+			dataTotals[0] += allgames[ii];
 			html += "    <td align=center bgcolor=" + color + ">" + allwins[ii] + "</td>\n";
 			dataTotals[1] += allwins[ii];
 			html += "    <td align=center bgcolor=" + color + ">" + (allgames[ii] - allwins[ii]) + "</td>\n";
-			dataTotals[2] += (allgames[ii] - allwins[ii]);			
+			dataTotals[2] += (allgames[ii] - allwins[ii]);
 			html += "    <td align=center bgcolor=" + color + ">" + new DecimalFormat("##.##").format(allPairs.get(i).win*100) + "</td>\n";
 			html += "    <td align=center bgcolor=" + color + ">" + (allgames[ii] > 0 ? getTime(frames[ii]/games[ii]) : "0") + "</td>\n"; 	;
 			dataTotals[4] += (allgames[ii] > 0 ? frames[ii]/games[ii] : 0);
 			html += "    <td align=center bgcolor=" + color + ">" + hour[ii] + "</td>\n";
 			dataTotals[5] += hour[ii];
-			html += "    <td align=center bgcolor=" + color + ">" + crash[ii] + "</td>\n"; 
-			dataTotals[6] += crash[ii];			
-			html += "    <td align=center bgcolor=" + color + ">" + timeout[ii] + "</td>\n";	
+			html += "    <td align=center bgcolor=" + color + ">" + crash[ii] + "</td>\n";
+			dataTotals[6] += crash[ii];
+			html += "    <td align=center bgcolor=" + color + ">" + timeout[ii] + "</td>\n";
 			dataTotals[7] += timeout[ii];
 			html += "  </tr>\n";
 		}
@@ -498,7 +516,7 @@ public class ResultsParser
 			html += "  </tr>\n";
 		}
 		
-		html += "</table>\n";		
+		html += "</table>\n";
 		html += "<br>\n";
 			
 		/////////////////////////////////////////
@@ -637,7 +655,8 @@ class ResultPair
 
 class GameResultIDComparator implements Comparator<GameResult>
 {
-    public int compare(GameResult o1, GameResult o2)
+    @Override
+	public int compare(GameResult o1, GameResult o2)
     {
 		return new Integer(o1.gameID).compareTo(new Integer(o2.gameID));
 	}
@@ -645,7 +664,8 @@ class GameResultIDComparator implements Comparator<GameResult>
 
 class ResultPairComparator implements Comparator<ResultPair>
 {
-    public int compare(ResultPair o1, ResultPair o2)
+    @Override
+	public int compare(ResultPair o1, ResultPair o2)
     {
 		if (o1.win == o2.win) return 0;
 		if (o1.win < o2.win) return 1;
@@ -655,7 +675,8 @@ class ResultPairComparator implements Comparator<ResultPair>
 
 class GameResultCrashComparator implements Comparator<GameResult>
 {
-    public int compare(GameResult o1, GameResult o2)
+    @Override
+	public int compare(GameResult o1, GameResult o2)
     {
 		return o1.crashName.compareTo(o2.crashName);
 	}
@@ -663,7 +684,8 @@ class GameResultCrashComparator implements Comparator<GameResult>
 
 class GameResultTimeOutComparator implements Comparator<GameResult>
 {
-    public int compare(GameResult o1, GameResult o2)
+    @Override
+	public int compare(GameResult o1, GameResult o2)
     {
 		return o1.timeOutName.compareTo(o2.timeOutName);
 	}
@@ -671,7 +693,8 @@ class GameResultTimeOutComparator implements Comparator<GameResult>
 
 class GameWinnerNameComparator implements Comparator<GameResult>
 {
-    public int compare(GameResult o1, GameResult o2)
+    @Override
+	public int compare(GameResult o1, GameResult o2)
     {
 		return o1.winName.compareTo(o2.winName);
 	}

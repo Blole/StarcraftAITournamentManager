@@ -1,52 +1,48 @@
 package objects;
 
+import java.io.File;
 import java.io.Serializable;
-
-import server.ServerSettings;
 
 public class Bot implements Serializable
 {
 	private static final long serialVersionUID = 2690734629985126222L;
-	private String name;
-	private String race;
-	private String type;
-	private String bwapiVersion;
+	public final String name;
+	public final Race race;
+	public final BotExecutableType type;
+	public final BWAPIVersion bwapiVersion;
 
-	public Bot(String name, String race, String type, String bwapiVersion)
+	public Bot(String name, Race race, BotExecutableType type, BWAPIVersion bwapiVersion)
 	{
 		this.name = name;
 		this.race = race;
 		this.type = type;
 		this.bwapiVersion = bwapiVersion;
-	}
-	
-	public String getName() 
-	{
-		return name;
-	}
-
-	public String getRace() 
-	{
-		return race;
-	}
-	
-	public String getType()
-	{
-		return type;
-	}
-	
-	public String getServerDir()
-	{
-		return ServerSettings.Instance().ServerBotDir + getName() + "/";
-	}
-	
-	public String getBWAPIVersion()
-	{
-		return bwapiVersion;
+		
 	}
 	
 	public boolean isProxyBot()
 	{
-		return type.equalsIgnoreCase("proxy");
+		return type == BotExecutableType.proxy;
+	}
+	
+	@Override
+	public String toString()
+	{
+		return String.format("[Bot: %s, %s, %s, %s]", name, race, type, bwapiVersion);
+	}
+	
+	public File getDir(Environment env)
+	{
+		return env.lookupFile("$botdir/"+name);
+	}
+
+	public File getReadDir(Environment env)
+	{
+		return new File(getDir(env), "read");
+	}
+
+	public File getWriteDir(Environment env)
+	{
+		return new File(getDir(env), "write");
 	}
 }

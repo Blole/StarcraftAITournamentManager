@@ -2,8 +2,6 @@ package objects;
 
 import java.util.Vector;
 
-import server.ServerSettings;
-
 public class GameResult implements Comparable<Object>
 {
 	public int gameID				= -1;
@@ -33,14 +31,20 @@ public class GameResult implements Comparable<Object>
 	public int finalFrame			= -2;
 	public int hostTime				= 0;
 	public int awayTime				= 0;
+	
+	private int numTimers = 3; //TODO: ServerSettings.Instance().tmSettings.TimeoutLimits.size();
+	public Vector<Integer> TimeoutBounds = new Vector<Integer>(); //TODO: ServerSettings.Instance().tmSettings.TimeoutBounds.get(i)
+	private int gameFrameLimit = 85714;	//TODO: ServerSettings.Instance().tmSettings.GameFrameLimit
 
 	public GameResult() {}
 
-	public GameResult (String data) 
+	public GameResult (String data)
 	{
 		setResult(data);
 
-		int numTimers = ServerSettings.Instance().tmSettings.TimeoutLimits.size();
+		TimeoutBounds.add(320);
+		TimeoutBounds.add(10);
+		TimeoutBounds.add(1);
 	
 		for (int i=0; i<numTimers; ++i)
 		{
@@ -85,7 +89,6 @@ public class GameResult implements Comparable<Object>
 		hostTime			= Integer.parseInt(data[13]) != 0 ? Integer.parseInt(data[13]) : hostTime;
 		awayTime			= Integer.parseInt(data[14]) != 0 ? Integer.parseInt(data[14]) : awayTime;
 		
-		int numTimers = ServerSettings.Instance().tmSettings.TimeoutLimits.size();
 		for (int i=0; i<numTimers; ++i)
 		{
 			hostTimers.add(Integer.parseInt(data[15 + i]));
@@ -161,7 +164,7 @@ public class GameResult implements Comparable<Object>
 		for (int i=0; i<numTimers; ++i)
 		{
 			// check if the host timed out
-			if (hostTimers.get(i) >= ServerSettings.Instance().tmSettings.TimeoutBounds.get(i))
+			if (hostTimers.get(i) >= TimeoutBounds.get(i))
 			{
 				timeOutName = hostName;
 				hostWon = false;
@@ -169,7 +172,7 @@ public class GameResult implements Comparable<Object>
 			}
 			
 			// check if the away bot timed out
-			if (awayTimers.get(i) >= ServerSettings.Instance().tmSettings.TimeoutBounds.get(i))
+			if (awayTimers.get(i) >= TimeoutBounds.get(i))
 			{
 				timeOutName = awayName;
 				hostWon = true;
@@ -178,7 +181,7 @@ public class GameResult implements Comparable<Object>
 		}
 		
 		// if the bots reached the hour time limit
-		if (finalFrame >= ServerSettings.Instance().tmSettings.GameFrameLimit)
+		if (finalFrame >= gameFrameLimit)
 		{
 			hourTimeout = true;
 			
@@ -196,13 +199,14 @@ public class GameResult implements Comparable<Object>
 		winName = hostWon ? hostName : awayName;
 	}
 	
+	@Override
 	public String toString()
 	{
 		String s = String.format("%7d %5d %15s %15s %15s %8d %15s %15s %25s %6b %6b%6b %8d %8d %10d %10d\n",
-				this.gameID, this.roundID, this.hostName, 
-				this.awayName, this.winName, this.finalFrame, this.crashName, this.timeOutName, this.mapName, 
-				this.hostCrash, this.awayCrash, 
-				this.hourTimeout, this.hostScore, this.awayScore, 
+				this.gameID, this.roundID, this.hostName,
+				this.awayName, this.winName, this.finalFrame, this.crashName, this.timeOutName, this.mapName,
+				this.hostCrash, this.awayCrash,
+				this.hourTimeout, this.hostScore, this.awayScore,
 				this.hostTime, this.awayTime);
 				
 		for (int i=0; i<hostTimers.size(); ++i)
@@ -220,6 +224,7 @@ public class GameResult implements Comparable<Object>
 		return s;
 	}
 	
+	@Override
 	public int compareTo(Object other)
 	{
 		return this.gameID - ((GameResult)other).gameID;
