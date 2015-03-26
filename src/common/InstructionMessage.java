@@ -30,7 +30,7 @@ public class InstructionMessage implements Message
 		
 		bwapi.enemy_count = "1";
         bwapi.wait_for_max_players = 2;
-        bwapi.map = host ? game.getMap().path : "";
+        bwapi.map = host ? game.map.path : "";
         bwapi.auto_menu = "LAN";
 	}
 	

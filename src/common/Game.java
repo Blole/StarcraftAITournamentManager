@@ -8,11 +8,10 @@ public class Game implements Serializable
 {
 	private static final long serialVersionUID = -92847343973391774L;
 
-	private Bot 			homebot;
-	private Bot 			awaybot;
+	public final Bot[] 		bots;
+	public final Map 		map;
 
 	private GameStatus 		status;
-	private Map 			map;
 
 	private boolean 		hostwon;
 
@@ -39,14 +38,13 @@ public class Game implements Serializable
 	private long 			guestTime = 0;
 
 
-	public Game(int iD, int roundt, Bot home, Bot away, Map map)
+	public Game(int iD, int roundt, Map map, Bot... bots)
 	{
 		this.round = roundt;
 		finalFrame = 0;
 		this.map = map;
 		this.wasDraw = false;
-		this.homebot = home;
-		this.awaybot = away;
+		this.bots = bots;
 		hostScore = 0;
 		awayScore = 0;
 		status = GameStatus.WAITING;
@@ -65,8 +63,8 @@ public class Game implements Serializable
 				.format("%7d %5d %20s %20s %35s %6b %6b %6b %6b %8d %8d %8d %10d %10d",
 						this.gameID,
 						this.round,
-						this.homebot.name,
-						this.awaybot.name,
+						this.getHomebot().name,
+						this.getAwaybot().name,
 						this.map.name.replace(' ', '_'),
 						this.hostwon,
 						this.hostcrash,
@@ -108,16 +106,12 @@ public class Game implements Serializable
 	}
 
 	public Bot getHomebot() {
-		return homebot;
+		return bots[0];
 	}
 
 	
 	public Bot getAwaybot() {
-		return awaybot;
-	}
-
-	public Map getMap() {
-		return map;
+		return bots[1];
 	}
 
 	public boolean isHostwon() {
@@ -134,9 +128,9 @@ public class Game implements Serializable
 				+ ("(" + gameID + ") -> " + this.status + " -> Map: " + this.map.name);
 		if (status == GameStatus.DONE) {
 			if (hostwon) {
-				ret = ret + (" ## " + this.homebot.name + " WON");
+				ret = ret + (" ## " + this.getHomebot().name + " WON");
 			} else {
-				ret = ret + (" ## " + this.awaybot.name + " WON");
+				ret = ret + (" ## " + this.getAwaybot().name + " WON");
 			}
 
 			if (detailed) {
@@ -183,8 +177,8 @@ public class Game implements Serializable
 	 */
 	public long estimateTime() {
 		int factor = 2;
-		if (this.homebot.name.equals("BuiltIn")
-				|| this.awaybot.name.equals("BuiltIn")) {
+		if (this.getHomebot().name.equals("BuiltIn")
+				|| this.getAwaybot().name.equals("BuiltIn")) {
 			factor = 1;
 		}
 		if (this.time == 0) {
@@ -446,6 +440,11 @@ public class Game implements Serializable
 	@Override
 	public String toString()
 	{
-		return String.format("[Game %d/%d: %s vs. %s]", getGameID(), getRound(), homebot.name, awaybot.name);
+		StringBuilder sb = new StringBuilder();
+		for (Bot bot : bots)
+			sb.append(bot.name + " vs. ");
+		sb.setLength(sb.length()-5);
+		
+		return String.format("[Game %d/%d: %s]", getGameID(), getRound(), sb.toString());
 	}
 }

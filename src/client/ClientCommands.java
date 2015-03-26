@@ -16,16 +16,16 @@ public class ClientCommands
 {
 	public static void Client_InitialSetup(Environment env)
 	{
-		Client.log("      Client_InitialSetup()\n");
+		Client.log("      Client_InitialSetup()");
 		
 		// Make sure Starcraft isn't running
 		Client_KillStarcraftAndChaoslauncher();
 		
 		// Set up local firewall access
 		WindowsCommandTools.RunWindowsCommand("netsh firewall add allowedprogram program = " + env.get("starcraft") + "starcraft.exe name = Starcraft mode = ENABLE scope = ALL", true, false);
-		WindowsCommandTools.RunWindowsCommand("netsh firewall add allowedprogram program = client.jar name = AIIDEClient mode = ENABLE scope = ALL", true, false);
+		/*WindowsCommandTools.RunWindowsCommand("netsh firewall add allowedprogram program = client.jar name = AIIDEClient mode = ENABLE scope = ALL", true, false);
 		WindowsCommandTools.RunWindowsCommand("netsh firewall add portopening TCP 12345 \"Open Port 12345TCP\"", true, false);
-		WindowsCommandTools.RunWindowsCommand("netsh firewall add portopening UDP 12345 \"Open Port 12345UDP\"", true, false);
+		WindowsCommandTools.RunWindowsCommand("netsh firewall add portopening UDP 12345 \"Open Port 12345UDP\"", true, false);*/
 		
 		// Remove the local replay backup if it exists and remake it
 		//WindowsCommandTools.RunWindowsCommand("rmdir /S /Q " + ClientSettings.Instance().ClientStarcraftDir + "SentReplays", true, false);
@@ -48,7 +48,7 @@ public class ClientCommands
 	// makes edits to windows registry so Chaoslauncher knows where StarCraft is installed
 	public static void Client_RegisterStarCraft(Environment env)
 	{
-		Client.log("      Client_RegisterStarCraft()\n");
+		Client.log("      Client_RegisterStarCraft()");
 		
 		// 32-bit machine StarCraft settings
 		String sc32KeyName =     "HKEY_LOCAL_MACHINE\\SOFTWARE\\Blizzard Entertainment\\Starcraft";
@@ -86,7 +86,7 @@ public class ClientCommands
 	
 	public static void Client_KillStarcraftAndChaoslauncher()
 	{
-		Client.log("      Client_KillStarcraftAndChaoslauncher()\n");
+		Client.log("      Client_KillStarcraftAndChaoslauncher()");
 		
 		while (WindowsCommandTools.IsWindowsProcessRunning("StarCraft.exe"))
 		{
@@ -112,7 +112,7 @@ public class ClientCommands
 	
 	public static void Client_KillExcessWindowsProccess(Vector<Integer> startingProc)
 	{
-		Client.log("      Client_KillExcessWindowsProccess()\n");
+		Client.log("      Client_KillExcessWindowsProccess()");
 		
 		// Kill any processes that weren't running before startcraft started
 		// This is helpful to kill any proxy bots or java threads that may still be going
@@ -121,7 +121,7 @@ public class ClientCommands
 	
 	public static void Client_DeleteChaoslauncherDirectory(Environment env)
 	{
-		Client.log("      Client_DeleteChaoslauncherDirectory()\n");
+		Client.log("      Client_DeleteChaoslauncherDirectory()");
 		
 		// Sleep for a second before deleting local directories
 		try
@@ -139,7 +139,7 @@ public class ClientCommands
 	
 	public static void Client_CleanStarcraftDirectory(Environment env)
 	{
-		Client.log("      Client_CleanStarcraftDirectory()\n");
+		Client.log("      Client_CleanStarcraftDirectory()");
 		
 		// Sleep for a second before deleting local directories
 		try
@@ -168,7 +168,7 @@ public class ClientCommands
 
 	public static void Client_RenameCharacterFile(Environment env, InstructionMessage instructions)
 	{
-		Client.log("      Client_RenameCharacterFile()\n");
+		Client.log("      Client_RenameCharacterFile()");
 		String botName = instructions.isHost ? instructions.hostBot.name : instructions.awayBot.name;
 		String charDir = env.get("starcraft") + "characters\\";
 		
@@ -178,7 +178,7 @@ public class ClientCommands
 	
 	public static void Client_StartChaoslauncher(Environment env)
 	{
-		Client.log("      Client_StartChaoslauncher()\n");
+		Client.log("      Client_StartChaoslauncher()");
 		
 		// Launch Chaoslauncher, do not wait for this to finish, exit if it fails (false, true)
 		WindowsCommandTools.RunWindowsExeLocal(env.get("chaoslauncher"), "Chaoslauncher.exe", false, true);
@@ -188,8 +188,8 @@ public class ClientCommands
 	{
 		String newLine = System.getProperty("line.separator");
 		
-		Client.log("      Client_WriteBWAPISettings()\n");
-		String bwapiDest = env.get("starcraft") + "\\bwapi-data\\bwapi.ini";
+		Client.log("      Client_WriteBWAPISettings()");
+		String bwapiDest = env.get("starcraft") + "/bwapi-data/bwapi.ini";
 		BWAPISettings bwapi = instructions.bwapi;
 		Bot thisBot  = instructions.isHost ? instructions.hostBot : instructions.awayBot;
 		Bot otherBot = instructions.isHost ? instructions.awayBot : instructions.hostBot;

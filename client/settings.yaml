@@ -8,4 +8,8 @@ DefaultBWAPISettings: BWAPI.ini
 TournamentModule:     C:\TM\StarCraft\bwapi-data\TournamentModule.dll
 # SERVER ADDRESS - IP address and port of server
 # Syntax - ServerAddress [address]:[port]
-ServerAddress:        bjorn-cellar:1337
+ServerAddress:        bjorn-cellar:1099
+
+starcraftStartingTimeout: 10
+matchStartingTimeout:     60
+matchEndingTimeout:       1000

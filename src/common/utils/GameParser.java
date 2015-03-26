@@ -7,12 +7,12 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 
+import server.Server;
+
 import common.Bot;
 import common.Game;
 import common.GameStorage;
 import common.Map;
-
-import server.Server;
 
 public class GameParser
 {
@@ -72,7 +72,7 @@ public class GameParser
 			if (!line.startsWith("#") && line.length() > 0)
 			{
 				String[] args = line.split("\\s+");
-				Game newGame = new Game(Integer.parseInt(args[0]), Integer.parseInt(args[1]), findBot(args[2]), findBot(args[3]), findMap(args[4]));
+				Game newGame = new Game(Integer.parseInt(args[0]), Integer.parseInt(args[1]), findMap(args[4]), findBot(args[2]), findBot(args[3]));
 				games.addGame(newGame, newGame.getRound());
 			}
 		}

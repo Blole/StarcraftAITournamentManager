@@ -19,8 +19,6 @@ import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 
-import server.Server;
-
 public class ImageWindow
 {
 	private BufferedImage bi;
@@ -47,7 +45,7 @@ public class ImageWindow
         catch (Exception e)
         {
             // handle exception
-        }		
+        }
 	}
 	
     private synchronized void createAndShowGUI()
@@ -58,17 +56,19 @@ public class ImageWindow
         JMenu fileMenu = new JMenu("File");
         JMenuItem refreshMenuItem = new JMenuItem("Refresh Screenshot", KeyEvent.VK_R);
         JMenuItem saveMenuItem = new JMenuItem("Save Screenshot as PNG", KeyEvent.VK_S);
-        refreshMenuItem.addActionListener(new ActionListener() 
+        refreshMenuItem.addActionListener(new ActionListener()
         {
-            public void actionPerformed(ActionEvent e) 
+            @Override
+			public void actionPerformed(ActionEvent e)
             {
-            	Server.Instance().sendScreenshotRequestToClient(address);
+            	//TODO: Server.Instance().sendScreenshotRequestToClient(address);
             }
         });
         fileMenu.add(refreshMenuItem);
-        saveMenuItem.addActionListener(new ActionListener() 
+        saveMenuItem.addActionListener(new ActionListener()
         {
-            public void actionPerformed(ActionEvent e) 
+            @Override
+			public void actionPerformed(ActionEvent e)
             {
             	try {
             		JFileChooser fc = new JFileChooser(".");

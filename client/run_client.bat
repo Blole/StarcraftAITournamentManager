@@ -26,5 +26,4 @@ if '%errorlevel%' NEQ '0' (
     cd /D "%~dp0"
 :--------------------------------------
 
-start javaw -jar client.jar settings.yaml
-exit
+java -jar client.jar settings.yaml

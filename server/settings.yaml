@@ -8,14 +8,39 @@ tm_settings:    required/tm_settings.zip
 replays:        replays/
 
 bots:
-  - !!common.Bot [Aiur       , Protoss, dll, BWAPI_374]
-  - !!common.Bot [Bonjwa     , Terran , dll, BWAPI_374]
+  - !!common.Bot [Aiur        , Protoss, dll, BWAPI_374]
+  - !!common.Bot [Bonjwa      , Terran , dll, BWAPI_374]
+# - !!common.Bot [BTHAI       , Terran , dll, BWAPI_374]
+# - !!common.Bot [CruzBot     , Protoss, dll, BWAPI_374]
+# - !!common.Bot [HITA        , Zerg   , dll, BWAPI_374]
+# - !!common.Bot [IceBot      , Terran , dll, BWAPI_374]
+# - !!common.Bot [LetaBot     , Terran , dll, BWAPI_374]
+# - !!common.Bot [MaasCraft   , Protoss, dll, BWAPI_401B]
+# - !!common.Bot [MooseBot    , Protoss, dll, BWAPI_374]
+# - !!common.Bot [Nova        , Terran , dll, BWAPI_374]
+# - !!common.Bot [NUSBot      , Protoss, dll, BWAPI_374]
+# - !!common.Bot [Oritaka     , Terran , dll, BWAPI_374]
+# - !!common.Bot [Skynet      , Protoss, dll, BWAPI_374]
+# - !!common.Bot [TerranUAB   , Terran , dll, BWAPI_374]
+# - !!common.Bot [UAlbertaBot , Protoss, dll, BWAPI_374]
+# - !!common.Bot [Xelnaga     , Protoss, dll, BWAPI_374]
+# - !!common.Bot [Ximp        , Protoss, dll, BWAPI_374]
+# - !!common.Bot [Yarmouk     , Terran , dll, BWAPI_401B]
 
 maps:
   - !!common.Map aiide/(2)Benzene.zip
+# - !!common.Map aiide/(2)Destination.scx
+# - !!common.Map aiide/(2)HeartbreakRidge.scx
+# - !!common.Map aiide/(3)Aztec.scx
+# - !!common.Map aiide/(3)TauCross.scx
+# - !!common.Map aiide/(4)Andromeda.scx
+# - !!common.Map aiide/(4)CircuitBreaker.scx
+# - !!common.Map aiide/(4)EmpireoftheSun.scm
+# - !!common.Map aiide/(4)Fortress.scx
+# - !!common.Map aiide/(4)Python.scx
 
 # SERVER PORT - Port to listen for clients on
-port: 1337
+port: 1099
 
 # Games List File - Tournament games to be played
 GamesListFile: games.txt

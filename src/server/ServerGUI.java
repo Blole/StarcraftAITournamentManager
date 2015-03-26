@@ -14,6 +14,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.Date;
 
 import javax.swing.JFrame;
 import javax.swing.JMenu;
@@ -30,6 +31,8 @@ import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 
 import common.Bot;
+import common.Game;
+import common.protocols.RemoteClient;
 import common.utils.FileUtils;
 import common.utils.GameListGenerator;
 import common.utils.ResultsParser;
@@ -117,7 +120,7 @@ public class ServerGUI
             	//int confirmed = JOptionPane.showConfirmDialog(mainFrame, "Shutdown Server: This will stop the entire tournament.", "Shutdown Confirmation", JOptionPane.YES_NO_OPTION);
     			//if (confirmed == JOptionPane.YES_OPTION)
     			{
-    				server.shutDown();
+    				System.exit(0);
     			}
             }
         });
@@ -160,7 +163,7 @@ public class ServerGUI
             	
             	if (client != null && client.trim().length() > 0)
             	{
-            		server.sendScreenshotRequestToClient(client);
+            		//TODO: server.sendScreenshotRequestToClient(client);
             	}
             }
         });
@@ -185,7 +188,7 @@ public class ServerGUI
     			//int confirmed = JOptionPane.showConfirmDialog(mainFrame, "Shutdown Server: Are you sure?", "Shutdown Confirmation", JOptionPane.YES_NO_OPTION);
     			//if (confirmed == JOptionPane.YES_OPTION)
     			{
-    				server.shutDown();
+    				System.exit(0);
     			}
             }
 	    });
@@ -358,51 +361,51 @@ public class ServerGUI
 		int row = GetClientRow(name);
 		if (row != -1)
 		{
-			GetModel().setValueAt(status, row, 1);
-			GetModel().setValueAt(name, row, 0);
-			GetModel().setValueAt(num, row, 2);
+			getModel().setValueAt(status, row, 1);
+			getModel().setValueAt(name, row, 0);
+			getModel().setValueAt(num, row, 2);
 			
 			if (!status.equals("READY") && !status.equals("SENDING"))
 			{
-				GetModel().setValueAt("", row, 3);
-				GetModel().setValueAt("", row, 4);
-				GetModel().setValueAt("", row, 5);
-				GetModel().setValueAt("", row, 6);
-				GetModel().setValueAt("", row, 7);
+				getModel().setValueAt("", row, 3);
+				getModel().setValueAt("", row, 4);
+				getModel().setValueAt("", row, 5);
+				getModel().setValueAt("", row, 6);
+				getModel().setValueAt("", row, 7);
 			}
 			else
 			{
 				for (int i=3; i<columnNames.length; ++i)
 				{
-					GetModel().setValueAt(mainTable.getValueAt(row, i), row, i);
+					getModel().setValueAt(mainTable.getValueAt(row, i), row, i);
 				}
 			}
 		}
 		else
 		{
-			GetModel().addRow(new Object[]{name, status, num, host, join, "", "", ""});
+			getModel().addRow(new Object[]{name, status, num, host, join, "", "", ""});
 		}
 	}
 	
-	public synchronized void UpdateRunningStats(String client, String self, String enemy, String map, String FrameCount, String win)
+	public synchronized void UpdateRunningStats(RemoteClient client, Game game, int i, long startTime)
 	{
-		int row = GetClientRow(client);
+		int row = GetClientRow(client.toString());
 		
 		if (row != -1)
 		{
-			GetModel().setValueAt(self, row, 3);
-			GetModel().setValueAt(enemy, row, 4);
-			GetModel().setValueAt(map, row, 5);
-			GetModel().setValueAt(FrameCount, row, 6);
-			GetModel().setValueAt(win, row, 7);
+			String time = new SimpleDateFormat("mm:ss").format(new Date(System.currentTimeMillis() - startTime));
+			getModel().setValueAt(game.bots[i], row, 3);
+			getModel().setValueAt(game.bots[i%2], row, 4);
+			getModel().setValueAt(game.map, row, 5);
+			getModel().setValueAt(time, row, 6);
 		}
 	}
 	
 	public synchronized int GetClientRow(String name)
 	{
-		for (int r=0; r<NumRows(); ++r)
+		for (int r=0; r<getModel().getRowCount(); ++r)
 		{
-			String rowName = (String)(GetModel().getValueAt(r,0));
+			String rowName = (String)(getModel().getValueAt(r,0));
 			if (rowName.equalsIgnoreCase(name))
 			{
 				return r;
@@ -418,7 +421,7 @@ public class ServerGUI
 		
 		if (row != -1)
 		{
-			GetModel().removeRow(row);
+			getModel().removeRow(row);
 		}
 		else
 		{
@@ -432,17 +435,7 @@ public class ServerGUI
 		bottomText.setCaretPosition(bottomText.getDocument().getLength());
 	}
 	
-	public int NumRows()
-	{
-		return GetModel().getRowCount();
-	}
-	
-	public int RowCount()
-	{
-		return GetModel().getColumnCount();
-	}
-	
-	private DefaultTableModel GetModel()
+	private DefaultTableModel getModel()
 	{
 		return (DefaultTableModel)(mainTable.getModel());
 	}

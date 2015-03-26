@@ -1,13 +1,15 @@
 package client;
 
 import java.io.File;
+import java.rmi.RemoteException;
 
 import common.Environment;
+import common.RunnableWithShutdownHook;
 
 
 public class ClientMain
 {
-	public static void main(String[] args) throws Exception
+	public static void main(String[] args) throws RemoteException
 	{
 		if (!System.getProperty("os.name").contains("Windows"))
 		{
@@ -21,11 +23,10 @@ public class ClientMain
 		else
 		{
 			Environment env = new Environment(new File(args[0]));
-			Client client = new Client(env);
-			ClientListenerThread listener = new ClientListenerThread(client);
-			client.setListener(listener);
 			
-			client.start();
+			Client client = new Client(env);
+			RunnableWithShutdownHook.addShutdownHook(client);
+			client.run();
 		}
 	}
 }
