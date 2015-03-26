@@ -14,32 +14,6 @@ import common.utils.WindowsCommandTools;
 
 public class ClientCommands
 {
-	public static void Client_InitialSetup(Environment env)
-	{
-		Client.log("      Client_InitialSetup()");
-		
-		// Make sure Starcraft isn't running
-		Client_KillStarcraftAndChaoslauncher();
-		
-		// Set up local firewall access
-		WindowsCommandTools.RunWindowsCommand("netsh firewall add allowedprogram program = " + env.get("starcraft") + "starcraft.exe name = Starcraft mode = ENABLE scope = ALL", true, false);
-		/*WindowsCommandTools.RunWindowsCommand("netsh firewall add allowedprogram program = client.jar name = AIIDEClient mode = ENABLE scope = ALL", true, false);
-		WindowsCommandTools.RunWindowsCommand("netsh firewall add portopening TCP 12345 \"Open Port 12345TCP\"", true, false);
-		WindowsCommandTools.RunWindowsCommand("netsh firewall add portopening UDP 12345 \"Open Port 12345UDP\"", true, false);*/
-		
-		// Remove the local replay backup if it exists and remake it
-		//WindowsCommandTools.RunWindowsCommand("rmdir /S /Q " + ClientSettings.Instance().ClientStarcraftDir + "SentReplays", true, false);
-		//WindowsCommandTools.RunWindowsCommand("mkdir " + ClientSettings.Instance().ClientStarcraftDir + "SentReplays", true, false);
-		
-		FileUtils.CleanDirectory(new File(env.get("starcraft") + "SentReplays"));
-		
-		// Delete the old Chaoslauncher folder just in case
-		Client_DeleteChaoslauncherDirectory(env);
-		
-		// Clean the Starcraft directory of old files and folders
-		Client_CleanStarcraftDirectory(env);
-	}
-		
 	public static void Client_RunProxyScript(Environment env)
 	{
 		WindowsCommandTools.RunWindowsCommand(env.get("starcraft") + "bwapi-data/AI/run_proxy.bat", false, false);

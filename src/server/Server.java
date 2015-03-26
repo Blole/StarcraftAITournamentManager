@@ -31,8 +31,10 @@ import common.InstructionMessage;
 import common.Map;
 import common.RMIHelper;
 import common.RunnableWithShutdownHook;
+import common.exceptions.StarcraftException;
 import common.protocols.RemoteClient;
 import common.protocols.RemoteServer;
+import common.protocols.RemoteStarcraftGame;
 import common.utils.FileUtils;
 import common.utils.GameParser;
 import common.utils.ResultsParser;
@@ -63,18 +65,6 @@ public class Server extends UnicastRemoteObject implements RemoteServer, Runnabl
     	
     	this.env = env;
     	gui = new ServerGUI(this);
-
-     	//runCommand("ServerSetup.bat");
-		/*if (System.getProperty("os.name").contains("Windows"))
-		{
-			WindowsCommandTools.RunWindowsCommand("netsh firewall add allowedprogram program = server.jar name = AIIDEServer mode = ENABLE scope = ALL", true, false);
-			WindowsCommandTools.RunWindowsCommand("netsh firewall add portopening TCP 12345 \"Open Port 12345TCP\"", true, false);
-			WindowsCommandTools.RunWindowsCommand("netsh firewall add portopening UDP 12345 \"Open Port 12345UDP\"", true, false);
-			WindowsCommandTools.RunWindowsCommand("netsh firewall add portopening TCP 1337 \"Open Port 1337TCP\"", true, false);
-			WindowsCommandTools.RunWindowsCommand("netsh firewall add portopening UDP 1337 \"Open Port 1337UDP\"", true, false);
-			WindowsCommandTools.RunWindowsCommand("netsh firewall add portopening TCP 11337 \"Open Port 11337TCP\"", true, false);
-			WindowsCommandTools.RunWindowsCommand("netsh firewall add portopening UDP 11337 \"Open Port 11337UDP\"", true, false);
-		}*/
     }
 
     public static Server Instance()
@@ -336,7 +326,7 @@ public class Server extends UnicastRemoteObject implements RemoteServer, Runnabl
 		private final Game game;
 		private final RemoteClient[] players;
 		private long startTime;
-		private ArrayList<RemoteStarCraftInstance> starcrafts = new ArrayList<>();
+		private ArrayList<RemoteStarcraftGame> starcraftGames = new ArrayList<>();
 		
 		RunningMatch(Game game, RemoteClient... players)
 		{
@@ -365,22 +355,26 @@ public class Server extends UnicastRemoteObject implements RemoteServer, Runnabl
 				for (int i=0; i<players.length; i++)
 				{
 					gui.UpdateRunningStats(players[i], game, i, startTime);
-					RemoteStarCraftInstance starcraft = new RemoteStarCraftInstance(players[i], i==0, game);
-					starcrafts.add(starcraft);
-					starcraft.start();
+					RemoteStarcraftGame starcraftGame = players[i].startStarcraftGame(new InstructionMessage(new BWAPISettings(), i==0, game));
+					starcraftGames.add(starcraftGame);
 				}
 				
 		        game.setStatus(GameStatus.RUNNING);
 		        game.startTime();
 		        
-				//for (RemoteClient client : clients)
-	        	//    updateClientGUI(client);
+		        while (true)
+		        {
+		        	boolean allDone = true;
+		        	
+		        	for (RemoteStarcraftGame starcraftGame : starcraftGames)
+		        		allDone &= starcraftGame.isDone();
+		        	
+		        	if (allDone)
+		        		break;
+		        }
 		        
-		        //TODO: poll until done
+		        log("%s finished, collecting replays", game);
 		        
-				//for (RemoteClient client : clients)
-	        	//    updateClientGUI(client);
-				
 				for (int i=0; i<players.length; i++)
 				{
 					RemoteClient player = players[i];
@@ -393,42 +387,29 @@ public class Server extends UnicastRemoteObject implements RemoteServer, Runnabl
 				g.updateWithGame(game);
 				appendGameData(g);
 			}
+			catch (StarcraftException e)
+			{
+				e.printStackTrace();
+			}
 			catch (RemoteException e)
 			{
 				e.printStackTrace();
 			}
 			finally
 			{
-				for (RemoteClient player : players)
-					free.add(player);
+	        	for (int i=0; i<starcraftGames.size(); i++)
+	        	{
+					try
+					{
+						free.add(players[i]);
+						starcraftGames.get(i).kill();
+					} catch (RemoteException e)
+					{
+						e.printStackTrace();
+					}
+				}
 				runningGames.remove(this);
 			}
 	    }
-	}
-	
-	class RemoteStarCraftInstance extends Thread
-	{
-		private RemoteClient player;
-		private boolean isHost;
-		private Game game;
-
-		public RemoteStarCraftInstance(RemoteClient player, boolean isHost, Game game)
-		{
-			this.player = player;
-			this.isHost = isHost;
-			this.game = game;
-		}
-
-		@Override
-		public void run()
-		{
-			try
-			{
-				player.startStarCraft(new InstructionMessage(new BWAPISettings(), isHost, game));
-			} catch (RemoteException e)
-			{
-				throw new RuntimeException(e);
-			}
-		}
 	}
 }
