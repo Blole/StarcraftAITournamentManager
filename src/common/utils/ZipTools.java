@@ -167,9 +167,9 @@ public class ZipTools
 		zis.close();
 	}
 	
-	public static void UnzipByteArrayToDir(byte[] zipdata, String directory) throws IOException
+	public static void UnzipByteArrayToDir(byte[] zipdata, File to) throws IOException
 	{
-		UnzipStreamToDir(new ByteArrayInputStream(zipdata), new File(directory));
+		UnzipStreamToDir(new ByteArrayInputStream(zipdata), to);
 	}
 	
 	public static void UnzipFileToDir(File zipfile, File directory) throws IOException

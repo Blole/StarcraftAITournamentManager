@@ -33,7 +33,7 @@ public class Bot implements Serializable
 	
 	public File getDir(Environment env)
 	{
-		return env.lookupFile("$botdir/"+name);
+		return env.lookupFile("$bot_dir/"+name);
 	}
 
 	public File getReadDir(Environment env)

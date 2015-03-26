@@ -16,9 +16,9 @@ import java.util.Calendar;
 import javax.imageio.ImageIO;
 
 import common.Environment;
-import common.FileMessage;
 import common.Helper;
 import common.InstructionMessage;
+import common.PackedFile;
 import common.RMIHelper;
 import common.RunnableWithShutdownHook;
 import common.protocols.RemoteClient;
@@ -106,12 +106,6 @@ public class Client extends UnicastRemoteObject implements RemoteClient, Runnabl
 		System.exit(0);
 	}
 
-	public static void log(String format, Object... args)
-	{
-		String timeStamp = new SimpleDateFormat("[HH:mm:ss]").format(Calendar.getInstance().getTime());
-		System.out.println(timeStamp+" "+String.format(format, args));
-	}
-	
 	@Override
 	public byte[] screenshot() throws RemoteException
 	{
@@ -133,15 +127,18 @@ public class Client extends UnicastRemoteObject implements RemoteClient, Runnabl
 	}
 
 	@Override
-	public FileMessage getFile(String path, String extractTo) throws RemoteException
+	public PackedFile getFile(String path) throws IOException
 	{
-		return new FileMessage(env.lookupFile(path), extractTo);
+		PackedFile file = new PackedFile(env.lookupFile(path));
+		log("sent " + file);
+		return file;
 	}
 
 	@Override
-	public void extractFile(FileMessage msg)
+	public void extractFile(PackedFile file, String extractTo) throws IOException
 	{
-		msg.write(env);
+		log("received " + file);
+		file.writeTo(env.lookupFile(extractTo));
 	}
 	
 	@Override
@@ -151,6 +148,12 @@ public class Client extends UnicastRemoteObject implements RemoteClient, Runnabl
 		WindowsCommandTools.RunWindowsCommandAsync(command);
 	}
 
+	public static void log(String format, Object... args)
+	{
+		String timeStamp = new SimpleDateFormat("[HH:mm:ss]").format(Calendar.getInstance().getTime());
+		System.out.println(timeStamp+" "+String.format(format, args));
+	}
+	
 	@Override
 	public String toString()
 	{

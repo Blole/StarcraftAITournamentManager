@@ -11,5 +11,5 @@ TournamentModule:     C:\TM\StarCraft\bwapi-data\TournamentModule.dll
 ServerAddress:        bjorn-cellar:1099
 
 starcraftStartingTimeout: 10
-matchStartingTimeout:     30
+matchStartingTimeout:     60
 matchEndingTimeout:       1000

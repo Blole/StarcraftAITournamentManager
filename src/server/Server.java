@@ -21,7 +21,6 @@ import javax.imageio.ImageIO;
 import common.BWAPISettings;
 import common.Bot;
 import common.Environment;
-import common.FileMessage;
 import common.Game;
 import common.GameStatus;
 import common.GameStorage;
@@ -29,6 +28,7 @@ import common.Helper;
 import common.ImageWindow;
 import common.InstructionMessage;
 import common.Map;
+import common.PackedFile;
 import common.RMIHelper;
 import common.RunnableWithShutdownHook;
 import common.exceptions.StarcraftException;
@@ -344,11 +344,11 @@ public class Server extends UnicastRemoteObject implements RemoteServer, Runnabl
 				{
 					RemoteClient player = players[i];
 					Bot bot = game.bots[i];
-			        player.extractFile(new FileMessage(env.lookupFile("$"+bot.bwapiVersion), "$starcraft/"));
-			        player.extractFile(new FileMessage(env.lookupFile("$chaoslauncher"), "$chaoslauncher"));
-			        player.extractFile(new FileMessage(env.lookupFile("$bot_dir/"+bot.name), "$starcraft/bwapi-data/"));
-			        player.extractFile(new FileMessage(env.lookupFile("$map_dir/"+game.map.path), "$starcraft/maps/"));
-			        player.extractFile(new FileMessage(env.lookupFile("$tm_settings"), "$starcraft/bwapi-data/"));
+			        player.extractFile(new PackedFile(env.lookupFile("$"+bot.bwapiVersion)), "$starcraft/");
+			        player.extractFile(new PackedFile(env.lookupFile("$chaoslauncher")), "$chaoslauncher");
+			        player.extractFile(new PackedFile(env.lookupFile("$bot_dir/"+bot.name)), "$starcraft/bwapi-data/");
+			        player.extractFile(new PackedFile(env.lookupFile("$map_dir/"+game.map.path)), "$starcraft/maps/"+game.map.path);
+			        player.extractFile(new PackedFile(env.lookupFile("$tm_settings")), "$starcraft/bwapi-data/");
 				}
 				
 				startTime = System.currentTimeMillis();
@@ -379,8 +379,8 @@ public class Server extends UnicastRemoteObject implements RemoteServer, Runnabl
 				{
 					RemoteClient player = players[i];
 					Bot bot = game.bots[i];
-					player.getFile("$starcraft/maps/replays/", "$replays/").write(env);
-					player.getFile("$starcraft/bwapi-data/write/", "$bot_dir/"+bot.name+"/write/").write(env);
+					player.getFile("$starcraft/maps/replays/").writeTo(env.lookupFile("$replays/"));
+					player.getFile("$starcraft/bwapi-data/write/").writeTo(env.lookupFile("$bot_dir/"+bot.name+"/write/"));
 				}
 				
 				Game g = games.lookupGame(game.getGameID(), game.getRound());
@@ -392,6 +392,10 @@ public class Server extends UnicastRemoteObject implements RemoteServer, Runnabl
 				e.printStackTrace();
 			}
 			catch (RemoteException e)
+			{
+				e.printStackTrace();
+			}
+			catch (IOException e)
 			{
 				e.printStackTrace();
 			}
