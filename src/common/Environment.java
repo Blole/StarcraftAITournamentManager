@@ -79,8 +79,8 @@ public class Environment
 		return s;
 	}
 	
-	public File lookupFile(String path)
+	public MyFile lookupFile(String path)
 	{
-		return new File(lookup(path));
+		return new MyFile(lookup(path));
 	}
 }

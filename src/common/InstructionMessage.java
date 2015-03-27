@@ -1,6 +1,8 @@
 package common;
 
-public class InstructionMessage implements Message
+import java.io.Serializable;
+
+public class InstructionMessage implements Serializable
 {
 	private static final long serialVersionUID = 9062722137863042773L;
 	

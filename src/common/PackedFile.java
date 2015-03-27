@@ -11,19 +11,28 @@ public class PackedFile implements Serializable
 {
 	private final byte[] data;
 	public final String fileName;
+	private final boolean isDir;
 	
 	public PackedFile(File src) throws IOException
 	{
 		fileName = src.getName();
 		
-		if (!src.isDirectory() && src.getName().endsWith(".zip"))
+		if (fileName.endsWith(".zip") && !src.isDirectory())
+		{
 			data = ZipTools.LoadZipFileToByteArray(src);
+			isDir = true;
+		}
 		else
+		{
 			data = ZipTools.ZipDirToByteArray(src);
+			isDir = src.isDirectory();
+		}
 	}
 	
 	public void writeTo(File dest) throws IOException
 	{
+		if (dest.isDirectory() && !isDir)
+			dest = new File(dest, fileName);
 		ZipTools.UnzipByteArrayToDir(data, dest);
 	}
 	

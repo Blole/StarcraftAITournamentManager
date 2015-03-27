@@ -16,7 +16,7 @@ public class FileUtils
 	{
 		try
 		{
-			if (f.isDirectory())
+			if (f.exists() && f.isDirectory())
 			{
 				for (File c : f.listFiles())
 				{
@@ -81,7 +81,7 @@ public class FileUtils
 			    Path sourcePath = sourceFile.toPath();
 			    File newFile = new File(sourcePath.toString());
 			    
-			    if (newFile.isDirectory())
+			    if (newFile.exists() && newFile.isDirectory())
 			    {
 			    	newFile.mkdirs();
 			    	CopyDirectory(sourceFile, destPath.resolve(sourcePath.getFileName()).toFile());

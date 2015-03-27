@@ -121,12 +121,12 @@ public class ClientCommands
 			Thread.sleep(2000);
 		
 			// Delete local folders which now contain old data
-			FileUtils.DeleteDirectory(new File(env.get("starcraft") + "bwapi-data"));
-			FileUtils.DeleteDirectory(new File(env.get("starcraft") + "characters"));
-			FileUtils.DeleteDirectory(new File(env.get("starcraft") + "maps"));
+			FileUtils.DeleteDirectory(env.lookupFile("$starcraft/bwapi-data/"));
+			FileUtils.DeleteDirectory(env.lookupFile("$starcraft/characters/"));
+			FileUtils.DeleteDirectory(env.lookupFile("$starcraft/maps/"));
 			
 			// Delete the old game state file
-			File oldGameState = new File(env.get("starcraft") + "gameState.txt");
+			File oldGameState = env.lookupFile("$starcraft/gameState.txt");
 			while (oldGameState.exists())
 			{
 				System.out.println("Old game state file exists, deleting... ");

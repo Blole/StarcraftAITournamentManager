@@ -6,7 +6,6 @@ import java.awt.Robot;
 import java.awt.Toolkit;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
-import java.io.File;
 import java.io.IOException;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
@@ -62,7 +61,7 @@ public class Client extends UnicastRemoteObject implements RemoteClient, Runnabl
 		ClientCommands.Client_KillStarcraftAndChaoslauncher();
 		ClientCommands.Client_DeleteChaoslauncherDirectory(env);
 		ClientCommands.Client_CleanStarcraftDirectory(env);
-		FileUtils.CleanDirectory(new File(env.get("starcraft") + "SentReplays"));
+		FileUtils.CleanDirectory(env.lookupFile("$starcraft/SentReplays/"));
 		// Set up local firewall access
 		//WindowsCommandTools.RunWindowsCommand("netsh firewall add allowedprogram program = " + env.get("starcraft") + "starcraft.exe name = Starcraft mode = ENABLE scope = ALL", true, false);
 		

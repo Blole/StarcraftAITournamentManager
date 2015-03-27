@@ -3,7 +3,7 @@ BWAPI_374:      required/Required_BWAPI_374.zip
 BWAPI_401B:     required/Required_BWAPI_401B.zip
 bot_dir:        required/bots/
 map_dir:        required/maps/
-tm_settings:    required/tm_settings.zip
+tm_settings:    required/tm_settings.ini
 
 replays:        replays/
 
@@ -28,7 +28,7 @@ bots:
 # - !!common.Bot [Yarmouk     , Terran , dll, BWAPI_401B]
 
 maps:
-  - !!common.Map aiide/(2)Benzene.zip
+  - !!common.Map aiide/(2)Benzene.scx
 # - !!common.Map aiide/(2)Destination.scx
 # - !!common.Map aiide/(2)HeartbreakRidge.scx
 # - !!common.Map aiide/(3)Aztec.scx
@@ -54,7 +54,7 @@ ResultsFile: results.txt
 # Note - Generating detailed results gets very slow for large
 #        tournaments, so default is no. You can manually
 #        generate the results from the Actions menu in the
-#        serever, which is recommended
+#        server, which is recommended
 #################################################################
 DetailedResults: no
 

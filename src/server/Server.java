@@ -339,7 +339,6 @@ public class Server extends UnicastRemoteObject implements RemoteServer, Runnabl
 		{
 			try
 			{
-		        //hostClient.setStatus(ClientStatus.STARTING);
 				for (int i=0; i<players.length; i++)
 				{
 					RemoteClient player = players[i];
