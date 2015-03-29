@@ -1,9 +1,9 @@
-chaoslauncher:  required/Chaoslauncher.zip
-BWAPI_374:      required/Required_BWAPI_374.zip
-BWAPI_401B:     required/Required_BWAPI_401B.zip
-bot_dir:        required/bots/
-map_dir:        required/maps/
-tm_settings:    required/tm_settings.ini
+chaoslauncher:  data/chaoslauncher
+BWAPI_374:      data/bwapi_374
+BWAPI_401B:     data/bwapi_401B
+bot_dir:        data/bots/
+map_dir:        data/maps/
+tm_settings:    data/tm_settings.ini
 
 replays:        replays/
 

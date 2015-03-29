@@ -6,7 +6,7 @@
 
 client/client.jar
 server/server.jar
-server/required/bots/
+server/data/bots/
 server/replays/
 server/games.txt
 server/results.txt
