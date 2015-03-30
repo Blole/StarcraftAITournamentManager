@@ -1,13 +1,23 @@
 package common;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
+import java.io.File;
 import java.io.Serializable;
+import java.nio.file.Files;
 
 public class BWAPISettings implements Serializable, Cloneable
 {
 	private static final long serialVersionUID = -5086509309385709470L;
 	
+	/**
+	 * Paths and revisions for AI" + newLine);
+	 *   - Use commas to specify AI for multiple instances.
+	 *   - If there are more instances than the amount of
+	 *         DLLs specified, then the last entry is used.
+	 *   - Use a colon to forcefully load the revision specified.
+	 *   - Example: SomeAI.dll:3400, SecondInstance.dll, ThirdInstance.dll
+	 */
+	public String ai;
+	public String ai_dbg;
 	/**
 	 * Used only for tournaments Tournaments can only be run in RELEASE mode
 	 */
@@ -44,18 +54,30 @@ public class BWAPISettings implements Serializable, Cloneable
 	 */
 	public String map;
 	/**
+	 * game = name of the game to join" + newLine);
+	 * i.e., game = BWAPI" + newLine);
+	 * will join the game called \"BWAPI\"" + newLine);
+	 * If the game does not exist and the \"map\" entry is not blank, then the game will be created instead" + newLine);
+	 * If this entry is blank, then it will follow the rules of the \"map\" entry" + newLine);
+	 */
+	public String game;
+	/**
 	 * mapiteration = RANDOM | SEQUENCE type of iteration that will be done on a
 	 * map name with a wildcard
 	 */
 	public String mapiteration;
+	/**
+	 * race = [Terran | Protoss | Zerg | Random | RandomTP | RandomTZ | RandomPZ]
+	 */
+	public String race;
 	/**
 	 * enemy_count = 1-7, for 1v1 games, set enemy_count = 1 only used in single
 	 * player games
 	 */
 	public String enemy_count;
 	/**
-	 * enemy_race = Terran | Protoss | Zerg | Random | RandomTP | RandomTZ |
-	 * RandomPZ only used in single player games
+	 * enemy_race = [Terran | Protoss | Zerg | Random | RandomTP | RandomTZ | RandomPZ]<br/>
+	 * Only used in single player games
 	 */
 	public String enemy_race;
 	/**
@@ -108,17 +130,17 @@ public class BWAPISettings implements Serializable, Cloneable
 	 * # of players to wait for in a network game before starting. This includes
 	 * the BWAPI player. The game will start immediately when it is full.
 	 */
-	public int wait_for_min_players;
+	public String wait_for_min_players;
 	/**
 	 * Start immediately when the game has reached # players. This includes the
 	 * BWAPI player. The game will start immediately when it is full.
 	 */
-	public int wait_for_max_players;
+	public String wait_for_max_players;
 	/**
 	 * The time in milliseconds (ms) to wait after the game has met the
 	 * min_players requirement. The game will start immediately when it is full.
 	 */
-	public int wait_for_time;
+	public String wait_for_time;
 	/**
 	 * holiday = ON | OFF -> This will apply special easter eggs to the game
 	 * when it comes time for a holiday.
@@ -147,235 +169,253 @@ public class BWAPISettings implements Serializable, Cloneable
 	public String screenshots;
 	/** The Path of the log file */
 	public String log_path;
-
-	public BWAPISettings()
-	{
-		tournament = "";
-		auto_menu = "OFF";
-		pause_dbg = "OFF";
-		lan_mode = "Local Area Network (UDP)";
-		auto_restart = "OFF";
-		map = null;
-		mapiteration = "Random";
-		enemy_count = "0";
-		enemy_race = "Terran";
-		enemy_race_1 = "Default";
-		enemy_race_2 = "Default";
-		enemy_race_3 = "Default";
-		enemy_race_4 = "Default";
-		enemy_race_5 = "Default";
-		enemy_race_6 = "Default";
-		enemy_race_7 = "Default";
-		game_type = "MELEE";
-		save_replay = "lol";
-		wait_for_min_players = 2;
-		wait_for_max_players = 8;
-		wait_for_time = 60000;
-		holiday = "OFF";
-		windowed = "ON";
-		left = "0";
-		top = "0";
-		width = "640";
-		height = "480";
-		sound = "OFF";
-		screenshots = "bmp";
-		log_path = "bwapi-data\\logs";
-		show_warnings = "YES";
-		shared_memory = "ON";
-	}
 	
-	public void loadFromFile(String filename)
+	
+	
+	public BWAPISettings(File file)
 	{
 		try
 		{
-			BufferedReader br = new BufferedReader(new FileReader(filename));
-			String line;
-			
-			while ((line = br.readLine()) != null)
+			for (String line : Files.readAllLines(file.toPath()))
 			{
 				line = line.trim().toLowerCase();
 				
-				if (line.startsWith("#") || line.length() == 0)
+				if (!line.startsWith(";") && line.contains("="))
 				{
-					continue;
+					String key = line.substring(0, line.indexOf('=')).trim();
+					String value = line.substring(line.indexOf('=') + 1).trim();
+					
+					switch(key.toLowerCase())
+					{
+					case "ai":					ai = value; 						break;
+					case "ai_dbg":				ai_dbg = value; 					break;
+					case "tournament":			tournament = value; 				break;
+					case "auto_menu":			auto_menu = value; 					break;
+					case "pause_dbg":			pause_dbg = value; 					break;
+					case "lan_mode":			lan_mode = value; 					break;
+					case "auto_restart":		auto_restart = value; 				break;
+					case "map":					map = value; 						break;
+					case "game":				game = value; 						break;
+					case "mapiteration":		mapiteration = value; 				break;
+					case "race":				race = value; 						break;
+					case "enemy_count":			enemy_count = value; 				break;
+					case "enemy_race":			enemy_race = value; 				break;
+					case "enemy_race_1":		enemy_race_1 = value; 				break;
+					case "enemy_race_2":		enemy_race_2 = value; 				break;
+					case "enemy_race_3":		enemy_race_3 = value; 				break;
+					case "enemy_race_4":		enemy_race_4 = value; 				break;
+					case "enemy_race_5":		enemy_race_5 = value; 				break;
+					case "enemy_race_6":		enemy_race_6 = value; 				break;
+					case "enemy_race_7":		enemy_race_7 = value; 				break;
+					case "game_type":			game_type = value; 					break;
+					case "save_replay":			save_replay = value; 				break;
+					case "wait_for_min_players":wait_for_min_players = value;		break;
+					case "wait_for_max_players":wait_for_max_players = value;		break;
+					case "wait_for_time":		wait_for_time = value; 				break;
+					case "holiday":				holiday = value; 					break;
+					case "show_warnings":		show_warnings = value; 				break;
+					case "shared_memory":		shared_memory = value; 				break;
+					case "windowed":			windowed = value; 					break;
+					case "left":				left = value; 						break;
+					case "top":					top = value; 						break;
+					case "width":				width = value; 						break;
+					case "height":				height = value; 					break;
+					case "sound":				sound = value; 						break;
+					case "screenshots":			screenshots = value; 				break;
+					case "log_path":			log_path = value; 					break;
+					default:
+						System.err.printf("unrecocognized key '%s' = '%s' while parsing '%s', ignoring\n", key, value, file);
+						break;
+					}
 				}
-				
-				parseLine(line);
 			}
-			
-			br.close();
 		}
 		catch (Exception e)
 		{
-			System.err.println("Error loading BWAPI default settings file\n");
+			System.err.printf("error loading BWAPI settings file '%s'\n", file);
 			e.printStackTrace();
 			System.exit(-1);
 		}
 	}
 	
-	private void parseLine(String line) throws Exception
+	public void setGame(Game game, int i)
 	{
-		if (!(line.contains("=")))
-		{
-			return;
-		}
-		
-		String token = line.substring(0, line.indexOf('='));
-		String value = line.substring(line.indexOf('=') + 1).trim();
-		
-		if (token.equals("tournament"))
-		{
-			this.tournament = value;
-		}
-		else if (token.equals("auto_menu"))
-		{
-			this.auto_menu = value;
-		}
-		else if (token.equals("pause_dbg"))
-		{
-			this.pause_dbg = value;
-		}
-		else if (token.equals("lan_mode"))
-		{
-			this.lan_mode = value;
-		}
-		else if (token.equals("auto_restart"))
-		{
-			this.auto_restart = value;
-		}
-		else if (token.equals("game_type"))
-		{
-			this.game_type = value;
-		}
-		else if (token.equals("holiday"))
-		{
-			this.holiday = value;
-		}
-		else if (token.equals("windowed"))
-		{
-			this.windowed = value;
-		}
-		else if (token.equals("left"))
-		{
-			this.left = value;
-		}
-		else if (token.equals("top"))
-		{
-			this.top = value;
-		}
-		else if (token.equals("width"))
-		{
-			this.width = value;
-		}
-		else if (token.equals("height"))
-		{
-			this.height = value;
-		}
-		else if (token.equals("sound"))
-		{
-			this.sound = value;
-		}
-		else if (token.equals("log_path"))
-		{
-			this.log_path = value;
-		}
-		else if (token.equals("wait_for_time"))
-		{
-			this.wait_for_time = Integer.parseInt(value);
-		}
-		else if (token.equals("holiday"))
-		{
-			this.holiday = value;
-		}
-		else if (token.equals("show_warnings"))
-		{
-			this.show_warnings = value;
-		}
-		else if (token.equals("shared_memory"))
-		{
-			this.shared_memory = value;
-		}
-		else if (token.equals("screenshots"))
-		{
-			this.screenshots = value;
-		}
+		ai     = game.bots[i].name;
+		ai_dbg = game.bots[i].name;
+		race   = game.bots[i].race+"";
+        
+		tournament = "bwapi-data\\TournamentModule.dll";
+		this.game = game.getGameID()+"";
+		map = i==0 ? game.map.path : "";
+		save_replay = game.getReplayString();
 	}
+	
+	
+	public String getContentsString()
+	{
+		String newLine = System.getProperty("line.separator");
+		
+		StringBuilder sb = new StringBuilder();
+		
+		sb.append(";BWAPI written by AIIDE Tournament Manager " + newLine);
+		
+		sb.append("[ai]" + newLine);
+		sb.append("; Paths and revisions for AI" + newLine);
+		sb.append(";   - Use commas to specify AI for multiple instances." + newLine);
+		sb.append(";   - If there are more instances than the amount of " + newLine);
+		sb.append(";         DLLs specified, then the last entry is used." + newLine);
+		sb.append(";   - Use a colon to forcefully load the revision specified." + newLine);
+		sb.append(";   - Example: SomeAI.dll:3400, SecondInstance.dll, ThirdInstance.dll" + newLine);
+		sb.append("ai     = bwapi-data\\AI\\" + ai + ".dll" + newLine);
+		sb.append("ai_dbg = bwapi-data\\AI\\" + ai_dbg + ".dll" + newLine + newLine);
 
+		sb.append("; Used only for tournaments" + newLine);
+		sb.append("; Tournaments can only be run in RELEASE mode" + newLine);
+		sb.append("tournament =" + tournament + newLine + newLine);
+
+		sb.append("[auto_menu]" + newLine);
+		sb.append("; auto_menu = OFF | SINGLE_PLAYER | LAN | BATTLE_NET" + newLine);
+		sb.append("; for replays, just set the map to the path of the replay file" + newLine);
+		sb.append("auto_menu = " + auto_menu + newLine + newLine);
+
+		sb.append("; pause_dbg = ON | OFF" + newLine);
+		sb.append("; This specifies if auto_menu will pause until a debugger is attached to the process." + newLine);
+		sb.append("; Only works in DEBUG mode." + newLine);
+		sb.append("pause_dbg = " + pause_dbg + newLine + newLine);
+
+		sb.append("; lan_mode = Same as the text that appears in the multiplayer connection list" + newLine);			// TODO: FINISH
+		sb.append(";            Examples: Local Area Network (UDP), Local PC, Direct IP" + newLine);
+		sb.append("lan_mode = " + lan_mode + newLine + newLine);
+
+		sb.append("; auto_restart = ON | OFF" + newLine);
+		sb.append("; if ON, BWAPI will automate through the end of match screen and start the next match" + newLine);
+		sb.append("; if OFF, BWAPI will pause at the end of match screen until you manually click OK," + newLine);
+		sb.append("; and then BWAPI resume menu automation and start the next match" + newLine);
+		sb.append("auto_restart = " + auto_restart + newLine + newLine);
+
+		sb.append("; map = path to map relative to Starcraft folder, i.e. map = maps\\(2)Boxer.scm" + newLine);
+		sb.append("; leaving this field blank will join a game instead of creating it" + newLine);
+		sb.append("; The filename(NOT the path) can also contain wildcards, example: maps\\(?)*.sc?" + newLine);
+		sb.append("; A ? is a wildcard for a single character and * is a wildcard for a string of characters" + newLine);
+		sb.append("map = " + map + newLine + newLine);
+
+		sb.append("; game = name of the game to join" + newLine);
+		sb.append(";	i.e., game = BWAPI" + newLine);
+		sb.append(";	will join the game called \"BWAPI\"" + newLine);
+		sb.append(";	If the game does not exist and the \"map\" entry is not blank, then the game will be created instead" + newLine);
+		sb.append(";	If this entry is blank, then it will follow the rules of the \"map\" entry" + newLine);
+		sb.append("game =" + game + newLine + newLine);
+
+		sb.append("; mapiteration =  RANDOM | SEQUENCE" + newLine);
+		sb.append("; type of iteration that will be done on a map name with a wildcard" + newLine);
+		sb.append("mapiteration = " + mapiteration + newLine + newLine);
+
+		sb.append("; race = Terran | Protoss | Zerg | Random" + newLine);
+		sb.append("race = " + race + newLine + newLine);
+
+		sb.append("; enemy_count = 1-7, for 1v1 games, set enemy_count = 1" + newLine);
+		sb.append("; only used in single player games" + newLine);
+		sb.append("enemy_count = " + enemy_count + newLine + newLine);
+
+		sb.append("; enemy_race = Terran | Protoss | Zerg | Random | RandomTP | RandomTZ | RandomPZ" + newLine);
+		sb.append("; only used in single player games" + newLine);
+		sb.append("enemy_race = " + enemy_race + newLine + newLine);
+
+		sb.append("; enemy_race_# = Default" + newLine);
+		sb.append("; Values for enemy_race are acceptable, Default will use the value specified in enemy_race" + newLine);
+		sb.append("enemy_race_1 = " + enemy_race_1 + newLine);
+		sb.append("enemy_race_2 = " + enemy_race_2 + newLine);
+		sb.append("enemy_race_3 = " + enemy_race_3 + newLine);
+		sb.append("enemy_race_4 = " + enemy_race_4 + newLine);
+		sb.append("enemy_race_5 = " + enemy_race_5 + newLine);
+		sb.append("enemy_race_6 = " + enemy_race_6 + newLine);
+		sb.append("enemy_race_7 = " + enemy_race_7 + newLine);
+
+		sb.append(";game_type = TOP_VS_BOTTOM | MELEE | FREE_FOR_ALL | ONE_ON_ONE | USE_MAP_SETTINGS | CAPTURE_THE_FLAG" + newLine);
+		sb.append(";           | GREED | SLAUGHTER | SUDDEN_DEATH | TEAM_MELEE | TEAM_FREE_FOR_ALL | TEAM_CAPTURE_THE_FLAG" + newLine);
+		sb.append("game_type = " + game_type + newLine + newLine);
+
+		sb.append("; save_replay = path to save replay to" + newLine);
+		sb.append("; Accepts all environment variables including custom variables. See wiki for more info." + newLine);
+		sb.append("save_replay = " + save_replay + newLine + newLine);
+
+		sb.append("; wait_for_min_players = #" + newLine);
+		sb.append("; # of players to wait for in a network game before starting." + newLine);
+		sb.append("; This includes the BWAPI player. The game will start immediately when it is full." + newLine);
+		sb.append("wait_for_min_players = " + wait_for_min_players + newLine + newLine);
+
+		sb.append("; wait_for_max_players = #" + newLine);
+		sb.append("; Start immediately when the game has reached # players." + newLine);
+		sb.append("; This includes the BWAPI player. The game will start immediately when it is full." + newLine);
+		sb.append("wait_for_max_players = " + wait_for_max_players + newLine + newLine);
+
+		sb.append("; wait_for_time = #" + newLine);
+		sb.append("; The time in milliseconds (ms) to wait after the game has met the min_players requirement." + newLine);
+		sb.append("; The game will start immediately when it is full." + newLine);
+		sb.append("wait_for_time = " + wait_for_time + newLine + newLine);
+
+		sb.append("[config]" + newLine);
+		sb.append("; holiday = ON | OFF" + newLine);
+		sb.append("; This will apply special easter eggs to the game when it comes time for a holiday." + newLine);
+		sb.append("holiday = " + holiday + newLine + newLine);
+
+		sb.append("; show_warnings = YES | NO" + newLine);
+		sb.append("; Setting this to NO will disable startup Message Boxes, but also disable options that" + newLine);
+		sb.append("; assist in revision choice decisions." + newLine);
+		sb.append("show_warnings = " + show_warnings + newLine + newLine);
+
+		sb.append("; shared_memory = ON | OFF" + newLine);
+		sb.append("; This is specifically used to disable shared memory (BWAPI Server) in the Windows Emulator \"WINE\"" + newLine);
+		sb.append("; Setting this to OFF will disable the BWAPI Server, default is ON" + newLine);
+		sb.append("shared_memory = " + shared_memory + newLine + newLine);
+
+		sb.append("[window]" + newLine);
+		sb.append("; These values are saved automatically when you move, resize, or toggle windowed mode" + newLine);
+
+		sb.append("; windowed = ON | OFF" + newLine);
+		sb.append("; This causes BWAPI to enter windowed mode when it is injected." + newLine);
+		sb.append("windowed = " + windowed + newLine + newLine);
+
+		sb.append("; left, top" + newLine);
+		sb.append("; Determines the position of the window" + newLine);
+		sb.append("left = " + left + newLine + newLine);
+		sb.append("top  = " + top + newLine + newLine);
+
+		sb.append("; width, height" + newLine);
+		sb.append("; Determines the width and height of the client area and not the window itself" + newLine);
+		sb.append("width  = " + width + newLine + newLine);
+		sb.append("height = " + height + newLine + newLine);
+
+		sb.append("[starcraft]" + newLine);
+		sb.append("; Game sound engine = ON | OFF" + newLine);
+		sb.append("sound = " + sound + "" + newLine);
+		sb.append("; Screenshot format = gif | pcx | tga | bmp" + newLine);
+		sb.append("screenshots = " + screenshots + newLine + newLine);
+
+		sb.append("[paths]" + newLine);
+		sb.append("log_path = " + log_path + "" + newLine);
+		
+		return sb.toString();
+	}
+	
+	
+	
 	@Override
 	public String toString()
 	{
-		return
-	
-		tournament + "\n" +
-		auto_menu + "\n" +
-		pause_dbg + "\n" +
-		lan_mode + "\n" +
-		auto_restart + "\n" +
-		map + "\n" +
-		mapiteration + "\n" +
-		enemy_count + "\n" +
-		enemy_race + "\n" +
-		enemy_race_1 + "\n" +
-		enemy_race_2 + "\n" +
-		enemy_race_3 + "\n" +
-		enemy_race_4 + "\n" +
-		enemy_race_5 + "\n" +
-		enemy_race_6 + "\n" +
-		enemy_race_7 + "\n" +
-		game_type + "\n" +
-		save_replay + "\n" +
-		wait_for_min_players + "\n" +
-		wait_for_max_players + "\n" +
-		wait_for_time + "\n" +
-		holiday + "\n" +
-		windowed + "\n" +
-		left + "\n" +
-		top + "\n" +
-		width + "\n" +
-		height + "\n" +
-		sound + "\n" +
-		screenshots + "\n" +
-		log_path + "\n" +
-		show_warnings + "\n" +
-		shared_memory + "\n";
+		return "{BWAPISettings}";
 	}
 		
 	@Override
 	public BWAPISettings clone()
 	{
-		BWAPISettings bwapi = new BWAPISettings();
-		bwapi.tournament = this.tournament;
-		bwapi.auto_menu = this.auto_menu;
-		bwapi.pause_dbg = this.pause_dbg;
-		bwapi.lan_mode = this.lan_mode;
-		bwapi.auto_restart = this.auto_restart;
-		bwapi.map = this.map;
-		bwapi.mapiteration = this.mapiteration;
-		bwapi.enemy_count = this.enemy_count;
-		bwapi.enemy_race = this.enemy_race;
-		bwapi.enemy_race_1 = this.enemy_race_1;
-		bwapi.enemy_race_2 = this.enemy_race_2;
-		bwapi.enemy_race_3 = this.enemy_race_3;
-		bwapi.enemy_race_4 = this.enemy_race_4;
-		bwapi.enemy_race_5 = this.enemy_race_5;
-		bwapi.enemy_race_6 = this.enemy_race_6;
-		bwapi.enemy_race_7 = this.enemy_race_7;
-		bwapi.game_type = this.game_type;
-		bwapi.save_replay = this.save_replay;
-		bwapi.wait_for_min_players = this.wait_for_min_players;
-		bwapi.wait_for_max_players = this.wait_for_max_players;
-		bwapi.wait_for_time = this.wait_for_time;
-		bwapi.holiday = this.holiday;
-		bwapi.windowed = this.windowed;
-		bwapi.left = this.left;
-		bwapi.top = this.top;
-		bwapi.width = this.width;
-		bwapi.height = this.height;
-		bwapi.sound = this.sound;
-		bwapi.screenshots = this.screenshots;
-		bwapi.log_path = this.log_path;
-		bwapi.shared_memory = this.shared_memory;
-		bwapi.show_warnings = this.show_warnings;
-		return bwapi;
+		try
+		{
+			return (BWAPISettings) super.clone();
+		}
+		catch (CloneNotSupportedException e)
+		{
+			throw new RuntimeException("shouldn't happen", e);
+		}
 	}
 }

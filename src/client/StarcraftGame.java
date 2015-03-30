@@ -4,7 +4,7 @@ import java.io.File;
 import java.rmi.RemoteException;
 import java.util.Vector;
 
-import common.InstructionMessage;
+import common.Game;
 import common.exceptions.StarcraftException;
 import common.protocols.RemoteStarcraftGame;
 import common.utils.WindowsCommandTools;
@@ -12,13 +12,15 @@ import common.utils.WindowsCommandTools;
 public class StarcraftGame extends Thread implements RemoteStarcraftGame
 {
 	private Client client;
-	private InstructionMessage instructions;
+	private Game game;
 	private StarcraftException exception = null;
+	private int index;
 
-	public StarcraftGame(Client client, InstructionMessage instructions) throws RemoteException
+	public StarcraftGame(Client client, Game game, int i) throws RemoteException
 	{
 		this.client = client;
-		this.instructions = instructions;
+		this.game = game;
+		this.index = i;
 	}
 
 	@Override
@@ -29,19 +31,14 @@ public class StarcraftGame extends Thread implements RemoteStarcraftGame
 		try
 		{
 			ClientCommands.Client_KillStarcraftAndChaoslauncher();
-			ClientCommands.Client_RenameCharacterFile(client.env, instructions);
-			ClientCommands.Client_RegisterStarCraft(client.env);
 			
-			// Write out the BWAPI and TournamentModule settings files
-			ClientCommands.Client_WriteBWAPISettings(client.env, instructions);
-			
-			File replayFile = client.env.lookupFile("$starcraft/maps/replays/"+instructions.bwapi.save_replay);
+			File replayFile = client.env.lookupFile("$starcraft/"+game.getReplayString());
 			File gameStateFile = client.env.lookupFile("$starcraft/gameState.txt");
 			replayFile.delete();
 			gameStateFile.delete();
 			
 			// If this is a proxy bot, start the proxy bot script before StarCraft starts
-			if (isProxyBot(instructions))
+			if (game.bots[index].isProxyBot())
 				ClientCommands.Client_RunProxyScript(client.env);
 			
 			// Start chaoslauncher and thereby starcraft
@@ -102,7 +99,9 @@ public class StarcraftGame extends Thread implements RemoteStarcraftGame
 		finally
 		{
 			ClientCommands.Client_KillStarcraftAndChaoslauncher();
-			ClientCommands.Client_KillExcessWindowsProccess(startingproc);
+			// Kill any processes that weren't running before startcraft started
+			// This is helpful to kill any proxy bots or java threads that may still be going
+			WindowsCommandTools.KillExcessWindowsProccess(startingproc);
 			Client.log("ready");
 		}
 	}
@@ -129,22 +128,5 @@ public class StarcraftGame extends Thread implements RemoteStarcraftGame
 			throw exception;
 		else
 			return !isAlive();
-	}
-	
-	private boolean isProxyBot(InstructionMessage instructions)
-	{
-		if (instructions == null)
-		{
-			return false;
-		}
-		
-		if (instructions.isHost)
-		{
-			return instructions.hostBot.isProxyBot();
-		}
-		else
-		{
-			return instructions.awayBot.isProxyBot();
-		}
 	}
 }

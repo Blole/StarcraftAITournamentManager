@@ -43,6 +43,18 @@ public class ZipTools
 		out.close();
 	}
 	
+	public static byte[] Zip(byte[] bytes) throws IOException
+	{
+		ByteArrayInputStream in = new ByteArrayInputStream(bytes);
+		ByteArrayOutputStream out = new ByteArrayOutputStream();
+		ZipOutputStream zout = new ZipOutputStream(out);
+		zout.putNextEntry(new ZipEntry(""));
+		copy(in, zout);
+		in.close();
+		zout.closeEntry();
+		return out.toByteArray();
+	}
+	
 	// Loads a zip file into an output stream
 	public static byte[] LoadZipFileToByteArray(String filename) throws IOException
 	{

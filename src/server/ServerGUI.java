@@ -30,10 +30,11 @@ import javax.swing.SpinnerNumberModel;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 
+import org.apache.commons.io.FileUtils;
+
 import common.Bot;
 import common.Game;
 import common.protocols.RemoteClient;
-import common.utils.FileUtils;
 import common.utils.GameListGenerator;
 import common.utils.ResultsParser;
 
@@ -273,12 +274,12 @@ public class ServerGUI
 				Iterable<Bot> bots = server.env.get("bots");
     			for (Bot bot : bots)
     			{
-    				FileUtils.CleanDirectory(bot.getReadDir(server.env));
-    				FileUtils.CleanDirectory(bot.getWriteDir(server.env));
+    				FileUtils.cleanDirectory(bot.getReadDir(server.env));
+    				FileUtils.cleanDirectory(bot.getWriteDir(server.env));
     			}
     			
     			logText(getTimeStamp() + " Clearing Replay Directory\n");
-    			FileUtils.CleanDirectory(server.env.lookupFile("$replays/"));
+    			FileUtils.cleanDirectory(server.env.lookupFile("$replays/"));
 			}
 		}
 		catch (Exception e)

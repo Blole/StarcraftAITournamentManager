@@ -1,3 +1,7 @@
+# server settings
+port:           1099
+serverUrlPath:  scaitm_server
+
 bot_dir:        data/bots/
 map_dir:        data/maps/
 replays:        replays/
@@ -45,9 +49,6 @@ maps:
 # - !!common.Map aiide/(4)EmpireoftheSun.scm
 # - !!common.Map aiide/(4)Fortress.scx
 # - !!common.Map aiide/(4)Python.scx
-
-# SERVER PORT - Port to listen for clients on
-port: 1099
 
 # Games List File - Tournament games to be played
 GamesListFile: games.txt

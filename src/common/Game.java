@@ -443,4 +443,15 @@ public class Game implements Serializable
 		
 		return String.format("[Game %d/%d: %s]", getGameID(), getRound(), sb.toString());
 	}
+
+
+	public String getReplayString()
+	{
+		Bot thisBot  = getHomebot();
+		Bot otherBot = getAwaybot();
+		
+		int thisBotNameLength = Math.min(4, thisBot.name.length());
+		int otherBotNameLength = Math.min(4, otherBot.name.length());
+		return String.format("maps/replays/%05d-%s_%s.rep", getGameID(), thisBot.name.substring(0,thisBotNameLength).toLowerCase(), otherBot.name.substring(0,otherBotNameLength));
+	}
 }

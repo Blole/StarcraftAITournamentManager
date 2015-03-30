@@ -10,9 +10,6 @@ import common.RunnableWithShutdownHook;
 
 public class ServerMain
 {
-
-	public static String serverSettingsFile;
-	
 	public static void main(String[] args) throws RemoteException
 	{
 		if (args.length < 1)
@@ -24,8 +21,11 @@ public class ServerMain
 		{
 			Environment env = new Environment(new File(args[0]));
 			
+			LocateRegistry.createRegistry(env.get("port"));
+			
 			Server server = new Server(env);
 			RunnableWithShutdownHook.addShutdownHook(server);
+			server.run();
 			
 			/*if (System.getSecurityManager() == null) {
 				System.setSecurityManager(new SecurityManager());
@@ -33,10 +33,6 @@ public class ServerMain
 			} else {
 				System.out.println("Security manager already exists.");
 			}*/
-			
-			LocateRegistry.createRegistry(env.get("port"));
-			
-			server.run();
 		}
 	}
 }

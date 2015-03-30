@@ -1,8 +1,9 @@
 package common;
 
 import java.io.File;
+import java.io.Serializable;
 
-public class MyFile extends File
+public class MyFile extends File implements Serializable
 {
 	private static final long serialVersionUID = -7563594135120571872L;
 	
@@ -30,6 +31,12 @@ public class MyFile extends File
 			return super.isDirectory();
 		else
 			return endsWithSlash;
+	}
+	
+	@Override
+	public String getName()
+	{
+		return super.getName() + (isDirectory() ? File.separatorChar : "");
 	}
 	
 	@Override

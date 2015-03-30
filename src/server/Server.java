@@ -18,6 +18,8 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import javax.imageio.ImageIO;
 
+import org.apache.commons.io.FileUtils;
+
 import common.BWAPISettings;
 import common.Bot;
 import common.Environment;
@@ -25,7 +27,6 @@ import common.Game;
 import common.GameStatus;
 import common.GameStorage;
 import common.Helper;
-import common.InstructionMessage;
 import common.Map;
 import common.PackedFile;
 import common.RMIHelper;
@@ -35,7 +36,6 @@ import common.exceptions.StarcraftException;
 import common.protocols.RemoteClient;
 import common.protocols.RemoteServer;
 import common.protocols.RemoteStarcraftGame;
-import common.utils.FileUtils;
 import common.utils.GameParser;
 import common.utils.ResultsParser;
 
@@ -76,7 +76,7 @@ public class Server extends UnicastRemoteObject implements RemoteServer, Runnabl
 	@Override
 	public void run()
 	{
-		RMIHelper.rebindAndHookUnbind("scaitm_server", this);
+		RMIHelper.rebindAndHookUnbind(env.get("serverUrlPath"), this);
 		log("server listening on '%s'", Helper.getEndpointAddress(this));
 		
 		boolean resumed = gui.handleTournamentResume();
@@ -123,7 +123,7 @@ public class Server extends UnicastRemoteObject implements RemoteServer, Runnabl
 						log("Round %d finished, moving write directory to read directory", round);
 				    	for (Bot bot : bots)
 						{
-							FileUtils.CopyDirectory(bot.getWriteDir(env), bot.getReadDir(env));
+							FileUtils.copyDirectory(bot.getWriteDir(env), bot.getReadDir(env));
 							//String copy = "xcopy " + ServerSettings.Instance().ServerBotDir + bot.getName() + "/write/*.* " + ServerSettings.Instance().ServerBotDir + bot.getName() + "/read/ /E /V /Y";
 							//WindowsCommandTools.RunWindowsCommand(copy, true, false);
 							//WindowsCommandTools.CopyDirectory(ServerSettings.Instance().ServerBotDir + bot.getName() + "/write/", ServerSettings.Instance().ServerBotDir + bot.getName() + "/read/");
@@ -339,12 +339,20 @@ public class Server extends UnicastRemoteObject implements RemoteServer, Runnabl
 		@Override
 		public void run()
 		{
+			BWAPISettings defaultBwapiSettings = new BWAPISettings(new File("data/bwapi.ini"));
 			try
 			{
 				for (int i=0; i<players.length; i++)
 				{
 					RemoteClient player = players[i];
 					Bot bot = game.bots[i];
+					
+					player.delete("$chaoslauncher");
+					//player.delete("$starcraft/SentReplays/");
+					player.delete("$starcraft/bwapi-data/");
+					player.delete("$starcraft/characters/");
+					player.delete("$starcraft/maps/");
+					player.delete("$starcraft/gameState.txt");
 					
 					for (TargetFile file : (Iterable<TargetFile>) env.get("common_files"))
 						player.extractFile(PackedFile.get(file), file.extractTo);
@@ -354,13 +362,19 @@ public class Server extends UnicastRemoteObject implements RemoteServer, Runnabl
 			        
 			        player.extractFile(PackedFile.get(bot.getDir(env)), "$starcraft/bwapi-data/");
 			        player.extractFile(PackedFile.get(game.map.getFile(env)), "$starcraft/maps/"+game.map.path);
+			        player.extractFile(PackedFile.get(new File("data/characters/default.mpc")), "$starcraft/characters/"+bot.name+".mpc");
+			        player.extractFile(PackedFile.get(new File("data/characters/default.mpc")), "$starcraft/characters/"+bot.name+".mpc");
+			        
+			        BWAPISettings bwapiSettings = defaultBwapiSettings.clone();
+			        bwapiSettings.setGame(game, i);
+			        player.extractFile(new PackedFile("bwapi.ini", bwapiSettings.getContentsString().getBytes()), "$starcraft/bwapi-data/");
 				}
 				
 				startTime = System.currentTimeMillis();
 				for (int i=0; i<players.length; i++)
 				{
 					gui.UpdateRunningStats(players[i], game, i, startTime);
-					RemoteStarcraftGame starcraftGame = players[i].startStarcraftGame(new InstructionMessage(new BWAPISettings(), i==0, game));
+					RemoteStarcraftGame starcraftGame = players[i].startStarcraftGame(game, i);
 					starcraftGames.add(starcraftGame);
 				}
 				

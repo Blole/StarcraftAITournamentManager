@@ -6,6 +6,7 @@ import java.awt.Robot;
 import java.awt.Toolkit;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.IOException;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
@@ -14,16 +15,17 @@ import java.util.Calendar;
 
 import javax.imageio.ImageIO;
 
+import org.apache.commons.io.FileUtils;
+
 import common.Environment;
+import common.Game;
 import common.Helper;
-import common.InstructionMessage;
 import common.PackedFile;
 import common.RMIHelper;
 import common.RunnableWithShutdownHook;
 import common.protocols.RemoteClient;
 import common.protocols.RemoteServer;
 import common.protocols.RemoteStarcraftGame;
-import common.utils.FileUtils;
 import common.utils.WindowsCommandTools;
 
 public class Client extends UnicastRemoteObject implements RemoteClient, RunnableWithShutdownHook
@@ -44,11 +46,9 @@ public class Client extends UnicastRemoteObject implements RemoteClient, Runnabl
 	public synchronized void run()
 	{
 		ClientCommands.Client_KillStarcraftAndChaoslauncher();
-		ClientCommands.Client_DeleteChaoslauncherDirectory(env);
-		ClientCommands.Client_CleanStarcraftDirectory(env);
-		FileUtils.CleanDirectory(env.lookupFile("$starcraft/SentReplays/"));
+		ClientCommands.Client_RegisterStarCraft(env);
 		
-		String serverURL = "//"+env.get("ServerAddress")+"/scaitm_server";
+		String serverURL = env.get("serverUrl");
 		log("connecting to server '%s'", serverURL);
 		server = (RemoteServer) RMIHelper.lookupAndWaitForRemoteToStartIfNecessary(serverURL, 1000);
 		
@@ -93,11 +93,24 @@ public class Client extends UnicastRemoteObject implements RemoteClient, Runnabl
 	}
 	
 	@Override
-	public RemoteStarcraftGame startStarcraftGame(InstructionMessage instructions) throws RemoteException
+	public RemoteStarcraftGame startStarcraftGame(Game game, int i) throws RemoteException
 	{
-		starcraftGame = new StarcraftGame(this, instructions);
+		starcraftGame = new StarcraftGame(this, game, i);
 		starcraftGame.start();
 		return (RemoteStarcraftGame) exportObject(starcraftGame, 0);
+	}
+
+	@Override
+	public void delete(String path) throws RemoteException, IOException
+	{
+		File file = env.lookupFile(path);
+		
+		log("deleted %s", file);
+		
+		if (file.isDirectory())
+			FileUtils.deleteDirectory(file);
+		else
+			file.delete();
 	}
 	
 	@Override
@@ -131,14 +144,14 @@ public class Client extends UnicastRemoteObject implements RemoteClient, Runnabl
 	public PackedFile getFile(String path) throws IOException
 	{
 		PackedFile file = PackedFile.get(env.lookupFile(path));
-		log("sent " + file);
+		log("sent " + path);
 		return file;
 	}
 
 	@Override
 	public void extractFile(PackedFile file, String extractTo) throws IOException
 	{
-		log("received " + file);
+		log("unpacked %20s to %-30s", file.name, extractTo);
 		file.writeTo(env.lookupFile(extractTo));
 	}
 	
