@@ -1,15 +1,11 @@
 package common.exceptions;
 
-import common.protocols.RemoteClient;
-
-@SuppressWarnings("serial")
 public class StarcraftException extends Exception
 {
-	public final RemoteClient client;
+	private static final long serialVersionUID = -8291297177363234151L;
 
-	public StarcraftException(RemoteClient client, String msg)
+	public StarcraftException(String msg)
 	{
 		super(msg);
-		this.client = client;
 	}
 }

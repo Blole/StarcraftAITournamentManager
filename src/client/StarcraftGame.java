@@ -53,7 +53,7 @@ public class StarcraftGame extends Thread implements RemoteStarcraftGame
 			while (!WindowsCommandTools.IsWindowsProcessRunning("StarCraft.exe"))
 			{
 				if (System.currentTimeMillis()-time > client.env.get("starcraftStartingTimeout", Integer.class)*1000)
-					throw new StarcraftException(client, "timeout starting StarCraft");
+					throw new StarcraftException("timeout starting StarCraft");
 				
 				sleep(500);
 			}
@@ -63,9 +63,9 @@ public class StarcraftGame extends Thread implements RemoteStarcraftGame
 			while (!gameStateFile.exists())
 			{
 				if (!WindowsCommandTools.IsWindowsProcessRunning("StarCraft.exe"))
-					throw new StarcraftException(client, "starcraft died while starting match");
+					throw new StarcraftException("starcraft died while starting match");
 				if (System.currentTimeMillis()-time > client.env.get("matchStartingTimeout", Integer.class)*1000)
-					throw new StarcraftException(client, "timeout starting match");
+					throw new StarcraftException("timeout starting match");
 				
 				sleep(1000);
 			}
@@ -75,9 +75,9 @@ public class StarcraftGame extends Thread implements RemoteStarcraftGame
 			while (!replayFile.exists())
 			{
 				if (!WindowsCommandTools.IsWindowsProcessRunning("StarCraft.exe"))
-					throw new StarcraftException(client, "starcraft died during the match");
+					throw new StarcraftException("starcraft died during the match");
 				if (System.currentTimeMillis()-time > client.env.get("matchEndingTimeout", Integer.class)*1000)
-					throw new StarcraftException(client, "timeout ending match");
+					throw new StarcraftException("timeout ending match");
 				
 				sleep(1000);
 			}

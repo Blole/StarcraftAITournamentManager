@@ -18,9 +18,8 @@ import java.util.Set;
 import java.util.Vector;
 
 import common.Bot;
-import common.GameResult;
 import common.Map;
-
+import common.results.GameResult;
 import server.Server;
 
 public class ResultsParser

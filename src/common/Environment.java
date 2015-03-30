@@ -4,31 +4,35 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.io.Reader;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
+import java.util.Map;
 
 import org.yaml.snakeyaml.Yaml;
 
 public class Environment
 {
-	private static Yaml yaml = new Yaml();
 	public static void main(String[] args)
 	{
-		File file = new File(args[0]);
-		Environment env = new Environment(file);
-		System.out.println("\n"+yaml.dump(env.data)+"\n\n");
-		System.out.println(env.get("bots").toString());
-		System.out.println(env.get("maps").toString());
+		File envFile = new File(args[0]);
+		Environment env = new Environment(envFile);
+		//System.out.println(env.yaml.dump(env.get("common_files")));
+		//System.out.println(env.yaml.dump(env.get("bwapi_versions")));
+		System.out.println(env.yaml.dump(env.get("bots")));
+		//System.out.println(env.yaml.dump(env.get("maps")));
 	}
 
-	private LinkedHashMap<Object,Object> data;
+	private Map<String,Object> data;
+	private Yaml yaml;
 	
 	@SuppressWarnings("unchecked")
 	public Environment(File file)
 	{
 		try
 		{
-			data = yaml.loadAs(new BufferedReader(new FileReader(file)), LinkedHashMap.class);
+			Reader reader = new BufferedReader(new FileReader(file));
+			yaml = new Yaml();
+			data = (Map<String,Object>) yaml.load(reader);
 		} catch (FileNotFoundException e)
 		{
 			System.err.println("error reading yaml file '"+file.getAbsolutePath()+"'");
@@ -65,7 +69,7 @@ public class Environment
 	
 	public String lookup(String s)
 	{
-		for (HashMap.Entry<Object, Object> e : data.entrySet())
+		for (HashMap.Entry<String, Object> e : data.entrySet())
 		{
 			if (e.getKey() instanceof String)
 			{

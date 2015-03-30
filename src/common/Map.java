@@ -17,6 +17,11 @@ public class Map
 	@Override
 	public String toString()
 	{
-		return name;
+		return String.format("{Map:%s}", name);
+	}
+	
+	public File getFile(Environment env)
+	{
+		return env.lookupFile("$map_dir/"+path);
 	}
 }

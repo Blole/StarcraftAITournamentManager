@@ -1,4 +1,4 @@
-package common;
+package server;
 
 import java.awt.Dimension;
 import java.awt.Graphics;
@@ -94,7 +94,7 @@ public class ImageWindow
 
         panel = new JPanel()
         {
-			private static final long serialVersionUID = 1L;
+			private static final long serialVersionUID = 6994412363869181692L;
 
 			@Override
             protected void paintComponent(Graphics g)

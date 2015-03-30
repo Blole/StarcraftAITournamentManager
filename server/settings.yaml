@@ -1,31 +1,38 @@
-chaoslauncher:  data/chaoslauncher
-BWAPI_374:      data/bwapi_374
-BWAPI_401B:     data/bwapi_401B
 bot_dir:        data/bots/
 map_dir:        data/maps/
-tm_settings:    data/tm_settings.ini
-
 replays:        replays/
 
+common_files:
+  - !!common.TargetFile [data/chaoslauncher,   $chaoslauncher]
+  - !!common.TargetFile [data/tm_settings.ini, $starcraft/bwapi-data/]
+
+bwapi_versions:
+  - &bwapi_374  !!common.TargetFile [data/bwapi_374,  $starcraft]
+  - &bwapi_401b !!common.TargetFile [data/bwapi_401b, $starcraft]
+  - &bwapi_410b !!common.TargetFile [data/bwapi_410b, $starcraft]
+
 bots:
-  - !!common.Bot [Aiur        , Protoss, dll, BWAPI_374]
-  - !!common.Bot [Bonjwa      , Terran , dll, BWAPI_374]
-# - !!common.Bot [BTHAI       , Terran , dll, BWAPI_374]
-# - !!common.Bot [CruzBot     , Protoss, dll, BWAPI_374]
-# - !!common.Bot [HITA        , Zerg   , dll, BWAPI_374]
-# - !!common.Bot [IceBot      , Terran , dll, BWAPI_374]
-# - !!common.Bot [LetaBot     , Terran , dll, BWAPI_374]
-# - !!common.Bot [MaasCraft   , Protoss, dll, BWAPI_401B]
-# - !!common.Bot [MooseBot    , Protoss, dll, BWAPI_374]
-# - !!common.Bot [Nova        , Terran , dll, BWAPI_374]
-# - !!common.Bot [NUSBot      , Protoss, dll, BWAPI_374]
-# - !!common.Bot [Oritaka     , Terran , dll, BWAPI_374]
-# - !!common.Bot [Skynet      , Protoss, dll, BWAPI_374]
-# - !!common.Bot [TerranUAB   , Terran , dll, BWAPI_374]
-# - !!common.Bot [UAlbertaBot , Protoss, dll, BWAPI_374]
-# - !!common.Bot [Xelnaga     , Protoss, dll, BWAPI_374]
-# - !!common.Bot [Ximp        , Protoss, dll, BWAPI_374]
-# - !!common.Bot [Yarmouk     , Terran , dll, BWAPI_401B]
+  - !!common.Bot [Aiur,                Protoss, dll, [*bwapi_374]]
+  - !!common.Bot [Bonjwa,              Protoss, dll, [*bwapi_374]]
+# - !!common.Bot [main-mcts,           Terran , dll, [*bwapi_401b]]
+# - !!common.Bot [main-attack-closest, Terran , dll, [*bwapi_401b]]
+# - !!common.Bot [Bonjwa,              Terran , dll, [*bwapi_374]]
+# - !!common.Bot [BTHAI,               Terran , dll, [*bwapi_374]]
+# - !!common.Bot [CruzBot,             Protoss, dll, [*bwapi_374]]
+# - !!common.Bot [HITA,                Zerg   , dll, [*bwapi_374]]
+# - !!common.Bot [IceBot,              Terran , dll, [*bwapi_374]]
+# - !!common.Bot [LetaBot,             Terran , dll, [*bwapi_374]]
+# - !!common.Bot [MaasCraft,           Protoss, dll, [*bwapi_401b]]
+# - !!common.Bot [MooseBot,            Protoss, dll, [*bwapi_374]]
+# - !!common.Bot [Nova,                Terran , dll, [*bwapi_374]]
+# - !!common.Bot [NUSBot,              Protoss, dll, [*bwapi_374]]
+# - !!common.Bot [Oritaka,             Terran , dll, [*bwapi_374]]
+# - !!common.Bot [Skynet,              Protoss, dll, [*bwapi_374]]
+# - !!common.Bot [TerranUAB,           Terran , dll, [*bwapi_374]]
+# - !!common.Bot [UAlbertaBot,         Protoss, dll, [*bwapi_374]]
+# - !!common.Bot [Xelnaga,             Protoss, dll, [*bwapi_374]]
+# - !!common.Bot [Ximp,                Protoss, dll, [*bwapi_374]]
+# - !!common.Bot [Yarmouk,             Terran , dll, [*bwapi_401b]]
 
 maps:
   - !!common.Map aiide/(2)Benzene.scx

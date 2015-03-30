@@ -3,17 +3,20 @@ package common;
 import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
+import java.util.HashMap;
 
 import common.utils.ZipTools;
 
-@SuppressWarnings("serial")
 public class PackedFile implements Serializable
 {
+	private static final long serialVersionUID = -5749964971289520236L;
+	
+	private static HashMap<File, PackedFile> cache = new HashMap<>();
 	private final byte[] data;
-	public final String fileName;
+	private final String fileName;
 	private final boolean isDir;
 	
-	public PackedFile(File src) throws IOException
+	private PackedFile(File src) throws IOException
 	{
 		fileName = src.getName();
 		
@@ -27,6 +30,17 @@ public class PackedFile implements Serializable
 			data = ZipTools.ZipDirToByteArray(src);
 			isDir = src.isDirectory();
 		}
+	}
+	
+	static public PackedFile get(File src) throws IOException
+	{
+		PackedFile packedFile = cache.get(src);
+		if (packedFile == null)
+		{
+			packedFile = new PackedFile(src);
+			cache.put(src, packedFile);
+		}
+		return packedFile;
 	}
 	
 	public void writeTo(File dest) throws IOException

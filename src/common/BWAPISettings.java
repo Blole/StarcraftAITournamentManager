@@ -1,13 +1,13 @@
 package common;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.Serializable;
 
-public class BWAPISettings implements Serializable, Cloneable 
+public class BWAPISettings implements Serializable, Cloneable
 {
-	/**
-	 * 
-	 */
 	private static final long serialVersionUID = -5086509309385709470L;
+	
 	/**
 	 * Used only for tournaments Tournaments can only be run in RELEASE mode
 	 */
@@ -148,7 +148,7 @@ public class BWAPISettings implements Serializable, Cloneable
 	/** The Path of the log file */
 	public String log_path;
 
-	public BWAPISettings() 
+	public BWAPISettings()
 	{
 		tournament = "";
 		auto_menu = "OFF";
@@ -215,7 +215,7 @@ public class BWAPISettings implements Serializable, Cloneable
 	
 	private void parseLine(String line) throws Exception
 	{
-		if (!(line.contains("="))) 
+		if (!(line.contains("=")))
 		{
 			return;
 		}
@@ -223,84 +223,85 @@ public class BWAPISettings implements Serializable, Cloneable
 		String token = line.substring(0, line.indexOf('='));
 		String value = line.substring(line.indexOf('=') + 1).trim();
 		
-		if (token.equals("tournament")) 
+		if (token.equals("tournament"))
 		{
 			this.tournament = value;
-		} 
-		else if (token.equals("auto_menu")) 
+		}
+		else if (token.equals("auto_menu"))
 		{
 			this.auto_menu = value;
-		} 
-		else if (token.equals("pause_dbg")) 
+		}
+		else if (token.equals("pause_dbg"))
 		{
 			this.pause_dbg = value;
-		} 
-		else if (token.equals("lan_mode")) 
+		}
+		else if (token.equals("lan_mode"))
 		{
 			this.lan_mode = value;
-		} 
-		else if (token.equals("auto_restart")) 
+		}
+		else if (token.equals("auto_restart"))
 		{
 			this.auto_restart = value;
-		}  
-		else if (token.equals("game_type")) 
+		}
+		else if (token.equals("game_type"))
 		{
 			this.game_type = value;
-		} 
-		else if (token.equals("holiday")) 
+		}
+		else if (token.equals("holiday"))
 		{
 			this.holiday = value;
-		} 
-		else if (token.equals("windowed")) 
+		}
+		else if (token.equals("windowed"))
 		{
 			this.windowed = value;
-		} 
-		else if (token.equals("left")) 
+		}
+		else if (token.equals("left"))
 		{
 			this.left = value;
-		} 
-		else if (token.equals("top")) 
+		}
+		else if (token.equals("top"))
 		{
 			this.top = value;
-		} 
-		else if (token.equals("width")) 
+		}
+		else if (token.equals("width"))
 		{
 			this.width = value;
-		} 
-		else if (token.equals("height")) 
+		}
+		else if (token.equals("height"))
 		{
 			this.height = value;
-		} 
-		else if (token.equals("sound")) 
+		}
+		else if (token.equals("sound"))
 		{
 			this.sound = value;
-		} 
-		else if (token.equals("log_path")) 
+		}
+		else if (token.equals("log_path"))
 		{
 			this.log_path = value;
-		} 
-		else if (token.equals("wait_for_time")) 
+		}
+		else if (token.equals("wait_for_time"))
 		{
 			this.wait_for_time = Integer.parseInt(value);
-		} 
-		else if (token.equals("holiday")) 
+		}
+		else if (token.equals("holiday"))
 		{
 			this.holiday = value;
-		} 
-		else if (token.equals("show_warnings")) 
+		}
+		else if (token.equals("show_warnings"))
 		{
 			this.show_warnings = value;
-		} 
-		else if (token.equals("shared_memory")) 
+		}
+		else if (token.equals("shared_memory"))
 		{
 			this.shared_memory = value;
-		} 
-		else if (token.equals("screenshots")) 
+		}
+		else if (token.equals("screenshots"))
 		{
 			this.screenshots = value;
 		}
 	}
 
+	@Override
 	public String toString()
 	{
 		return
@@ -339,6 +340,7 @@ public class BWAPISettings implements Serializable, Cloneable
 		shared_memory + "\n";
 	}
 		
+	@Override
 	public BWAPISettings clone()
 	{
 		BWAPISettings bwapi = new BWAPISettings();

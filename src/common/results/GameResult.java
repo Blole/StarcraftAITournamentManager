@@ -1,4 +1,4 @@
-package common;
+package common.results;
 
 import java.util.Vector;
 

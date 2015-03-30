@@ -26,9 +26,10 @@ import common.protocols.RemoteStarcraftGame;
 import common.utils.FileUtils;
 import common.utils.WindowsCommandTools;
 
-@SuppressWarnings("serial")
 public class Client extends UnicastRemoteObject implements RemoteClient, RunnableWithShutdownHook
 {
+	private static final long serialVersionUID = 3058199010003999345L;
+	
 	public final Environment env;
 	private RemoteServer server = null;
 	private StarcraftGame starcraftGame = null;
@@ -42,6 +43,11 @@ public class Client extends UnicastRemoteObject implements RemoteClient, Runnabl
 	@Override
 	public synchronized void run()
 	{
+		ClientCommands.Client_KillStarcraftAndChaoslauncher();
+		ClientCommands.Client_DeleteChaoslauncherDirectory(env);
+		ClientCommands.Client_CleanStarcraftDirectory(env);
+		FileUtils.CleanDirectory(env.lookupFile("$starcraft/SentReplays/"));
+		
 		String serverURL = "//"+env.get("ServerAddress")+"/scaitm_server";
 		log("connecting to server '%s'", serverURL);
 		server = (RemoteServer) RMIHelper.lookupAndWaitForRemoteToStartIfNecessary(serverURL, 1000);
@@ -58,10 +64,6 @@ public class Client extends UnicastRemoteObject implements RemoteClient, Runnabl
 			System.exit(0);
 		}
 		
-		ClientCommands.Client_KillStarcraftAndChaoslauncher();
-		ClientCommands.Client_DeleteChaoslauncherDirectory(env);
-		ClientCommands.Client_CleanStarcraftDirectory(env);
-		FileUtils.CleanDirectory(env.lookupFile("$starcraft/SentReplays/"));
 		// Set up local firewall access
 		//WindowsCommandTools.RunWindowsCommand("netsh firewall add allowedprogram program = " + env.get("starcraft") + "starcraft.exe name = Starcraft mode = ENABLE scope = ALL", true, false);
 		
@@ -128,7 +130,7 @@ public class Client extends UnicastRemoteObject implements RemoteClient, Runnabl
 	@Override
 	public PackedFile getFile(String path) throws IOException
 	{
-		PackedFile file = new PackedFile(env.lookupFile(path));
+		PackedFile file = PackedFile.get(env.lookupFile(path));
 		log("sent " + file);
 		return file;
 	}

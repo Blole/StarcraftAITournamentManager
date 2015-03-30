@@ -2,9 +2,10 @@ package common;
 
 import java.io.File;
 
-@SuppressWarnings("serial")
 public class MyFile extends File
 {
+	private static final long serialVersionUID = -7563594135120571872L;
+	
 	private final boolean endsWithSlash;
 
 	public MyFile(String name)
@@ -20,12 +21,20 @@ public class MyFile extends File
 	}
 	
 	/**
-	 * Returns true if this is a directory entry. A directory entry is defined to be one whose name ends with a '/'.
-	 * @return true if this is a directory entry
+	 * @return true if this file exists and is a directory, or if it does not exist and it's name ends with a '/' or '\'
 	 */
 	@Override
 	public boolean isDirectory()
 	{
-		return super.isDirectory() || endsWithSlash;
+		if (exists())
+			return super.isDirectory();
+		else
+			return endsWithSlash;
+	}
+	
+	@Override
+	public String toString()
+	{
+		return super.toString() + (isDirectory() ? File.separatorChar : "");
 	}
 }

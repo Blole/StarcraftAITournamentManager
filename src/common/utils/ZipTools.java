@@ -61,7 +61,7 @@ public class ZipTools
 	// If the file is a directory, all files in the directory are zipped
 	public static void ZipDirToStream(File file, OutputStream out) throws IOException
 	{
-		System.out.println("Zipping Dir: " + file.getPath());
+		System.out.println("zipping: " + file);
 			
 		URI base = file.toURI();
 		Deque<File> queue = new LinkedList<File>();
@@ -97,7 +97,6 @@ public class ZipTools
 							copy(fis, zout);
 							fis.close();
 							zout.closeEntry();
-							System.out.println("Zipped: " + name);
 						}
 					}
 				}

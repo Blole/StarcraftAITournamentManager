@@ -25,12 +25,12 @@ import common.Game;
 import common.GameStatus;
 import common.GameStorage;
 import common.Helper;
-import common.ImageWindow;
 import common.InstructionMessage;
 import common.Map;
 import common.PackedFile;
 import common.RMIHelper;
 import common.RunnableWithShutdownHook;
+import common.TargetFile;
 import common.exceptions.StarcraftException;
 import common.protocols.RemoteClient;
 import common.protocols.RemoteServer;
@@ -39,10 +39,11 @@ import common.utils.FileUtils;
 import common.utils.GameParser;
 import common.utils.ResultsParser;
 
-@SuppressWarnings("serial")
 public class Server extends UnicastRemoteObject implements RemoteServer, RunnableWithShutdownHook
 {
-    private ArrayList<RemoteClient> 		clients = new ArrayList<RemoteClient>();
+	private static final long serialVersionUID = -6886770266188997347L;
+	
+	private ArrayList<RemoteClient> 		clients = new ArrayList<RemoteClient>();
     private ArrayList<RemoteClient> 		free = new ArrayList<RemoteClient>();
 	private Lock							gameStarting = new ReentrantLock();
 	private ArrayList<RunningMatch>			runningGames = new ArrayList<>();
@@ -334,6 +335,7 @@ public class Server extends UnicastRemoteObject implements RemoteServer, Runnabl
 			this.players = players;
 		}
 		
+		@SuppressWarnings("unchecked")
 		@Override
 		public void run()
 		{
@@ -343,11 +345,15 @@ public class Server extends UnicastRemoteObject implements RemoteServer, Runnabl
 				{
 					RemoteClient player = players[i];
 					Bot bot = game.bots[i];
-			        player.extractFile(new PackedFile(env.lookupFile("$"+bot.bwapiVersion)), "$starcraft/");
-			        player.extractFile(new PackedFile(env.lookupFile("$chaoslauncher")), "$chaoslauncher");
-			        player.extractFile(new PackedFile(env.lookupFile("$bot_dir/"+bot.name)), "$starcraft/bwapi-data/");
-			        player.extractFile(new PackedFile(env.lookupFile("$map_dir/"+game.map.path)), "$starcraft/maps/"+game.map.path);
-			        player.extractFile(new PackedFile(env.lookupFile("$tm_settings")), "$starcraft/bwapi-data/");
+					
+					for (TargetFile file : (Iterable<TargetFile>) env.get("common_files"))
+						player.extractFile(PackedFile.get(file), file.extractTo);
+			        
+					for (TargetFile file : bot.requiredFiles)
+			        	player.extractFile(PackedFile.get(file), file.extractTo);
+			        
+			        player.extractFile(PackedFile.get(bot.getDir(env)), "$starcraft/bwapi-data/");
+			        player.extractFile(PackedFile.get(game.map.getFile(env)), "$starcraft/maps/"+game.map.path);
 				}
 				
 				startTime = System.currentTimeMillis();

@@ -6,8 +6,8 @@ import java.util.Vector;
 
 public class Game implements Serializable
 {
-	private static final long serialVersionUID = -92847343973391774L;
-
+	private static final long serialVersionUID = 7845211498799719118L;
+	
 	public final Bot[] 		bots;
 	public final Map 		map;
 
@@ -94,10 +94,6 @@ public class Game implements Serializable
 	}
 
 	
-	public GameStatus getStatus() {
-		return status;
-	}
-
 	public void setStatus(GameStatus status) {
 		if (status == GameStatus.DONE) {
 			this.time = getTime();

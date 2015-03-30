@@ -1,14 +1,14 @@
 package common;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.Serializable;
 import java.util.Vector;
 
 public class TournamentModuleState implements Serializable
 {
-	/**
-	 * 
-	 */
 	private static final long serialVersionUID = -3613367579032527013L;
+	
 	public String selfName 		= "Error";
 	public String enemyName 	= "Error";
 	public String mapName 		= "Error";
@@ -23,8 +23,8 @@ public class TournamentModuleState implements Serializable
 	public int gameHourUp		= -1;
 	public Vector<Integer> timeOutExceeded = new Vector<Integer>();
 
-	public TournamentModuleState() 
-	{ 
+	public TournamentModuleState()
+	{
 	}
 
 	public boolean readData(String filename)
@@ -32,7 +32,7 @@ public class TournamentModuleState implements Serializable
 		BufferedReader br = null;
 		boolean success = false;
 		
-		try 
+		try
 		{
 			br = new BufferedReader(new FileReader(filename));
 			
@@ -67,14 +67,14 @@ public class TournamentModuleState implements Serializable
 		catch (Exception e)
 		{
 			success = false;
-		} 
+		}
 		finally
 		{
-			try 
+			try
 			{
 				br.close();
-			} 
-			catch (Exception e1) 
+			}
+			catch (Exception e1)
 			{
 			}
 		}
