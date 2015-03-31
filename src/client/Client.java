@@ -18,14 +18,13 @@ import javax.imageio.ImageIO;
 import org.apache.commons.io.FileUtils;
 
 import common.Environment;
-import common.Game;
 import common.Helper;
 import common.PackedFile;
 import common.RMIHelper;
 import common.RunnableWithShutdownHook;
 import common.protocols.RemoteClient;
 import common.protocols.RemoteServer;
-import common.protocols.RemoteStarcraftGame;
+import common.protocols.RemoteStarcraft;
 import common.utils.WindowsCommandTools;
 
 public class Client extends UnicastRemoteObject implements RemoteClient, RunnableWithShutdownHook
@@ -34,7 +33,7 @@ public class Client extends UnicastRemoteObject implements RemoteClient, Runnabl
 	
 	public final Environment env;
 	private RemoteServer server = null;
-	private StarcraftGame starcraftGame = null;
+	private final Starcraft starcraft = new Starcraft(this);
 
 	public Client(Environment env) throws RemoteException
 	{
@@ -88,16 +87,13 @@ public class Client extends UnicastRemoteObject implements RemoteClient, Runnabl
 		{
 			log("error disconnecting from server");
 		}
-		if (starcraftGame != null)
-			starcraftGame.kill();
+		starcraft.kill();
 	}
 	
 	@Override
-	public RemoteStarcraftGame startStarcraftGame(Game game, int i) throws RemoteException
+	public RemoteStarcraft starcraft() throws RemoteException
 	{
-		starcraftGame = new StarcraftGame(this, game, i);
-		starcraftGame.start();
-		return (RemoteStarcraftGame) exportObject(starcraftGame, 0);
+		return starcraft;
 	}
 
 	@Override

@@ -35,7 +35,6 @@ import common.TargetFile;
 import common.exceptions.StarcraftException;
 import common.protocols.RemoteClient;
 import common.protocols.RemoteServer;
-import common.protocols.RemoteStarcraftGame;
 import common.utils.GameParser;
 import common.utils.ResultsParser;
 
@@ -327,7 +326,6 @@ public class Server extends UnicastRemoteObject implements RemoteServer, Runnabl
 		private final Game game;
 		private final RemoteClient[] players;
 		private long startTime;
-		private ArrayList<RemoteStarcraftGame> starcraftGames = new ArrayList<>();
 		
 		RunningMatch(Game game, RemoteClient... players)
 		{
@@ -374,8 +372,7 @@ public class Server extends UnicastRemoteObject implements RemoteServer, Runnabl
 				for (int i=0; i<players.length; i++)
 				{
 					gui.UpdateRunningStats(players[i], game, i, startTime);
-					RemoteStarcraftGame starcraftGame = players[i].startStarcraftGame(game, i);
-					starcraftGames.add(starcraftGame);
+					players[i].starcraft().start(game, i);
 				}
 				
 		        game.setStatus(GameStatus.RUNNING);
@@ -385,8 +382,8 @@ public class Server extends UnicastRemoteObject implements RemoteServer, Runnabl
 		        {
 		        	boolean allDone = true;
 		        	
-		        	for (RemoteStarcraftGame starcraftGame : starcraftGames)
-		        		allDone &= starcraftGame.isDone();
+		        	for (RemoteClient player : players)
+		        		allDone &= player.starcraft().isDone();
 		        	
 		        	if (allDone)
 		        		break;
@@ -420,14 +417,17 @@ public class Server extends UnicastRemoteObject implements RemoteServer, Runnabl
 			}
 			finally
 			{
-	        	for (int i=0; i<starcraftGames.size(); i++)
+	        	for (RemoteClient player : players)
 	        	{
+					free.add(player);
+					
 					try
 					{
-						free.add(players[i]);
-						starcraftGames.get(i).kill();
-					} catch (RemoteException e)
+						player.starcraft().kill();
+					}
+					catch (RemoteException e)
 					{
+						System.err.println("error killing remote starcraft");
 						e.printStackTrace();
 					}
 				}
