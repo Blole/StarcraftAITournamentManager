@@ -1,11 +1,13 @@
 package common.utils;
 
-import java.io.*;
-import java.util.*;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.Vector;
 
 public class WindowsCommandTools
 {
-	public static void DeleteDirectory(String dir) 
+	public static void DeleteDirectory(String dir)
 	{
 		try
 		{
@@ -48,7 +50,7 @@ public class WindowsCommandTools
 		WindowsCommandTools.RunWindowsCommand("taskkill /F /PID " + pid, true, false);
 	}
 	
-	public static void KillExcessWindowsProccess(Vector<Integer> doNotKill) 
+	public static void KillExcessWindowsProccess(Vector<Integer> doNotKill)
 	{
 		if (doNotKill == null)
 		{
@@ -56,20 +58,20 @@ public class WindowsCommandTools
 		}
 	
 		Vector<Integer> running = GetRunningProcesses();
-		for (int i = 0; i < running.size(); i++) 
+		for (int i = 0; i < running.size(); i++)
 		{
-			if (!(doNotKill.contains(running.get(i)))) 
+			if (!(doNotKill.contains(running.get(i))))
 			{
 				KillWindowsProcessID(running.get(i));
 			}
 		}
 	}
 	
-	public static Vector<Integer> GetRunningProcesses() 
+	public static Vector<Integer> GetRunningProcesses()
 	{
 		Vector<Integer> running = new Vector<Integer>();
 		Process p;
-		try 
+		try
 		{
 			p = Runtime.getRuntime().exec("tasklist.exe /FO LIST");
 
@@ -77,19 +79,19 @@ public class WindowsCommandTools
 			String line;
 			
 			String[] splitout;
-			while ((line = stdInput.readLine()) != null) 
+			while ((line = stdInput.readLine()) != null)
 			{
-				if (line.startsWith("PID:")) 
+				if (line.startsWith("PID:"))
 				{
 					splitout = line.split(":");
-					if (splitout.length > 1) 
+					if (splitout.length > 1)
 					{
 						running.add(Integer.parseInt(splitout[1].trim()));
 					}
 				}
 			}
-		} 
-		catch (IOException e) 
+		}
+		catch (IOException e)
 		{
 			e.printStackTrace();
 		}
@@ -97,23 +99,23 @@ public class WindowsCommandTools
 		return running;
 	}
 	
-	public static boolean IsWindowsProcessRunning(String process) 
+	public static boolean IsWindowsProcessRunning(String process)
 	{
-		try 
+		try
 		{
 			Process p = Runtime.getRuntime().exec("tasklist.exe");
 			BufferedReader stdInput = new BufferedReader(new InputStreamReader(p.getInputStream()));
 
 			String line;
-			while ((line = stdInput.readLine()) != null) 
+			while ((line = stdInput.readLine()) != null)
 			{
-				if (line.contains(process)) 
+				if (line.contains(process))
 				{
 					return true;
 				}
 			}
-		} 
-		catch (IOException e) 
+		}
+		catch (IOException e)
 		{
 			e.printStackTrace();
 		}
@@ -147,7 +149,7 @@ public class WindowsCommandTools
 			
 			BufferedReader pOut = new BufferedReader(new InputStreamReader(proc.getInputStream()));
 			String line;
-			while ((line = pOut.readLine()) != null) 
+			while ((line = pOut.readLine()) != null)
 			{
 				System.out.println(line);
 			}
@@ -180,7 +182,7 @@ public class WindowsCommandTools
 			
 			BufferedReader pOut = new BufferedReader(new InputStreamReader(proc.getInputStream()));
 			String line;
-			while ((line = pOut.readLine()) != null) 
+			while ((line = pOut.readLine()) != null)
 			{
 				System.out.println(line);
 			}
@@ -225,6 +227,6 @@ public class WindowsCommandTools
 	
 	public static void main(String[] args)
 	{
-		RunWindowsCommandAsAdmin("notepad", true, false);	
+		RunWindowsCommandAsAdmin("notepad", true, false);
 	}
 }

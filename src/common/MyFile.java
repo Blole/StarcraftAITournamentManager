@@ -1,6 +1,7 @@
 package common;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.Serializable;
 
 public class MyFile extends File implements Serializable
@@ -31,6 +32,26 @@ public class MyFile extends File implements Serializable
 			return super.isDirectory();
 		else
 			return endsWithSlash;
+	}
+	
+	
+	
+	@Override
+	public String getAbsolutePath()
+	{
+		return super.getAbsolutePath() + (isDirectory() ? File.separatorChar : "");
+	}
+	
+	@Override
+	public String getCanonicalPath() throws IOException
+	{
+		return super.getCanonicalPath() + (isDirectory() ? File.separatorChar : "");
+	}
+	
+	@Override
+	public String getPath()
+	{
+		return super.getPath() + (isDirectory() ? File.separatorChar : "");
 	}
 	
 	@Override

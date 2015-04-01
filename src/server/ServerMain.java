@@ -1,6 +1,7 @@
 package server;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 
@@ -10,7 +11,7 @@ import common.RunnableWithShutdownHook;
 
 public class ServerMain
 {
-	public static void main(String[] args) throws RemoteException
+	public static void main(String[] args) throws RemoteException, FileNotFoundException
 	{
 		if (args.length < 1)
 		{
@@ -19,9 +20,9 @@ public class ServerMain
 		}
 		else
 		{
-			Environment env = new Environment(new File(args[0]));
+			ServerEnvironment env = Environment.load(new File(args[0]), ServerEnvironment.class);
 			
-			LocateRegistry.createRegistry(env.get("port"));
+			LocateRegistry.createRegistry(env.port);
 			
 			Server server = new Server(env);
 			RunnableWithShutdownHook.addShutdownHook(server);

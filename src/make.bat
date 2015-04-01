@@ -19,8 +19,8 @@ jar -cfm ../../%~1/%~1.jar boot-manifest.mf com doc
 @rmdir /S /Q boot
 
 @mkdir main
-jar -cfm main/main.jar config/%~1_manifest.mf %~1 common
-jar -uf ../%~1/%~1.jar main/main.jar lib/snakeyaml-1.10-android.jar lib/commons-io-2.4.jar
+jar -cfm main/main.jar config/%~1_manifest.mf client server common
+jar -uf ../%~1/%~1.jar main/main.jar lib/snakeyaml-1.10-android.jar lib/commons-io-2.4.jar lib/commons-lang3-3.3.2.jar
 @rmdir /S /Q main
 
 @goto:eof

@@ -5,7 +5,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.ArrayList;
+import java.util.List;
 
 import server.Server;
 
@@ -17,10 +17,10 @@ import common.Map;
 public class GameParser
 {
 	private static GameStorage games;
-	private static ArrayList<Bot> bots;
-	private static ArrayList<Map> maps;
+	private static List<Bot> bots;
+	private static List<Map> maps;
 
-	public static GameStorage getGames(ArrayList<Bot> bots, ArrayList<Map> maps)
+	public static GameStorage getGames(List<Bot> bots, List<Map> maps)
 	{
 		GameParser.bots = bots;
 		GameParser.maps = maps;
@@ -43,7 +43,7 @@ public class GameParser
 		games = new GameStorage();
 		try
 		{
-			File gameslist = Server.Instance().env.lookupFile("$GamesListFile");
+			File gameslist = Server.Instance().env.lookupFile("$games");
 			if (gameslist.exists())
 			{
 				BufferedReader br = new BufferedReader(new FileReader(gameslist));

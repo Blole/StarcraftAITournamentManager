@@ -17,7 +17,6 @@ import javax.imageio.ImageIO;
 
 import org.apache.commons.io.FileUtils;
 
-import common.Environment;
 import common.Helper;
 import common.PackedFile;
 import common.RMIHelper;
@@ -31,11 +30,11 @@ public class Client extends UnicastRemoteObject implements RemoteClient, Runnabl
 {
 	private static final long serialVersionUID = 3058199010003999345L;
 	
-	public final Environment env;
+	public final ClientEnvironment env;
 	private RemoteServer server = null;
 	private final Starcraft starcraft = new Starcraft(this);
 
-	public Client(Environment env) throws RemoteException
+	public Client(ClientEnvironment env) throws RemoteException
 	{
 		this.env = env;
 	}
@@ -44,10 +43,10 @@ public class Client extends UnicastRemoteObject implements RemoteClient, Runnabl
 	@Override
 	public synchronized void run()
 	{
-		ClientCommands.Client_KillStarcraftAndChaoslauncher();
-		ClientCommands.Client_RegisterStarCraft(env);
+		starcraft.kill();
+		starcraft.addWindowsRegistryEntries();
 		
-		String serverURL = env.get("serverUrl");
+		String serverURL = env.serverUrl;
 		log("connecting to server '%s'", serverURL);
 		server = (RemoteServer) RMIHelper.lookupAndWaitForRemoteToStartIfNecessary(serverURL, 1000);
 		
@@ -110,6 +109,21 @@ public class Client extends UnicastRemoteObject implements RemoteClient, Runnabl
 	}
 	
 	@Override
+	public PackedFile getFile(String path) throws IOException
+	{
+		PackedFile file = PackedFile.get(env.lookupFile(path));
+		log("sent " + path);
+		return file;
+	}
+
+	@Override
+	public void extractFile(PackedFile file, String extractTo) throws IOException
+	{
+		log("unpacked %20s to %-30s", file.name, extractTo);
+		file.writeTo(env.lookupFile(extractTo));
+	}
+	
+	@Override
 	public void kill()
 	{
 		log("killed by server");
@@ -136,21 +150,6 @@ public class Client extends UnicastRemoteObject implements RemoteClient, Runnabl
 		}
 	}
 
-	@Override
-	public PackedFile getFile(String path) throws IOException
-	{
-		PackedFile file = PackedFile.get(env.lookupFile(path));
-		log("sent " + path);
-		return file;
-	}
-
-	@Override
-	public void extractFile(PackedFile file, String extractTo) throws IOException
-	{
-		log("unpacked %20s to %-30s", file.name, extractTo);
-		file.writeTo(env.lookupFile(extractTo));
-	}
-	
 	@Override
 	public void executeCommand(String command)
 	{

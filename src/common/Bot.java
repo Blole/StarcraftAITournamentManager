@@ -5,6 +5,8 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 
+import server.ServerEnvironment;
+
 public class Bot implements Serializable
 {
 	private static final long serialVersionUID = 2690734629985126222L;
@@ -34,17 +36,17 @@ public class Bot implements Serializable
 		return String.format("{Bot:%s}", name);
 	}
 	
-	public File getDir(Environment env)
+	public File getDir(ServerEnvironment env)
 	{
 		return env.lookupFile("$bot_dir/"+name);
 	}
 
-	public File getReadDir(Environment env)
+	public File getReadDir(ServerEnvironment env)
 	{
 		return new File(getDir(env), "read");
 	}
 
-	public File getWriteDir(Environment env)
+	public File getWriteDir(ServerEnvironment env)
 	{
 		return new File(getDir(env), "write");
 	}

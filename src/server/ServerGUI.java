@@ -98,7 +98,7 @@ public class ServerGUI
     			{
     				try
     				{
-    					ResultsParser rp = new ResultsParser(server.env.get("ResultsFile"));
+    					ResultsParser rp = new ResultsParser(server.env.lookupFile("$results"));
     					logText(getTimeStamp() + " Generating All Results File...\n");
     					writeHTMLFile(rp.getAllResultsHTML(), "html/results.html");
     					logText(getTimeStamp() + " Generating All Results File Complete!\n");
@@ -223,12 +223,12 @@ public class ServerGUI
 	public boolean handleTournamentResume()
 	{
 		int resumeTournament = JOptionPane.NO_OPTION;
-		String resultsFile = server.env.get("ResultsFile");
+		File resultsFile = server.env.lookupFile("$results");
 		ResultsParser rp = new ResultsParser(resultsFile);
 		
 		if (rp.numResults() > 0)
 		{
-			resumeTournament = JOptionPane.showConfirmDialog(mainFrame, "Results found in " + resultsFile + ", resume tournament from games list in " + server.env.get("GamesListFile") + " ?" , "Resume Tournament Confirmation", JOptionPane.YES_NO_OPTION);
+			resumeTournament = JOptionPane.showConfirmDialog(mainFrame, "Results found in " + resultsFile + ", resume tournament from games list in " + server.env.lookup("$games") + " ?" , "Resume Tournament Confirmation", JOptionPane.YES_NO_OPTION);
 		}
 			
 		if (resumeTournament == JOptionPane.YES_OPTION)
@@ -244,11 +244,11 @@ public class ServerGUI
 		try
 		{
 			int resClear = JOptionPane.NO_OPTION;
-			if (server.env.get("ClearResults", String.class).equalsIgnoreCase("ask"))
+			if (server.env.clearResults.equalsIgnoreCase("ask"))
 			{
 				resClear = JOptionPane.showConfirmDialog(mainFrame, "Clear existing tournament data?\nThis will clear all existing results, replays and bot read/write folders.", "Clear Tournament Data", JOptionPane.YES_NO_OPTION);
 			}
-			else if (server.env.get("ClearResults", String.class).equalsIgnoreCase("yes"))
+			else if (server.env.clearResults.equalsIgnoreCase("yes"))
 			{
 				resClear = JOptionPane.YES_OPTION;
 			}
@@ -260,7 +260,7 @@ public class ServerGUI
 			if (resClear == JOptionPane.YES_OPTION)
 			{
 				logText(getTimeStamp() + " Clearing Results File\n");
-				File resultsFile = server.env.lookupFile("$ResultsFile");
+				File resultsFile = server.env.lookupFile("$results");
 				if (resultsFile.exists())
 				{
 					resultsFile.delete();
@@ -271,8 +271,7 @@ public class ServerGUI
 				//fos.close();
 				
 				logText(getTimeStamp() + " Clearing Bot Read / Write Directories\n");
-				Iterable<Bot> bots = server.env.get("bots");
-    			for (Bot bot : bots)
+    			for (Bot bot : server.env.bots)
     			{
     				FileUtils.cleanDirectory(bot.getReadDir(server.env));
     				FileUtils.cleanDirectory(bot.getWriteDir(server.env));
@@ -291,7 +290,7 @@ public class ServerGUI
 	private void handleNoGamesFile()
 	{
 		// if the games list file doesn't exist
-		File gameslist = server.env.lookupFile("$GamesListFile");
+		File gameslist = server.env.lookupFile("$games");
 		if (!gameslist.exists())
 		{
 			int generate = JOptionPane.showConfirmDialog(mainFrame, "No games list was found.\nGenerate a new round robin games list file?", "Generate Games List?", JOptionPane.YES_NO_OPTION);
@@ -302,7 +301,7 @@ public class ServerGUI
 				JSpinner spinner = new JSpinner(sModel);
 	
 				JOptionPane.showOptionDialog(mainFrame, spinner, "Enter Number of Rounds Per Map:", JOptionPane.PLAIN_MESSAGE, JOptionPane.QUESTION_MESSAGE, null, null, null);
-				GameListGenerator.GenerateGames(Integer.parseInt("" + spinner.getValue()), server.env.get("maps"), server.env.get("bots"));
+				GameListGenerator.GenerateGames(Integer.parseInt("" + spinner.getValue()), server.env.maps, server.env.bots);
 			
 				logText(getTimeStamp() + " " + "Generating Round Robin Tournament With " + spinner.getValue() + " Rounds.\n");
 			}

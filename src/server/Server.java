@@ -13,6 +13,7 @@ import java.rmi.server.UnicastRemoteObject;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.List;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -22,7 +23,6 @@ import org.apache.commons.io.FileUtils;
 
 import common.BWAPISettings;
 import common.Bot;
-import common.Environment;
 import common.Game;
 import common.GameStatus;
 import common.GameStorage;
@@ -54,9 +54,9 @@ public class Server extends UnicastRemoteObject implements RemoteServer, Runnabl
 	ImageWindow								imageWindow;
 	
 	private static Server INSTANCE = null;
-	public final Environment env;
+	public final ServerEnvironment env;
 
-    public Server(Environment env) throws RemoteException
+    public Server(ServerEnvironment env) throws RemoteException
 	{
     	if (INSTANCE != null)
     		throw new RuntimeException("can only create one server!");
@@ -75,19 +75,19 @@ public class Server extends UnicastRemoteObject implements RemoteServer, Runnabl
 	@Override
 	public void run()
 	{
-		RMIHelper.rebindAndHookUnbind(env.get("serverUrlPath"), this);
+		RMIHelper.rebindAndHookUnbind(env.serverUrlPath, this);
 		log("server listening on '%s'", Helper.getEndpointAddress(this));
 		
 		boolean resumed = gui.handleTournamentResume();
 		gui.handleFileDialogues();
     	
-		ArrayList<Bot> bots = env.get("bots");
-		ArrayList<Map> maps = env.get("maps");
+		List<Bot> bots = env.bots;
+		List<Map> maps = env.maps;
 		
 		games = GameParser.getGames(bots, maps);
 		if (resumed)
 		{
-			ResultsParser rp = new ResultsParser(env.get("ResultsFile"));
+			ResultsParser rp = new ResultsParser(env.lookupFile("$results"));
 			games.removePlayedGames(rp);
 		}
 		
@@ -161,14 +161,15 @@ public class Server extends UnicastRemoteObject implements RemoteServer, Runnabl
 	@Override
 	public void onExit()
 	{
-		killClients();
+		if (env.killClientsOnExit)
+			killClients();
 	}
 	
 	public synchronized void writeHTMLFiles(String filename, int iter) throws Exception
 	{
 		try
 		{
-			ResultsParser rp = new ResultsParser(env.get("ResultsFile"));
+			ResultsParser rp = new ResultsParser(env.lookupFile("$results"));
 			
 			String schedulerHTML = gui.getHTML();
 			String entrantsHTML = rp.getEntrantsHTML();
@@ -183,7 +184,7 @@ public class Server extends UnicastRemoteObject implements RemoteServer, Runnabl
 			}
 			
 			// only write the all results file every 30 reschedules, saves time
-			if (env.get("DetailedResults").toString().equalsIgnoreCase("yes") && iter % 30 == 0)
+			if (env.detailedResults.equalsIgnoreCase("yes") && iter % 30 == 0)
 			{
 				log("Generating All Results File...");
 				writeHTMLFile(rp.getAllResultsHTML(), "html/results.html");
@@ -250,7 +251,7 @@ public class Server extends UnicastRemoteObject implements RemoteServer, Runnabl
 	
     void killClients()
 	{
-		for (RemoteClient client : clients)
+		for (RemoteClient client : new ArrayList<RemoteClient>(clients))
 		{
 	    	try
 	    	{
@@ -261,6 +262,8 @@ public class Server extends UnicastRemoteObject implements RemoteServer, Runnabl
 				log("%s error killing", client);
 	    	}
     	}
+		clients.clear();
+		free.clear();
     }
     
     private synchronized void appendGameData(Game game)
@@ -268,7 +271,7 @@ public class Server extends UnicastRemoteObject implements RemoteServer, Runnabl
     	System.out.println("Writing out replay data for gameID " + game.getGameID());
         try
 		{
-            FileWriter fstream = new FileWriter(env.lookupFile("$ResultsFile"), true);
+            FileWriter fstream = new FileWriter(env.lookupFile("$results"), true);
             BufferedWriter out = new BufferedWriter(fstream);
             out.write(game.getResultString());
             out.close();
@@ -311,7 +314,8 @@ public class Server extends UnicastRemoteObject implements RemoteServer, Runnabl
         try
 		{
 			log("%s disconnected", getClientHost());
-		} catch (ServerNotActiveException e) {}
+		}
+        catch (ServerNotActiveException e) {}
         clients.remove(client);
         free.remove(client);
 		gui.RemoveClient(client.toString());
@@ -333,7 +337,6 @@ public class Server extends UnicastRemoteObject implements RemoteServer, Runnabl
 			this.players = players;
 		}
 		
-		@SuppressWarnings("unchecked")
 		@Override
 		public void run()
 		{
@@ -352,7 +355,7 @@ public class Server extends UnicastRemoteObject implements RemoteServer, Runnabl
 					player.delete("$starcraft/maps/");
 					player.delete("$starcraft/gameState.txt");
 					
-					for (TargetFile file : (Iterable<TargetFile>) env.get("common_files"))
+					for (TargetFile file : env.clientFiles)
 						player.extractFile(PackedFile.get(file), file.extractTo);
 			        
 					for (TargetFile file : bot.requiredFiles)
@@ -361,7 +364,7 @@ public class Server extends UnicastRemoteObject implements RemoteServer, Runnabl
 			        player.extractFile(PackedFile.get(bot.getDir(env)), "$starcraft/bwapi-data/");
 			        player.extractFile(PackedFile.get(game.map.getFile(env)), "$starcraft/maps/"+game.map.path);
 			        player.extractFile(PackedFile.get(new File("data/characters/default.mpc")), "$starcraft/characters/"+bot.name+".mpc");
-			        player.extractFile(PackedFile.get(new File("data/characters/default.mpc")), "$starcraft/characters/"+bot.name+".mpc");
+			        player.extractFile(PackedFile.get(new File("data/characters/default.spc")), "$starcraft/characters/"+bot.name+".spc");
 			        
 			        BWAPISettings bwapiSettings = defaultBwapiSettings.clone();
 			        bwapiSettings.setGame(game, i);
@@ -396,7 +399,7 @@ public class Server extends UnicastRemoteObject implements RemoteServer, Runnabl
 					RemoteClient player = players[i];
 					Bot bot = game.bots[i];
 					player.getFile("$starcraft/maps/replays/").writeTo(env.lookupFile("$replays/"));
-					player.getFile("$starcraft/bwapi-data/write/").writeTo(env.lookupFile("$bot_dir/"+bot.name+"/write/"));
+					player.getFile("$starcraft/bwapi-data/write/").writeTo(bot.getWriteDir(env));
 				}
 				
 				Game g = games.lookupGame(game.getGameID(), game.getRound());

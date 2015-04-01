@@ -1,60 +1,58 @@
 # server settings
 port:           1099
 serverUrlPath:  scaitm_server
+killClientsOnExit: true
 
-bot_dir:        data/bots/
-map_dir:        data/maps/
-replays:        replays/
+clientFiles:
+  - &a             !target [data/chaoslauncher,      $chaoslauncher]
+  - &b             !target [data/tm_settings.ini,    $starcraft/bwapi-data/]
+  - &bwapi_374     !target [data/bwapi_374,          $starcraft]
+  - &bwapi_401b    !target [data/bwapi_401b,         $starcraft]
+  - &bwapi_410b    !target [data/bwapi_410b,         $starcraft]
 
-common_files:
-  - !!common.TargetFile [data/chaoslauncher,   $chaoslauncher]
-  - !!common.TargetFile [data/tm_settings.ini, $starcraft/bwapi-data/]
-
-bwapi_versions:
-  - &bwapi_374  !!common.TargetFile [data/bwapi_374,  $starcraft]
-  - &bwapi_401b !!common.TargetFile [data/bwapi_401b, $starcraft]
-  - &bwapi_410b !!common.TargetFile [data/bwapi_410b, $starcraft]
+files:
+    $bot_dir:    !required  data/bots/
+    $map_dir:    !required  data/maps/
+    $replays:    !file      replays/
+    $games:      !file      games.txt
+    $results:    !file      results.txt
 
 bots:
-  - !!common.Bot [Aiur,                Protoss, dll, [*bwapi_374]]
-  - !!common.Bot [Bonjwa,              Protoss, dll, [*bwapi_374]]
-# - !!common.Bot [main-mcts,           Terran , dll, [*bwapi_401b]]
-# - !!common.Bot [main-attack-closest, Terran , dll, [*bwapi_401b]]
-# - !!common.Bot [Bonjwa,              Terran , dll, [*bwapi_374]]
-# - !!common.Bot [BTHAI,               Terran , dll, [*bwapi_374]]
-# - !!common.Bot [CruzBot,             Protoss, dll, [*bwapi_374]]
-# - !!common.Bot [HITA,                Zerg   , dll, [*bwapi_374]]
-# - !!common.Bot [IceBot,              Terran , dll, [*bwapi_374]]
-# - !!common.Bot [LetaBot,             Terran , dll, [*bwapi_374]]
-# - !!common.Bot [MaasCraft,           Protoss, dll, [*bwapi_401b]]
-# - !!common.Bot [MooseBot,            Protoss, dll, [*bwapi_374]]
-# - !!common.Bot [Nova,                Terran , dll, [*bwapi_374]]
-# - !!common.Bot [NUSBot,              Protoss, dll, [*bwapi_374]]
-# - !!common.Bot [Oritaka,             Terran , dll, [*bwapi_374]]
-# - !!common.Bot [Skynet,              Protoss, dll, [*bwapi_374]]
-# - !!common.Bot [TerranUAB,           Terran , dll, [*bwapi_374]]
-# - !!common.Bot [UAlbertaBot,         Protoss, dll, [*bwapi_374]]
-# - !!common.Bot [Xelnaga,             Protoss, dll, [*bwapi_374]]
-# - !!common.Bot [Ximp,                Protoss, dll, [*bwapi_374]]
-# - !!common.Bot [Yarmouk,             Terran , dll, [*bwapi_401b]]
+  - !bot [Aiur,                Protoss, dll, [*a, *b, *bwapi_374]]
+  - !bot [Bonjwa,              Protoss, dll, [*a, *b, *bwapi_374]]
+# - !bot [main-mcts,           Terran , dll, [*a, *b, *bwapi_401b]]
+# - !bot [main-attack-closest, Terran , dll, [*a, *b, *bwapi_401b]]
+# - !bot [Bonjwa,              Terran , dll, [*a, *b, *bwapi_374]]
+# - !bot [BTHAI,               Terran , dll, [*a, *b, *bwapi_374]]
+# - !bot [CruzBot,             Protoss, dll, [*a, *b, *bwapi_374]]
+# - !bot [HITA,                Zerg   , dll, [*a, *b, *bwapi_374]]
+# - !bot [IceBot,              Terran , dll, [*a, *b, *bwapi_374]]
+# - !bot [LetaBot,             Terran , dll, [*a, *b, *bwapi_374]]
+# - !bot [MaasCraft,           Protoss, dll, [*a, *b, *bwapi_401b]]
+# - !bot [MooseBot,            Protoss, dll, [*a, *b, *bwapi_374]]
+# - !bot [Nova,                Terran , dll, [*a, *b, *bwapi_374]]
+# - !bot [NUSBot,              Protoss, dll, [*a, *b, *bwapi_374]]
+# - !bot [Oritaka,             Terran , dll, [*a, *b, *bwapi_374]]
+# - !bot [Skynet,              Protoss, dll, [*a, *b, *bwapi_374]]
+# - !bot [TerranUAB,           Terran , dll, [*a, *b, *bwapi_374]]
+# - !bot [UAlbertaBot,         Protoss, dll, [*a, *b, *bwapi_374]]
+# - !bot [Xelnaga,             Protoss, dll, [*a, *b, *bwapi_374]]
+# - !bot [Ximp,                Protoss, dll, [*a, *b, *bwapi_374]]
+# - !bot [Yarmouk,             Terran , dll, [*a, *b, *bwapi_401b]]
 
 maps:
-  - !!common.Map aiide/(2)Benzene.scx
-# - !!common.Map aiide/(2)Destination.scx
-# - !!common.Map aiide/(2)HeartbreakRidge.scx
-# - !!common.Map aiide/(3)Aztec.scx
-# - !!common.Map aiide/(3)TauCross.scx
-# - !!common.Map aiide/(4)Andromeda.scx
-# - !!common.Map aiide/(4)CircuitBreaker.scx
-# - !!common.Map aiide/(4)EmpireoftheSun.scm
-# - !!common.Map aiide/(4)Fortress.scx
-# - !!common.Map aiide/(4)Python.scx
+  - !map aiide/(2)Benzene.scx
+# - !map aiide/(2)Destination.scx
+# - !map aiide/(2)HeartbreakRidge.scx
+# - !map aiide/(3)Aztec.scx
+# - !map aiide/(3)TauCross.scx
+# - !map aiide/(4)Andromeda.scx
+# - !map aiide/(4)CircuitBreaker.scx
+# - !map aiide/(4)EmpireoftheSun.scm
+# - !map aiide/(4)Fortress.scx
+# - !map aiide/(4)Python.scx
 
-# Games List File - Tournament games to be played
-GamesListFile: games.txt
 
-# Results File - Tournament results file
-ResultsFile: results.txt
 
 #################################################################
 # Auto Generate Detailed Results every 1 minute?
@@ -64,16 +62,16 @@ ResultsFile: results.txt
 #        generate the results from the Actions menu in the
 #        server, which is recommended
 #################################################################
-DetailedResults: no
+detailedResults: no
 
 #################################################################
 # Clear Existing Results - Clear results on server start?
 # Syntax - ClearResultsFile [yes|no|ask]
 #################################################################
-ClearResults: ask
+clearResults: yes
 
 #################################################################
 # Resume Tournament - Resume tournament if results exist?
 # Syntax - ClearResultsFile [yes|no|ask]
 #################################################################
-ResumeTournament: ask
+resumeTournament: no

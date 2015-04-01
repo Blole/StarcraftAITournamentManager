@@ -7,20 +7,21 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.Vector;
+
+import server.Server;
 
 import common.Bot;
 import common.Map;
 import common.results.GameResult;
-import server.Server;
 
 public class ResultsParser
 {
@@ -29,8 +30,8 @@ public class ResultsParser
 	Vector<GameResult> results 		= new Vector<GameResult>();
 	Set<Integer> gameIDs 			= new HashSet<Integer>();
 	
-	ArrayList<Bot> bots = Server.Instance().env.get("bots");
-	ArrayList<Map> maps = Server.Instance().env.get("maps");
+	List<Bot> bots = Server.Instance().env.bots;
+	List<Map> maps = Server.Instance().env.maps;
 	
 	private int numBots 			= bots.size();
 	private int numMaps 			= maps.size();
@@ -53,7 +54,7 @@ public class ResultsParser
 	private Vector<Vector<Integer>> winsAfterRound = new Vector<Vector<Integer>>();
 	private Vector<Vector<Integer>> gamesAfterRound = new Vector<Vector<Integer>>();
 	
-	public ResultsParser(String filename)
+	public ResultsParser(File resultsFile)
 	{
 		// set the bot names and map names
 		for (int i=0; i<botNames.length; ++i)
@@ -69,12 +70,12 @@ public class ResultsParser
 		
 		try
 		{
-			if (!new File(filename).exists())
+			if (!resultsFile.exists())
 			{
 				return;
 			}
 		
-			BufferedReader br = new BufferedReader(new FileReader(filename));
+			BufferedReader br = new BufferedReader(new FileReader(resultsFile));
 		
 			String line;
 			

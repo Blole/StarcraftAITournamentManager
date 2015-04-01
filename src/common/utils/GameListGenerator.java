@@ -3,7 +3,7 @@ package common.utils;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.ArrayList;
+import java.util.List;
 
 import common.Bot;
 import common.Map;
@@ -11,7 +11,7 @@ import common.Map;
 public class GameListGenerator
 {
 
-	public static void GenerateGames(int rounds, ArrayList<Map> maps, ArrayList<Bot> bots)
+	public static void GenerateGames(int rounds, List<Map> maps, List<Bot> bots)
 	{
 		try
 		{
@@ -34,7 +34,7 @@ public class GameListGenerator
 		}
 	}
 
-	public static void generateRoundRobin(int rounds, ArrayList<Map> maps, ArrayList<Bot> bots, BufferedWriter out) throws IOException
+	public static void generateRoundRobin(int rounds, List<Map> maps, List<Bot> bots, BufferedWriter out) throws IOException
 	{
 		int gameID = 0;
 		int roundNum = 0;

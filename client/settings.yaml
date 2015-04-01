@@ -1,9 +1,10 @@
 # client settings
 serverUrl:      //bjorn-cellar:1099/scaitm_server
 
-starcraft:      C:\TM\StarCraft\
-chaoslauncher:  C:\TM\Chaoslauncher\
-
 starcraftStartingTimeout: 10
 matchStartingTimeout:     40
 matchEndingTimeout:       60
+
+files:
+    $starcraft:      !required  C:\TM\StarCraft\
+    $chaoslauncher:  !required  C:\TM\Chaoslauncher\

@@ -3,6 +3,8 @@ package common;
 import java.io.File;
 import java.io.Serializable;
 
+import server.ServerEnvironment;
+
 public class Map implements Serializable
 {
 	private static final long serialVersionUID = 8525996517284059304L;
@@ -23,7 +25,7 @@ public class Map implements Serializable
 		return String.format("{Map:%s}", name);
 	}
 	
-	public File getFile(Environment env)
+	public File getFile(ServerEnvironment env)
 	{
 		return env.lookupFile("$map_dir/"+path);
 	}

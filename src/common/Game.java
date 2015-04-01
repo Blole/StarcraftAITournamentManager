@@ -452,6 +452,6 @@ public class Game implements Serializable
 		
 		int thisBotNameLength = Math.min(4, thisBot.name.length());
 		int otherBotNameLength = Math.min(4, otherBot.name.length());
-		return String.format("maps/replays/%05d-%s_%s.rep", getGameID(), thisBot.name.substring(0,thisBotNameLength).toLowerCase(), otherBot.name.substring(0,otherBotNameLength));
+		return String.format("%05d-%s_%s.rep", getGameID(), thisBot.name.substring(0,thisBotNameLength).toLowerCase(), otherBot.name.substring(0,otherBotNameLength));
 	}
 }
