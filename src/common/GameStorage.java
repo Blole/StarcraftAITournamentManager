@@ -1,66 +1,35 @@
 package common;
 
-import java.util.Iterator;
-import java.util.Vector;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
-import common.utils.ResultsParser;
+import org.yaml.snakeyaml.Yaml;
 
-public class GameStorage 
+import server.ServerEnvironment;
+
+import common.yaml.GameConstructor;
+
+public class GameStorage
 {
-	private Vector<Game> allGames = new Vector<Game>();
-	private int nextGameIndex = 0;
+	public List<Game> games = null;
 	
-	public GameStorage()
+	@SuppressWarnings("unchecked")
+	public GameStorage(ServerEnvironment env, String yamlData)
 	{
+		this(new Yaml(new GameConstructor(env.lookupFile("$botDir"))).loadAs(yamlData, List.class));
 	}
 	
-	public void addGame(Game game, int round)
+	public GameStorage(List<Game> games)
 	{
-		allGames.add(game);
-	}
-	
-	public void removePlayedGames(ResultsParser rp)
-	{
-		Iterator<Game> it = allGames.iterator();
-		while (it.hasNext()) 
-		{
-		    if (rp.hasGameResult(it.next().getGameID())) 
-		    {
-		        it.remove();
-		    }
-		}
-	}
-	
-	public boolean hasMoreGames()
-	{
-		return nextGameIndex < allGames.size();
-	}
-	
-	public Game peekNextGame()
-	{
-		return allGames.get(nextGameIndex);
-	}
-	
-	public Game getNextGame()
-	{
-		return allGames.get(nextGameIndex++);
-	}
-	
-	public void advanceToNextGame()
-	{
-		nextGameIndex++;
+		this.games = games;
 	}
 
-	public Game lookupGame(int gameID, int round) 
+	public Set<Bot> getAllBots()
 	{
-		for(Game g : allGames)
-		{
-			if(g.getGameID() == gameID)
-			{
-				return g;
-			}
-		}
-		
-		return null;
+		return games.stream()
+				.flatMap(g -> Arrays.asList(g.bots).stream())
+				.collect(Collectors.toSet());
 	}
 }

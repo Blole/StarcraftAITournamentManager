@@ -2,15 +2,19 @@ package client;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.rmi.RemoteException;
 
-import common.Environment;
+import org.apache.commons.io.FileUtils;
+import org.yaml.snakeyaml.Yaml;
+
 import common.RunnableWithShutdownHook;
+import common.yaml.MyConstructor;
 
 
 public class ClientMain
 {
-	public static void main(String[] args) throws RemoteException, FileNotFoundException
+	public static void main(String[] args) throws RemoteException, FileNotFoundException, IOException
 	{
 		if (args.length < 1)
 		{
@@ -19,7 +23,9 @@ public class ClientMain
 		}
 		else
 		{
-			ClientEnvironment env = Environment.load(new File(args[0]), ClientEnvironment.class);
+			String environmentText = FileUtils.readFileToString(new File(args[0]));
+			Yaml yaml = new Yaml(new MyConstructor());
+			ClientEnvironment env = yaml.loadAs(environmentText, ClientEnvironment.class);
 			
 			
 			

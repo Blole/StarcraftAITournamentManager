@@ -5,6 +5,6 @@ starcraftStartingTimeout: 10
 matchStartingTimeout:     40
 matchEndingTimeout:       60
 
-files:
+shortcuts:
     $starcraft:      !required  C:\TM\StarCraft\
     $chaoslauncher:  !required  C:\TM\Chaoslauncher\

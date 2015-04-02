@@ -2,16 +2,20 @@ package server;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 
-import common.Environment;
+import org.apache.commons.io.FileUtils;
+import org.yaml.snakeyaml.Yaml;
+
 import common.RunnableWithShutdownHook;
+import common.yaml.MyConstructor;
 
 
 public class ServerMain
 {
-	public static void main(String[] args) throws RemoteException, FileNotFoundException
+	public static void main(String[] args) throws RemoteException, FileNotFoundException, IOException
 	{
 		if (args.length < 1)
 		{
@@ -20,20 +24,15 @@ public class ServerMain
 		}
 		else
 		{
-			ServerEnvironment env = Environment.load(new File(args[0]), ServerEnvironment.class);
+			String environmentText = FileUtils.readFileToString(new File(args[0]));
+			Yaml yaml = new Yaml(new MyConstructor());
+			ServerEnvironment env = yaml.loadAs(environmentText, ServerEnvironment.class);
 			
 			LocateRegistry.createRegistry(env.port);
 			
 			Server server = new Server(env);
 			RunnableWithShutdownHook.addShutdownHook(server);
 			server.run();
-			
-			/*if (System.getSecurityManager() == null) {
-				System.setSecurityManager(new SecurityManager());
-				System.out.println("Security manager installed.");
-			} else {
-				System.out.println("Security manager already exists.");
-			}*/
 		}
 	}
 }

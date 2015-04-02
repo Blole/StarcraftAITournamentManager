@@ -245,7 +245,7 @@ public class BWAPISettings implements Serializable, Cloneable
 		race   = game.bots[i].race+"";
         
 		tournament = "bwapi-data\\TournamentModule.dll";
-		this.game = game.getGameID()+"";
+		this.game = game.id+"";
 		map = i==0 ? game.map.path : "";
 		save_replay = "maps/replays/"+game.getReplayString();
 	}

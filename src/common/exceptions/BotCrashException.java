@@ -2,7 +2,7 @@ package common.exceptions;
 
 import common.Bot;
 
-public class BotCrashException extends StarcraftException
+public class BotCrashException extends Exception
 {
 	private static final long serialVersionUID = -2843983072590416696L;
 	

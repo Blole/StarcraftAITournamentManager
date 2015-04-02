@@ -1,0 +1,5 @@
+- !game
+  id: 0
+  round: 0
+  map: aiide/(2)Benzene.scx
+  bots: [!bot Aiur, !bot Bonjwa]

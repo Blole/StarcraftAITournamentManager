@@ -4,9 +4,14 @@ import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
 
+import org.yaml.snakeyaml.TypeDescription;
+
 public class MyFile extends File implements Serializable
 {
 	private static final long serialVersionUID = -7563594135120571872L;
+	public static final TypeDescription typeDescription = new TypeDescription(MyFile.class, "!file");
+	
+	
 	
 	private final boolean endsWithSlash;
 

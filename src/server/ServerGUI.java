@@ -23,20 +23,13 @@ import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
-import javax.swing.JSpinner;
 import javax.swing.JTable;
 import javax.swing.JTextArea;
-import javax.swing.SpinnerNumberModel;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 
-import org.apache.commons.io.FileUtils;
-
-import common.Bot;
 import common.Game;
 import common.protocols.RemoteClient;
-import common.utils.GameListGenerator;
-import common.utils.ResultsParser;
 
 public class ServerGUI
 {
@@ -50,15 +43,12 @@ public class ServerGUI
     private 	JMenu		fileMenu;
     private 	JMenu		actionsMenu;
     private		JMenuItem	exitMenuItem;
-    private 	JMenuItem	generateResultsMenuItem;
     private 	JMenuItem	sendClientCommandMenuItem;
     private		JMenuItem	viewClientScreenMenuItem;
     
     private String [] 		columnNames = {"Client", "Status", "Game #", "Self", "Enemy", "Map", "Duration", "Win"};
 	private Object [][] 	data = 	{ };
 
-	private boolean resumedTournament = false;
-	
 	public ServerGUI(Server server)
 	{
 		this.server = server;
@@ -87,31 +77,6 @@ public class ServerGUI
         actionsMenu.setMnemonic(KeyEvent.VK_A);
         menuBar.add(actionsMenu);
         
-        generateResultsMenuItem = new JMenuItem("Generate Detailed Results HTML", KeyEvent.VK_G);
-        generateResultsMenuItem.addActionListener(new ActionListener()
-        {
-            @Override
-			public void actionPerformed(ActionEvent e)
-            {
-            	int confirmed = JOptionPane.showConfirmDialog(mainFrame, "Generate Detailed Results? This may take a while for large files.", "Detailed Results Confirmation", JOptionPane.YES_NO_OPTION);
-    			if (confirmed == JOptionPane.YES_OPTION)
-    			{
-    				try
-    				{
-    					ResultsParser rp = new ResultsParser(server.env.lookupFile("$results"));
-    					logText(getTimeStamp() + " Generating All Results File...\n");
-    					writeHTMLFile(rp.getAllResultsHTML(), "html/results.html");
-    					logText(getTimeStamp() + " Generating All Results File Complete!\n");
-    				}
-    				catch (Exception ex)
-    				{
-    					logText(getTimeStamp() + " Generating results failed :(\n");
-    				}
-    			}
-            }
-        });
-        actionsMenu.add(generateResultsMenuItem);
-
         exitMenuItem = new JMenuItem("Quit Server", KeyEvent.VK_Q);
         exitMenuItem.addActionListener(new ActionListener()
         {
@@ -206,112 +171,6 @@ public class ServerGUI
 		bw.write(html);
 		bw.close();
 		fw.close();
-	}
-	
-	public void handleFileDialogues()
-	{
-		// if we resumed a tournament, don't delete anything!
-		if (resumedTournament)
-		{
-			return;
-		}
-		
-		handleTournamentData();
-		handleNoGamesFile();
-	}
-	
-	public boolean handleTournamentResume()
-	{
-		int resumeTournament = JOptionPane.NO_OPTION;
-		File resultsFile = server.env.lookupFile("$results");
-		ResultsParser rp = new ResultsParser(resultsFile);
-		
-		if (rp.numResults() > 0)
-		{
-			resumeTournament = JOptionPane.showConfirmDialog(mainFrame, "Results found in " + resultsFile + ", resume tournament from games list in " + server.env.lookup("$games") + " ?" , "Resume Tournament Confirmation", JOptionPane.YES_NO_OPTION);
-		}
-			
-		if (resumeTournament == JOptionPane.YES_OPTION)
-		{
-			resumedTournament = true;
-		}
-		
-		return resumedTournament;
-	}
-	
-	private void handleTournamentData()
-	{
-		try
-		{
-			int resClear = JOptionPane.NO_OPTION;
-			if (server.env.clearResults.equalsIgnoreCase("ask"))
-			{
-				resClear = JOptionPane.showConfirmDialog(mainFrame, "Clear existing tournament data?\nThis will clear all existing results, replays and bot read/write folders.", "Clear Tournament Data", JOptionPane.YES_NO_OPTION);
-			}
-			else if (server.env.clearResults.equalsIgnoreCase("yes"))
-			{
-				resClear = JOptionPane.YES_OPTION;
-			}
-			else
-			{
-				resClear = JOptionPane.NO_OPTION;
-			}
-			 
-			if (resClear == JOptionPane.YES_OPTION)
-			{
-				logText(getTimeStamp() + " Clearing Results File\n");
-				File resultsFile = server.env.lookupFile("$results");
-				if (resultsFile.exists())
-				{
-					resultsFile.delete();
-				}
-				
-				//FileOutputStream fos = new FileOutputStream(ServerSettings.Instance().ResultsFile);
-				//fos.write((new String()).getBytes());
-				//fos.close();
-				
-				logText(getTimeStamp() + " Clearing Bot Read / Write Directories\n");
-    			for (Bot bot : server.env.bots)
-    			{
-    				FileUtils.cleanDirectory(bot.getReadDir(server.env));
-    				FileUtils.cleanDirectory(bot.getWriteDir(server.env));
-    			}
-    			
-    			logText(getTimeStamp() + " Clearing Replay Directory\n");
-    			FileUtils.cleanDirectory(server.env.lookupFile("$replays/"));
-			}
-		}
-		catch (Exception e)
-		{
-			
-		}
-	}
-	
-	private void handleNoGamesFile()
-	{
-		// if the games list file doesn't exist
-		File gameslist = server.env.lookupFile("$games");
-		if (!gameslist.exists())
-		{
-			int generate = JOptionPane.showConfirmDialog(mainFrame, "No games list was found.\nGenerate a new round robin games list file?", "Generate Games List?", JOptionPane.YES_NO_OPTION);
-			
-			if (generate == JOptionPane.YES_OPTION)
-			{
-				SpinnerNumberModel sModel = new SpinnerNumberModel(1, 1, 1000, 1);
-				JSpinner spinner = new JSpinner(sModel);
-	
-				JOptionPane.showOptionDialog(mainFrame, spinner, "Enter Number of Rounds Per Map:", JOptionPane.PLAIN_MESSAGE, JOptionPane.QUESTION_MESSAGE, null, null, null);
-				GameListGenerator.GenerateGames(Integer.parseInt("" + spinner.getValue()), server.env.maps, server.env.bots);
-			
-				logText(getTimeStamp() + " " + "Generating Round Robin Tournament With " + spinner.getValue() + " Rounds.\n");
-			}
-
-			if (!gameslist.exists())
-			{
-				System.err.printf("ServerSettings: GamesListFile (%s) does not exist\n", gameslist.getAbsolutePath());
-				System.exit(-1);
-			}
-		}
 	}
 	
 	public static String getTimeStamp()

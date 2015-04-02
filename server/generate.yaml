@@ -1,0 +1,35 @@
+# example input for generate.jar
+
+rounds: 2
+
+bots:
+  - !bot Aiur
+  - !bot Bonjwa
+# - !bot BTHAI
+# - !bot CruzBot
+# - !bot HITA
+# - !bot IceBot
+# - !bot LetaBot
+# - !bot MaasCraft
+# - !bot MooseBot
+# - !bot Nova
+# - !bot NUSBot
+# - !bot Oritaka
+# - !bot Skynet
+# - !bot TerranUAB
+# - !bot UAlbertaBot
+# - !bot Xelnaga
+# - !bot Ximp
+# - !bot Yarmouk
+
+maps:
+  - !map aiide/(2)Benzene.scx
+# - !map aiide/(2)Destination.scx
+# - !map aiide/(2)HeartbreakRidge.scx
+# - !map aiide/(3)Aztec.scx
+# - !map aiide/(3)TauCross.scx
+# - !map aiide/(4)Andromeda.scx
+# - !map aiide/(4)CircuitBreaker.scx
+# - !map aiide/(4)EmpireoftheSun.scm
+# - !map aiide/(4)Fortress.scx
+# - !map aiide/(4)Python.scx

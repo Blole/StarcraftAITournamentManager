@@ -5,10 +5,13 @@ import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.Vector;
 
+import common.BotExecutableType;
 import common.Game;
 import common.exceptions.StarcraftAlreadyRunningException;
 import common.exceptions.StarcraftException;
+import common.exceptions.StarcraftNotRunningException;
 import common.protocols.RemoteStarcraft;
+import common.results.BasicGameResult;
 import common.utils.WindowsCommandTools;
 
 public class Starcraft extends UnicastRemoteObject implements RemoteStarcraft
@@ -39,21 +42,21 @@ public class Starcraft extends UnicastRemoteObject implements RemoteStarcraft
 			e.printStackTrace();
 		}
 	}
-
+	
 	@Override
-	public boolean isDone() throws StarcraftException
+	public BasicGameResult getResult() throws StarcraftException, StarcraftNotRunningException
 	{
 		if (thread == null)
-			return true;
+			throw new StarcraftNotRunningException();
 		else if (!thread.isAlive())
 		{
 			if (thread.exception != null)
 				throw thread.exception;
 			else
-				return true;
+				return new BasicGameResult(null, null);
 		}
-		else
-			return false;
+		else //matched not yet finished
+			return null;
 	}
 
 	@Override
@@ -95,7 +98,7 @@ public class Starcraft extends UnicastRemoteObject implements RemoteStarcraft
 				gameStateFile.delete();
 				
 				// If this is a proxy bot, start the proxy bot script before StarCraft starts
-				if (game.bots[index].isProxyBot())
+				if (game.bots[index].type == BotExecutableType.proxy)
 					WindowsCommandTools.RunWindowsCommand(client.env.lookupFile("$starcraft/bwapi-data/AI/run_proxy.bat").getAbsolutePath(), false, false);
 				
 				// Start chaoslauncher and thereby starcraft

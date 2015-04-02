@@ -1,34 +1,61 @@
 package common;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.List;
+
+import org.apache.commons.io.FileUtils;
+import org.yaml.snakeyaml.TypeDescription;
+import org.yaml.snakeyaml.Yaml;
 
 import server.ServerEnvironment;
+
+import common.yaml.MyConstructor;
 
 public class Bot implements Serializable
 {
 	private static final long serialVersionUID = 2690734629985126222L;
+	public static final TypeDescription typeDescription = new TypeDescription(Bot.class, "!bot");
+	static
+	{
+		typeDescription.putListPropertyType("extraFiles", TargetFile.class);
+	}
+	
+	
 	
 	public final String name;
 	public final Race race;
 	public final BotExecutableType type;
-	public final ArrayList<TargetFile> requiredFiles = new ArrayList<>();
-
-	public Bot(String name, Race race, BotExecutableType type, TargetFile... requiredFiles)
+	public final BwapiVersion bwapiVersion;
+	public final List<TargetFile> extraFiles;
+	
+	private Bot() //dummy constructor for yaml
 	{
-		this.name = name;
-		this.race = race;
-		this.type = type;
-		
-		this.requiredFiles.addAll(Arrays.asList(requiredFiles));
+		name = null;
+		race = null;
+		type = null;
+		bwapiVersion = null;
+		extraFiles = null;
 	}
 	
-	public boolean isProxyBot()
+	public static Bot load(ServerEnvironment env, String name) throws IOException
 	{
-		return type == BotExecutableType.proxy;
+		return load(env.lookupFile("$botDir"), name);
 	}
+	
+	public static Bot load(File botDir, String name) throws IOException
+	{
+		File thisBotDir = new MyFile(botDir, name+"/");
+		if (!thisBotDir.exists())
+			throw new FileNotFoundException("Bot directory '"+thisBotDir+"' does not exist");
+		Yaml yaml = new Yaml(new MyConstructor());
+		String yamlData = FileUtils.readFileToString(new File(thisBotDir, "bot.yaml"));
+		return yaml.loadAs(yamlData, Bot.class);
+	}
+	
+	
 	
 	@Override
 	public String toString()
@@ -38,7 +65,7 @@ public class Bot implements Serializable
 	
 	public File getDir(ServerEnvironment env)
 	{
-		return env.lookupFile("$bot_dir/"+name);
+		return env.lookupFile("$botDir/"+name);
 	}
 
 	public File getReadDir(ServerEnvironment env)

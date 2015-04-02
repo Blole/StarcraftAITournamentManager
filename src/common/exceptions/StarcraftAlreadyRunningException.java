@@ -6,6 +6,6 @@ public class StarcraftAlreadyRunningException extends StarcraftException
 
 	public StarcraftAlreadyRunningException()
 	{
-		super("Starcraft already running");
+		super("StarCraft already running");
 	}
 }
