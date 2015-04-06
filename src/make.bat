@@ -1,4 +1,4 @@
-@call clean.bat
+@REM @call clean.bat
 
 javac -cp ".;lib/*" client/ClientMain.java
 javac -cp ".;lib/*" server/ServerMain.java

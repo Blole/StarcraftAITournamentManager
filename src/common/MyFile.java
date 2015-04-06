@@ -17,8 +17,7 @@ public class MyFile extends File implements Serializable
 
 	public MyFile(String name)
 	{
-		super(name);
-		endsWithSlash = name.endsWith("/") || name.endsWith("\\");
+		this(null, name);
 	}
 	
 	public MyFile(File base, String name)

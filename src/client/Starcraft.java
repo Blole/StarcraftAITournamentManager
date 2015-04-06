@@ -90,7 +90,7 @@ public class Starcraft extends UnicastRemoteObject implements RemoteStarcraft
 			
 			try
 			{
-				killStarcraftAndChaoslauncher(startingproc);
+				killStarcraftAndChaoslauncher(null);
 				
 				File replayFile = client.env.lookupFile("$starcraft/maps/replays/"+game.getReplayString());
 				File gameStateFile = client.env.lookupFile("$starcraft/gameState.txt");
@@ -167,34 +167,34 @@ public class Starcraft extends UnicastRemoteObject implements RemoteStarcraft
 		}
 	}
 	
-	private void killStarcraftAndChaoslauncher(Vector<Integer> startingproc)
+	public void killStarcraftAndChaoslauncher(Vector<Integer> startingproc)
 	{
 		Client.log("killing StarCraft and Chaoslauncher");
 		
 		while (WindowsCommandTools.IsWindowsProcessRunning("StarCraft.exe"))
 		{
-			System.out.println("Killing Starcraft...  ");
+			Client.log("killing Starcraft");
 			WindowsCommandTools.RunWindowsCommand("taskkill /F /IM StarCraft.exe", true, false);
 			try { Thread.sleep(100); } catch (InterruptedException e) {}
 		}
 		
 		while (WindowsCommandTools.IsWindowsProcessRunning("Chaoslauncher.exe"))
 		{
-			System.out.println("Killing Chaoslauncher...  ");
+			Client.log("killing Chaoslauncher");
 			WindowsCommandTools.RunWindowsCommand("taskkill /F /IM Chaoslauncher.exe", true, false);
 			try { Thread.sleep(100); } catch (InterruptedException e) {}
 		}
 		
 		while (WindowsCommandTools.IsWindowsProcessRunning("\"Chaoslauncher - MultiInstance.exe\""))
 		{
-			System.out.println("Killing Chaoslauncher...  ");
+			Client.log("killing Chaoslauncher - MultiInstance");
 			WindowsCommandTools.RunWindowsCommand("taskkill /F /IM \"Chaoslauncher - MultiInstance.exe\"", true, false);
 			try { Thread.sleep(100); } catch (InterruptedException e) {}
 		}
 		// Kill any processes that weren't running before startcraft started
 		// This is helpful to kill any proxy bots or java threads that may still be going
-		WindowsCommandTools.KillExcessWindowsProccess(startingproc);
-		Client.log("ready");
+		if (startingproc != null)
+			WindowsCommandTools.KillExcessWindowsProccess(startingproc);
 	}
 	
 	public void addWindowsRegistryEntries()

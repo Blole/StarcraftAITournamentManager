@@ -22,7 +22,7 @@ import javax.imageio.ImageIO;
 
 import org.apache.commons.io.FileUtils;
 
-import common.BWAPISettings;
+import common.BwapiSettings;
 import common.Bot;
 import common.Game;
 import common.GameStorage;
@@ -272,7 +272,7 @@ public class Server extends UnicastRemoteObject implements RemoteServer, Runnabl
 		@Override
 		public void run()
 		{
-			BWAPISettings defaultBwapiSettings = new BWAPISettings(new File("data/bwapi.ini"));
+			BwapiSettings defaultBwapiSettings = new BwapiSettings(new File("data/bwapi.ini"));
 			try
 			{
 				for (int i=0; i<players.length; i++)
@@ -304,7 +304,7 @@ public class Server extends UnicastRemoteObject implements RemoteServer, Runnabl
 			        player.extractFile(PackedFile.get(new File("data/characters/default.mpc")), "$starcraft/characters/"+bot.name+".mpc");
 			        player.extractFile(PackedFile.get(new File("data/characters/default.spc")), "$starcraft/characters/"+bot.name+".spc");
 			        
-			        BWAPISettings bwapiSettings = defaultBwapiSettings.clone();
+			        BwapiSettings bwapiSettings = defaultBwapiSettings.clone();
 			        bwapiSettings.setGame(game, i);
 			        player.extractFile(new PackedFile("bwapi.ini", bwapiSettings.getContentsString().getBytes()), "$starcraft/bwapi-data/");
 				}

@@ -4,7 +4,7 @@ import java.io.File;
 import java.io.Serializable;
 import java.nio.file.Files;
 
-public class BWAPISettings implements Serializable, Cloneable
+public class BwapiSettings implements Serializable, Cloneable
 {
 	private static final long serialVersionUID = -5086509309385709470L;
 	
@@ -172,7 +172,7 @@ public class BWAPISettings implements Serializable, Cloneable
 	
 	
 	
-	public BWAPISettings(File file)
+	public BwapiSettings(File file)
 	{
 		try
 		{
@@ -266,12 +266,12 @@ public class BWAPISettings implements Serializable, Cloneable
 		sb.append(";         DLLs specified, then the last entry is used." + newLine);
 		sb.append(";   - Use a colon to forcefully load the revision specified." + newLine);
 		sb.append(";   - Example: SomeAI.dll:3400, SecondInstance.dll, ThirdInstance.dll" + newLine);
-		sb.append("ai     = bwapi-data\\AI\\" + ai + ".dll" + newLine);
-		sb.append("ai_dbg = bwapi-data\\AI\\" + ai_dbg + ".dll" + newLine + newLine);
+		sb.append("ai     = bwapi-data/AI/" + ai + ".dll" + newLine);
+		sb.append("ai_dbg = bwapi-data/AI/" + ai_dbg + ".dll" + newLine + newLine);
 
 		sb.append("; Used only for tournaments" + newLine);
 		sb.append("; Tournaments can only be run in RELEASE mode" + newLine);
-		sb.append("tournament =" + tournament + newLine + newLine);
+		sb.append("tournament = " + tournament + newLine + newLine);
 
 		sb.append("[auto_menu]" + newLine);
 		sb.append("; auto_menu = OFF | SINGLE_PLAYER | LAN | BATTLE_NET" + newLine);
@@ -297,14 +297,17 @@ public class BWAPISettings implements Serializable, Cloneable
 		sb.append("; leaving this field blank will join a game instead of creating it" + newLine);
 		sb.append("; The filename(NOT the path) can also contain wildcards, example: maps\\(?)*.sc?" + newLine);
 		sb.append("; A ? is a wildcard for a single character and * is a wildcard for a string of characters" + newLine);
-		sb.append("map = " + map + newLine + newLine);
+		if (map == null || map.isEmpty())
+			sb.append("map =" + newLine + newLine);
+		else
+			sb.append("map = maps/" + map + newLine + newLine);
 
 		sb.append("; game = name of the game to join" + newLine);
 		sb.append(";	i.e., game = BWAPI" + newLine);
 		sb.append(";	will join the game called \"BWAPI\"" + newLine);
 		sb.append(";	If the game does not exist and the \"map\" entry is not blank, then the game will be created instead" + newLine);
 		sb.append(";	If this entry is blank, then it will follow the rules of the \"map\" entry" + newLine);
-		sb.append("game =" + game + newLine + newLine);
+		sb.append("game = " + game + newLine + newLine);
 
 		sb.append("; mapiteration =  RANDOM | SEQUENCE" + newLine);
 		sb.append("; type of iteration that will be done on a map name with a wildcard" + newLine);
@@ -407,11 +410,11 @@ public class BWAPISettings implements Serializable, Cloneable
 	}
 		
 	@Override
-	public BWAPISettings clone()
+	public BwapiSettings clone()
 	{
 		try
 		{
-			return (BWAPISettings) super.clone();
+			return (BwapiSettings) super.clone();
 		}
 		catch (CloneNotSupportedException e)
 		{

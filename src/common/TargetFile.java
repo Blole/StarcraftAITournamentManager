@@ -1,10 +1,11 @@
 package common;
 
 import java.io.FileNotFoundException;
+import java.io.Serializable;
 
 import org.yaml.snakeyaml.TypeDescription;
 
-public class TargetFile extends RequiredFile
+public class TargetFile extends RequiredFile implements Serializable
 {
 	private static final long serialVersionUID = 7552783803485220425L;
 	public static final TypeDescription typeDescription = new TypeDescription(TargetFile.class, "!target");
