@@ -8,10 +8,11 @@ import java.util.List;
 import org.yaml.snakeyaml.TypeDescription;
 
 import common.BwapiVersion;
-import common.Environment;
+import common.MyFile;
+import common.RequiredFile;
 import common.TargetFile;
 
-public class ServerEnvironment extends Environment implements Serializable
+public class ServerEnvironment implements Serializable
 {
 	private static final long serialVersionUID = -6040955128596907730L;
 	public static final TypeDescription typeDescription = new TypeDescription(ServerEnvironment.class);
@@ -30,6 +31,13 @@ public class ServerEnvironment extends Environment implements Serializable
 	
 	public List<TargetFile> filesToCopyToClientBeforeEachNewMatch = new ArrayList<>();
 	public LinkedHashMap<BwapiVersion, TargetFile> bwapiVersions = new LinkedHashMap<>();
+	
+	public RequiredFile gameList;
+	public MyFile characterFileMultiplayer;
+	public MyFile characterFileSingleplayer;
+	public MyFile botDir;
+	public MyFile mapDir;
+	public MyFile replaysDir;
 	
 	public String detailedResults;
 	public String clearResults;

@@ -35,6 +35,6 @@ public class Map implements Serializable
 	
 	public File getFile(ServerEnvironment env)
 	{
-		return env.lookupFile("$mapDir/"+path);
+		return new MyFile(env.mapDir, path);
 	}
 }

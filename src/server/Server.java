@@ -14,6 +14,7 @@ import java.util.Arrays;
 import java.util.Calendar;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.TreeSet;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
@@ -22,8 +23,8 @@ import javax.imageio.ImageIO;
 
 import org.apache.commons.io.FileUtils;
 
-import common.BwapiSettings;
 import common.Bot;
+import common.BwapiSettings;
 import common.Game;
 import common.GameStorage;
 import common.Helper;
@@ -66,12 +67,12 @@ public class Server extends UnicastRemoteObject implements RemoteServer, Runnabl
 		
 		try
 		{
-			String gamesFileText = FileUtils.readFileToString(env.lookupFile("$games"));
+			String gamesFileText = FileUtils.readFileToString(env.gameList);
 			games = new GameStorage(env, gamesFileText);
 		}
 		catch (IOException e)
 		{
-			throw new RuntimeException("error reading games file '"+env.lookupFile("$games")+"'", e);
+			throw new RuntimeException("error reading games file '"+env.gameList+"'", e);
 		}
 		
 		try
@@ -281,7 +282,6 @@ public class Server extends UnicastRemoteObject implements RemoteServer, Runnabl
 					Bot bot = game.bots[i];
 					
 					player.delete("$chaoslauncher");
-					//player.delete("$starcraft/SentReplays/");
 					player.delete("$starcraft/bwapi-data/");
 					player.delete("$starcraft/characters/");
 					player.delete("$starcraft/maps/");
@@ -301,8 +301,8 @@ public class Server extends UnicastRemoteObject implements RemoteServer, Runnabl
 			        
 			        player.extractFile(PackedFile.get(bot.getDir(env)), "$starcraft/bwapi-data/");
 			        player.extractFile(PackedFile.get(game.map.getFile(env)), "$starcraft/maps/"+game.map.path);
-			        player.extractFile(PackedFile.get(new File("data/characters/default.mpc")), "$starcraft/characters/"+bot.name+".mpc");
-			        player.extractFile(PackedFile.get(new File("data/characters/default.spc")), "$starcraft/characters/"+bot.name+".spc");
+			        player.extractFile(PackedFile.get(env.characterFileMultiplayer), "$starcraft/characters/"+bot.name+".mpc");
+			        player.extractFile(PackedFile.get(env.characterFileSingleplayer), "$starcraft/characters/"+bot.name+".spc");
 			        
 			        BwapiSettings bwapiSettings = defaultBwapiSettings.clone();
 			        bwapiSettings.setGame(game, i);
@@ -335,8 +335,10 @@ public class Server extends UnicastRemoteObject implements RemoteServer, Runnabl
 				{
 					RemoteClient player = players[i];
 					Bot bot = game.bots[i];
-					player.getFile("$starcraft/maps/replays/").writeTo(env.lookupFile("$replays/"));
+					player.getFile("$starcraft/maps/replays/").writeTo(env.replaysDir);
 					player.getFile("$starcraft/bwapi-data/write/").writeTo(bot.getWriteDir(env));
+					if (game.results == null)
+						game.results = new TreeSet<>();
 					game.results.add(player.starcraft().getResult());
 				}
 			}

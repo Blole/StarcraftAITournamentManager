@@ -18,7 +18,7 @@ public class GameStorage
 	@SuppressWarnings("unchecked")
 	public GameStorage(ServerEnvironment env, String yamlData)
 	{
-		this(new Yaml(new GameConstructor(env.lookupFile("$botDir"))).loadAs(yamlData, List.class));
+		this(new Yaml(new GameConstructor(env.botDir)).loadAs(yamlData, List.class));
 	}
 	
 	public GameStorage(List<Game> games)

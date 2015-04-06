@@ -42,7 +42,7 @@ public class Bot implements Serializable
 	
 	public static Bot load(ServerEnvironment env, String name) throws IOException
 	{
-		return load(env.lookupFile("$botDir"), name);
+		return load(env.botDir, name);
 	}
 	
 	public static Bot load(File botDir, String name) throws IOException
@@ -63,18 +63,18 @@ public class Bot implements Serializable
 		return String.format("{Bot:%s}", name);
 	}
 	
-	public File getDir(ServerEnvironment env)
+	public MyFile getDir(ServerEnvironment env)
 	{
-		return env.lookupFile("$botDir/"+name);
+		return new MyFile(env.botDir, name);
 	}
 
-	public File getReadDir(ServerEnvironment env)
+	public MyFile getReadDir(ServerEnvironment env)
 	{
-		return new File(getDir(env), "read");
+		return new MyFile(getDir(env), "read");
 	}
 
-	public File getWriteDir(ServerEnvironment env)
+	public MyFile getWriteDir(ServerEnvironment env)
 	{
-		return new File(getDir(env), "write");
+		return new MyFile(getDir(env), "write");
 	}
 }

@@ -13,12 +13,12 @@ bwapiVersions:
     4.0.1-Beta: !target [data/bwapi_401b,   $starcraft]
     4.1.0-Beta: !target [data/bwapi_410b,   $starcraft]
 
-shortcuts:
-    $botDir:     !required  data/bots/
-    $mapDir:     !required  data/maps/
-    $replays:    !file      replays/
-    $games:      !required  games.yaml
-
+gameList:    !required  games.yaml
+botDir:      !required  data/bots/
+mapDir:      !required  data/maps/
+replaysDir:  !required  replays/
+characterFileMultiplayer:   !required  data/characters/default.mpc
+characterFileSingleplayer:  !file      data/characters/default.spc
 
 
 #################################################################
