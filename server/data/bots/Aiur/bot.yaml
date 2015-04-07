@@ -1,0 +1,6 @@
+name: Aiur
+race: Protoss
+type: dll
+bwapiVersion: 3.7.4
+extraFiles:
+  - !target [data/bots/Aiur/directories.txt, $starcraft/bwapi-data/]
