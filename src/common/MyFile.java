@@ -67,6 +67,6 @@ public class MyFile extends File implements Serializable
 	@Override
 	public String toString()
 	{
-		return super.toString() + (isDirectory() ? File.separatorChar : "");
+		return super.toString();
 	}
 }

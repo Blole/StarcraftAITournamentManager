@@ -9,9 +9,9 @@ filesToCopyToClientBeforeEachNewMatch:
   - !target [data/tm_settings.ini,    $starcraft/bwapi-data/]
 
 bwapiVersions:
-    3.7.4:      !target [data/bwapi_374,    $starcraft]
-    4.0.1-Beta: !target [data/bwapi_401b,   $starcraft]
-    4.1.0-Beta: !target [data/bwapi_410b,   $starcraft]
+    3.7.4:       !target [data/bwapi_374,    $starcraft]
+    4.0.1-Beta:  !target [data/bwapi_401b,   $starcraft]
+    4.1.0-Beta:  !target [data/bwapi_410b,   $starcraft]
 
 gameList:    !required  games.yaml
 botDir:      !required  data/bots/

@@ -204,17 +204,18 @@ public class Starcraft extends UnicastRemoteObject implements RemoteStarcraft
 		// 32-bit machine StarCraft settings
 		String sc32KeyName =     "HKEY_LOCAL_MACHINE\\SOFTWARE\\Blizzard Entertainment\\Starcraft";
 		String sc32UserKeyName = "HKEY_CURRENT_USER\\SOFTWARE\\Blizzard Entertainment\\Starcraft";
-		WindowsCommandTools.RegEdit(sc32KeyName,     "InstallPath", "REG_SZ",    client.env.lookup("$starcraft") + "\\");
-		WindowsCommandTools.RegEdit(sc32KeyName,     "Program",     "REG_SZ",    client.env.lookup("$starcraft") + "StarCraft.exe");
-		WindowsCommandTools.RegEdit(sc32KeyName,     "GamePath",    "REG_SZ",    client.env.lookup("$starcraft") + "StarCraft.exe");
+		String starcraft = client.env.lookupFile("$starcraft").toString();
+		WindowsCommandTools.RegEdit(sc32KeyName,     "InstallPath", "REG_SZ",    starcraft + "\\");
+		WindowsCommandTools.RegEdit(sc32KeyName,     "Program",     "REG_SZ",    starcraft + "StarCraft.exe");
+		WindowsCommandTools.RegEdit(sc32KeyName,     "GamePath",    "REG_SZ",    starcraft + "StarCraft.exe");
 		WindowsCommandTools.RegEdit(sc32UserKeyName, "introX",      "REG_DWORD", "00000000");
 		
 		// 64-bit machine StarCraft settings
 		String sc64KeyName =     "HKEY_LOCAL_MACHINE\\SOFTWARE\\Wow6432Node\\Blizzard Entertainment\\Starcraft";
 		String sc64UserKeyName = "HKEY_CURRENT_USER\\SOFTWARE\\Wow6432Node\\Blizzard Entertainment\\Starcraft";
-		WindowsCommandTools.RegEdit(sc64KeyName, "InstallPath", "REG_SZ", client.env.lookup("$starcraft") + "\\");
-		WindowsCommandTools.RegEdit(sc64KeyName, "Program",     "REG_SZ", client.env.lookup("$starcraft") + "StarCraft.exe");
-		WindowsCommandTools.RegEdit(sc64KeyName, "GamePath",    "REG_SZ", client.env.lookup("$starcraft") + "StarCraft.exe");
+		WindowsCommandTools.RegEdit(sc64KeyName, "InstallPath", "REG_SZ", starcraft + "\\");
+		WindowsCommandTools.RegEdit(sc64KeyName, "Program",     "REG_SZ", starcraft + "StarCraft.exe");
+		WindowsCommandTools.RegEdit(sc64KeyName, "GamePath",    "REG_SZ", starcraft + "StarCraft.exe");
 		WindowsCommandTools.RegEdit(sc64UserKeyName, "introX",      "REG_DWORD", "00000000");
 		
 		// Chaoslauncher Settings
