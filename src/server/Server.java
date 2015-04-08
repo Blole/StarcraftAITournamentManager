@@ -273,7 +273,7 @@ public class Server extends UnicastRemoteObject implements RemoteServer, Runnabl
 		@Override
 		public void run()
 		{
-			BwapiSettings defaultBwapiSettings = new BwapiSettings(new File("data/bwapi.ini"));
+			BwapiSettings defaultBwapiSettings = new BwapiSettings(env.defaultBwapiIni);
 			try
 			{
 				for (int i=0; i<players.length; i++)

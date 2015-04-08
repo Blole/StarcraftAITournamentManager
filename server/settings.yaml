@@ -7,6 +7,8 @@ pollPeriod:       0.7
 filesToCopyToClientBeforeEachNewMatch:
   - !target [data/newloaderv4.1.exe,  $starcraft/loader.exe]
   - !target [data/tm_settings.ini,    $starcraft/bwapi-data/]
+  - !target [data/BWTA,               $starcraft/bwapi-data/]
+  - !target [data/BWTA2,              $starcraft/bwapi-data/]
 
 bwapiVersions:
     3.7.4:       !target [data/bwapi_374,    $starcraft/]
@@ -17,6 +19,7 @@ gameList:    !required  games.yaml
 botDir:      !required  data/bots/
 mapDir:      !required  data/maps/
 replaysDir:  !required  replays/
+defaultBwapiIni:            !required  data/bwapi.ini
 characterFileMultiplayer:   !required  data/characters/default.mpc
 characterFileSingleplayer:  !file      data/characters/default.spc
 
