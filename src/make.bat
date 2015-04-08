@@ -1,8 +1,8 @@
 @REM @call clean.bat
 
-javac -cp ".;lib/*" client/ClientMain.java
-javac -cp ".;lib/*" server/ServerMain.java
-javac -cp ".;lib/*" generate/GenerateMain.java
+javac -cp ".;lib/commons-io-2.4.jar;lib/commons-lang3-3.3.2.jar;lib/snakeyaml-1.10-android.jar" client/ClientMain.java
+javac -cp ".;lib/commons-io-2.4.jar;lib/commons-lang3-3.3.2.jar;lib/snakeyaml-1.10-android.jar" server/ServerMain.java
+javac -cp ".;lib/commons-io-2.4.jar;lib/commons-lang3-3.3.2.jar;lib/snakeyaml-1.10-android.jar" generate/GenerateMain.java
 
 @call:pack ../client/client.jar   client.ClientMain
 @call:pack ../server/server.jar   server.ServerMain
