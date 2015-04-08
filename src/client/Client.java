@@ -43,7 +43,7 @@ public class Client extends UnicastRemoteObject implements RemoteClient, Runnabl
 	@Override
 	public synchronized void run()
 	{
-		starcraft.killStarcraftAndChaoslauncher(null);
+		starcraft.killStarcraft(null);
 		starcraft.addWindowsRegistryEntries();
 		
 		String serverURL = env.serverUrl;

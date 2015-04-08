@@ -7,44 +7,6 @@ import java.util.Vector;
 
 public class WindowsCommandTools
 {
-	public static void DeleteDirectory(String dir)
-	{
-		try
-		{
-			//FileUtils.deleteDirectory(new File(dir));
-			WindowsCommandTools.RunWindowsCommand("rmdir /S /Q " + dir, true, false);
-		}
-		catch (Exception e)
-		{
-			e.printStackTrace();
-		}
-	}
-	
-	public static void RunWindowsExeLocal(String dir, String exe, boolean waitFor, boolean exitIfException)
-	{
-		try
-		{
-			String windowsCommandPrefix = "CMD /C ";
-			String completeCommand = windowsCommandPrefix + "cd /D " + dir + " & " + exe;
-			System.out.println(completeCommand);
-			Process proc = Runtime.getRuntime().exec(completeCommand);
-			
-			if (waitFor)
-			{
-				proc.waitFor();
-			}
-		}
-		catch (Exception e)
-		{
-			e.printStackTrace();
-			
-			if (exitIfException)
-			{
-				System.exit(-1);
-			}
-		}
-	}
-	
 	public static void KillWindowsProcessID(int pid)
 	{
 		WindowsCommandTools.RunWindowsCommand("taskkill /F /PID " + pid, true, false);

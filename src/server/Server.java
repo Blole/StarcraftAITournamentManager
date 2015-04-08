@@ -200,7 +200,7 @@ public class Server extends UnicastRemoteObject implements RemoteServer, Runnabl
 	    	}
 	    	catch (Exception e)
 	    	{
-	    		log(client + "error sending command");
+	    		log("%s error sending command", client);
 	    		e.printStackTrace();
 	    	}
 		}
@@ -281,11 +281,9 @@ public class Server extends UnicastRemoteObject implements RemoteServer, Runnabl
 					RemoteClient player = players[i];
 					Bot bot = game.bots[i];
 					
-					player.delete("$chaoslauncher");
 					player.delete("$starcraft/bwapi-data/");
 					player.delete("$starcraft/characters/");
 					player.delete("$starcraft/maps/");
-					player.delete("$starcraft/gameState.txt");
 					
 					for (TargetFile file : env.filesToCopyToClientBeforeEachNewMatch)
 						player.extractFile(PackedFile.get(file), file.extractTo);

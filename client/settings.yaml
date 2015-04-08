@@ -7,4 +7,3 @@ matchEndingTimeout:       60
 
 shortcuts:
     $starcraft:      !required  C:/TM/StarCraft/
-    $chaoslauncher:  !required  C:/TM/Chaoslauncher/

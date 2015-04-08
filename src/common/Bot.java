@@ -40,11 +40,6 @@ public class Bot implements Serializable
 		extraFiles = null;
 	}
 	
-	public static Bot load(ServerEnvironment env, String name) throws IOException
-	{
-		return load(env.botDir, name);
-	}
-	
 	public static Bot load(File botDir, String name) throws IOException
 	{
 		File thisBotDir = new MyFile(botDir, name+"/");
