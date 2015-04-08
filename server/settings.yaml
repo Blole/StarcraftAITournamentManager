@@ -1,8 +1,9 @@
 # server settings
-port:           1099
 serverUrlPath:  scaitm_server
-killClientsOnExit: true
-pollPeriod:       0.7
+port:           1099
+
+pollPeriod:         0.7
+killClientsOnExit:  true
 
 filesToCopyToClientBeforeEachNewMatch:
   - !target [data/newloaderv4.1.exe,  $starcraft/loader.exe]
@@ -22,26 +23,3 @@ replaysDir:  !required  replays/
 defaultBwapiIni:            !required  data/bwapi.ini
 characterFileMultiplayer:   !required  data/characters/default.mpc
 characterFileSingleplayer:  !file      data/characters/default.spc
-
-
-#################################################################
-# Auto Generate Detailed Results every 1 minute?
-# Syntax - DetailedResults [yes/no]
-# Note - Generating detailed results gets very slow for large
-#        tournaments, so default is no. You can manually
-#        generate the results from the Actions menu in the
-#        server, which is recommended
-#################################################################
-detailedResults: no
-
-#################################################################
-# Clear Existing Results - Clear results on server start?
-# Syntax - ClearResultsFile [yes|no|ask]
-#################################################################
-clearResults: yes
-
-#################################################################
-# Resume Tournament - Resume tournament if results exist?
-# Syntax - ClearResultsFile [yes|no|ask]
-#################################################################
-resumeTournament: no

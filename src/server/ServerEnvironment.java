@@ -24,10 +24,11 @@ public class ServerEnvironment implements Serializable
 	
 	
 	
-	public int port = 1099;
 	public String serverUrlPath = null;
-	public boolean killClientsOnExit = false;
+	public int port = 1099;
+	
 	public double pollPeriod = 1;
+	public boolean killClientsOnExit = false;
 	
 	public List<TargetFile> filesToCopyToClientBeforeEachNewMatch = new ArrayList<>();
 	public LinkedHashMap<BwapiVersion, TargetFile> bwapiVersions = new LinkedHashMap<>();
@@ -39,8 +40,4 @@ public class ServerEnvironment implements Serializable
 	public MyFile characterFileMultiplayer;
 	public MyFile characterFileSingleplayer;
 	public MyFile defaultBwapiIni;
-	
-	public String detailedResults;
-	public String clearResults;
-	public String resumeTournament;
 }
