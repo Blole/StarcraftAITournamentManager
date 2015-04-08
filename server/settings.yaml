@@ -8,8 +8,8 @@ killClientsOnExit:  true
 filesToCopyToClientBeforeEachNewMatch:
   - !target [data/newloaderv4.1.exe,  $starcraft/loader.exe]
   - !target [data/tm_settings.ini,    $starcraft/bwapi-data/]
-  - !target [data/BWTA,               $starcraft/bwapi-data/]
-  - !target [data/BWTA2,              $starcraft/bwapi-data/]
+  - !target [data/BWTA/,              $starcraft/bwapi-data/BWTA/]
+  - !target [data/BWTA2/,             $starcraft/bwapi-data/BWTA2/]
 
 bwapiVersions:
     3.7.4:       !target [data/bwapi_374,    $starcraft/]
