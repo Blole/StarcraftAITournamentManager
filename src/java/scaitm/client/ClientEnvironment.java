@@ -7,6 +7,7 @@ import java.util.LinkedHashMap;
 import org.yaml.snakeyaml.TypeDescription;
 
 import common.MyFile;
+import common.RequiredFile;
 
 public class ClientEnvironment implements Serializable
 {
@@ -20,6 +21,7 @@ public class ClientEnvironment implements Serializable
 	public double matchStartingTimeout = 60;
 	public double matchEndingTimeout = 60;
 	private LinkedHashMap<String, ? extends MyFile> shortcuts = null;
+	public RequiredFile starcraftDir;
 	
 	
 	

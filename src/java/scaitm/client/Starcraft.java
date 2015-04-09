@@ -8,6 +8,7 @@ import java.util.Vector;
 
 import common.BotExecutableType;
 import common.Game;
+import common.MyFile;
 import common.exceptions.StarcraftAlreadyRunningException;
 import common.exceptions.StarcraftException;
 import common.exceptions.StarcraftNotRunningException;
@@ -87,7 +88,7 @@ public class Starcraft extends UnicastRemoteObject implements RemoteStarcraft
 		@Override
 		public void run()
 		{
-			File starcraftDir = client.env.lookupFile("$starcraft").toPath().toFile();
+			File starcraftDir = client.env.starcraftDir;
 			Vector<Integer> startingproc = WindowsCommandTools.GetRunningProcesses();
 			ProcessBuilder starcraftProcessBuilder = new ProcessBuilder(new File(starcraftDir, "loader.exe").getAbsolutePath(),
 					"--launch", "StarCraft.exe",
@@ -98,14 +99,14 @@ public class Starcraft extends UnicastRemoteObject implements RemoteStarcraft
 			{
 				killStarcraft(null);
 				
-				File replayFile = client.env.lookupFile("$starcraft/maps/replays/"+game.getReplayString());
-				File gameStateFile = client.env.lookupFile("$starcraft/gameState.txt");
+				File replayFile = new MyFile(client.env.starcraftDir, "maps/replays/"+game.getReplayString());
+				File gameStateFile = new MyFile(client.env.starcraftDir, "gameState.txt");
 				replayFile.delete();
 				gameStateFile.delete();
 				
 				// If this is a proxy bot, start the proxy bot script before StarCraft starts
 				if (game.bots[index].type == BotExecutableType.proxy)
-					WindowsCommandTools.RunWindowsCommand(client.env.lookupFile("$starcraft/bwapi-data/AI/run_proxy.bat").getAbsolutePath(), false, false);
+					WindowsCommandTools.RunWindowsCommand(new MyFile(client.env.starcraftDir, "bwapi-data/AI/run_proxy.bat").getAbsolutePath(), false, false);
 				
 				Process starcraft = starcraftProcessBuilder.start();
 				
@@ -194,7 +195,7 @@ public class Starcraft extends UnicastRemoteObject implements RemoteStarcraft
 		// 32-bit machine StarCraft settings
 		String sc32KeyName =     "HKEY_LOCAL_MACHINE\\SOFTWARE\\Blizzard Entertainment\\Starcraft";
 		String sc32UserKeyName = "HKEY_CURRENT_USER\\SOFTWARE\\Blizzard Entertainment\\Starcraft";
-		String starcraftDir = client.env.lookupFile("$starcraft").toString();
+		String starcraftDir = client.env.starcraftDir.toString();
 		WindowsCommandTools.RegEdit(sc32KeyName,     "InstallPath", "REG_SZ",    starcraftDir + "\\");
 		WindowsCommandTools.RegEdit(sc32KeyName,     "Program",     "REG_SZ",    starcraftDir + "StarCraft.exe");
 		WindowsCommandTools.RegEdit(sc32KeyName,     "GamePath",    "REG_SZ",    starcraftDir + "StarCraft.exe");

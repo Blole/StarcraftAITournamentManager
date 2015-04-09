@@ -5,5 +5,7 @@ starcraftStartingTimeout: 10
 matchStartingTimeout:     40
 matchEndingTimeout:       60
 
+starcraftDir:    !required C:/tm/starcraft/
+
 shortcuts:
-    $starcraft:      !required  C:/TM/StarCraft/
+    $starcraft:  !required  C:/tm/starcraft/
