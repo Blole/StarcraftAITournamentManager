@@ -11,26 +11,12 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\behaviors\behaviors.vcxproj">
-      <Project>{244ed8c6-f017-4421-af42-14e2ed027e22}</Project>
-    </ProjectReference>
-    <ProjectReference Include="..\common\common.vcxproj">
-      <Project>{7cfee4db-10dd-40d1-9175-5ea2f0913d17}</Project>
-    </ProjectReference>
-    <ProjectReference Include="..\lib\libbehavior\BehaviorTree.vcxproj">
-      <Project>{18a56dae-2719-40c8-ade2-7c1bddbabb83}</Project>
-    </ProjectReference>
-    <ProjectReference Include="..\search\search.vcxproj">
-      <Project>{e039051d-f5e1-44bb-91e2-98c1ab33e0db}</Project>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
     <ClCompile Include="dll.cpp" />
     <ClCompile Include="tournamentmodule.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\Timer.h" />
     <ClInclude Include="tournamentmodule.hpp" />
-    <ClInclude Include="Timer.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{F32E5BB8-002D-486C-B11E-D73865BB9573}</ProjectGuid>
@@ -55,21 +41,23 @@
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="..\output.props" />
-    <Import Project="..\bwapi.props" />
-    <Import Project="..\aimodule.props" />
-    <Import Project="..\include.props" />
+    <Import Project="..\..\output.props" />
+    <Import Project="..\..\bwapi.props" />
+    <Import Project="..\..\include.props" />
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="..\output.props" />
-    <Import Project="..\bwapi.props" />
-    <Import Project="..\aimodule.props" />
-    <Import Project="..\include.props" />
+    <Import Project="..\..\output.props" />
+    <Import Project="..\..\bwapi.props" />
+    <Import Project="..\..\include.props" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup>
     <_ProjectFileVersion>10.0.40219.1</_ProjectFileVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <OutDir>$(ServerDir)/data/bwapi_410b/bwapi-data/</OutDir>
+    <TargetName>tournamentmodule</TargetName>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -108,7 +96,7 @@
       <OptimizeReferences>true</OptimizeReferences>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <TargetMachine>MachineX86</TargetMachine>
-      <OutputFile>$(SolutionDir)/../../server/data/bwapi_410b/bwapi-data/$(TargetFileName)</OutputFile>
+      <OutputFile>$(OutDir)/$(TargetFileName)</OutputFile>
     </Link>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

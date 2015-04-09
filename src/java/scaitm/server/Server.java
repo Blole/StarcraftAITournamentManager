@@ -2,7 +2,6 @@ package server;
 
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.rmi.RemoteException;
@@ -22,6 +21,10 @@ import java.util.stream.Collectors;
 import javax.imageio.ImageIO;
 
 import org.apache.commons.io.FileUtils;
+
+import server.ImageWindow;
+import server.ServerEnvironment;
+import server.ServerGUI;
 
 import common.Bot;
 import common.BwapiSettings;

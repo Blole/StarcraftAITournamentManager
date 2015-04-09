@@ -1,6 +1,6 @@
-#include "resultsmodule-410b/tournamentmodule.hpp"
+#include "tournamentmodule/410b/tournamentmodule.hpp"
+#include "tournamentmodule/Timer.h"
 #include "yaml-cpp/yaml.h"
-#include "Timer.h"
 #include <fstream>
 #include <regex>
 

@@ -6,7 +6,7 @@ pollPeriod:         0.7
 killClientsOnExit:  true
 
 filesToCopyToClientBeforeEachNewMatch:
-  - !target [data/newloaderv4.1.exe,  $starcraft/loader.exe]
+  - !target [data/loader.exe,         $starcraft/]
   - !target [data/tm_settings.ini,    $starcraft/bwapi-data/]
   - !target [data/BWTA/,              $starcraft/bwapi-data/BWTA/]
   - !target [data/BWTA2/,             $starcraft/bwapi-data/BWTA2/]
