@@ -12,9 +12,9 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.TreeSet;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
@@ -336,7 +336,7 @@ public class Server extends UnicastRemoteObject implements RemoteServer, Runnabl
 					player.getFile("$starcraft/maps/replays/").writeTo(env.replaysDir);
 					player.getFile("$starcraft/bwapi-data/write/").writeTo(bot.getWriteDir(env));
 					if (game.results == null)
-						game.results = new TreeSet<>();
+						game.results = new HashSet<>();
 					game.results.add(player.starcraft().getResult());
 				}
 			}

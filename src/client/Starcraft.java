@@ -1,6 +1,7 @@
 package client;
 
 import java.io.File;
+import java.io.IOException;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.Vector;
@@ -11,7 +12,7 @@ import common.exceptions.StarcraftAlreadyRunningException;
 import common.exceptions.StarcraftException;
 import common.exceptions.StarcraftNotRunningException;
 import common.protocols.RemoteStarcraft;
-import common.results.BasicGameResult;
+import common.results.GameResult;
 import common.utils.WindowsCommandTools;
 
 public class Starcraft extends UnicastRemoteObject implements RemoteStarcraft
@@ -44,7 +45,7 @@ public class Starcraft extends UnicastRemoteObject implements RemoteStarcraft
 	}
 	
 	@Override
-	public BasicGameResult getResult() throws StarcraftException, StarcraftNotRunningException
+	public GameResult getResult() throws StarcraftException, StarcraftNotRunningException
 	{
 		if (thread == null)
 			throw new StarcraftNotRunningException();
@@ -53,7 +54,7 @@ public class Starcraft extends UnicastRemoteObject implements RemoteStarcraft
 			if (thread.exception != null)
 				throw thread.exception;
 			else
-				return new BasicGameResult(null, null);
+				return new GameResult(null, null);
 		}
 		else //matched not yet finished
 			return null;
@@ -173,8 +174,6 @@ public class Starcraft extends UnicastRemoteObject implements RemoteStarcraft
 	
 	public void killStarcraft(Vector<Integer> startingproc)
 	{
-		Client.log("killing StarCraft");
-		
 		while (WindowsCommandTools.IsWindowsProcessRunning("StarCraft.exe"))
 		{
 			Client.log("killing Starcraft");

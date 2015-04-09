@@ -5,7 +5,7 @@ import java.util.Set;
 
 import org.yaml.snakeyaml.TypeDescription;
 
-import common.results.BasicGameResult;
+import common.results.GameResult;
 
 
 public class Game implements Serializable
@@ -15,7 +15,7 @@ public class Game implements Serializable
 	static
 	{
 		typeDescription.putListPropertyType("bots", Bot.class);
-		typeDescription.putListPropertyType("results", BasicGameResult.class);
+		typeDescription.putListPropertyType("results", GameResult.class);
 	}
 	
 	
@@ -24,7 +24,7 @@ public class Game implements Serializable
 	public final int round;
 	public final Map map;
 	public final Bot[] bots;
-	public Set<BasicGameResult> results = null;
+	public Set<GameResult> results = null;
 	public String special = null;
 	
 	

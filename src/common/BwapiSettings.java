@@ -178,7 +178,7 @@ public class BwapiSettings implements Serializable, Cloneable
 		{
 			for (String line : Files.readAllLines(file.toPath()))
 			{
-				line = line.trim().toLowerCase();
+				line = line.trim();
 				
 				if (!line.startsWith(";") && line.contains("="))
 				{
@@ -244,7 +244,6 @@ public class BwapiSettings implements Serializable, Cloneable
 		ai_dbg = game.bots[i].name;
 		race   = game.bots[i].race+"";
         
-		tournament = "bwapi-data\\TournamentModule.dll";
 		this.game = game.id+"";
 		map = i==0 ? game.map.path : "";
 		save_replay = "maps/replays/"+game.getReplayString();

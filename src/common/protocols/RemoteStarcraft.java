@@ -7,7 +7,7 @@ import common.Game;
 import common.exceptions.StarcraftAlreadyRunningException;
 import common.exceptions.StarcraftException;
 import common.exceptions.StarcraftNotRunningException;
-import common.results.BasicGameResult;
+import common.results.GameResult;
 
 public interface RemoteStarcraft extends Remote
 {
@@ -19,6 +19,6 @@ public interface RemoteStarcraft extends Remote
 	 * 
 	 * @return a result if the match has finished, otherwise null
 	 */
-	BasicGameResult getResult() throws RemoteException, StarcraftException, StarcraftNotRunningException;
+	GameResult getResult() throws RemoteException, StarcraftException, StarcraftNotRunningException;
 	void kill() throws RemoteException;
 }
