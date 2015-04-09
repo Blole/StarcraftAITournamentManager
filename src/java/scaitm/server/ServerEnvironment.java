@@ -8,9 +8,9 @@ import java.util.List;
 import org.yaml.snakeyaml.TypeDescription;
 
 import common.BwapiVersion;
-import common.MyFile;
-import common.RequiredFile;
-import common.TargetFile;
+import common.file.MyFile;
+import common.file.RequiredFile;
+import common.file.TargetFile;
 
 public class ServerEnvironment implements Serializable
 {

@@ -8,8 +8,8 @@ import org.yaml.snakeyaml.TypeDescription;
 import org.yaml.snakeyaml.nodes.Tag;
 
 import server.ServerEnvironment;
-
 import common.exceptions.InvalidBwapiVersionString;
+import common.file.TargetFile;
 
 public class BwapiVersion implements Serializable, Comparable<BwapiVersion>
 {

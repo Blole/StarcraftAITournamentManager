@@ -12,6 +12,8 @@ import org.yaml.snakeyaml.Yaml;
 
 import server.ServerEnvironment;
 
+import common.file.MyFile;
+import common.file.TargetFile;
 import common.yaml.MyConstructor;
 
 public class Bot implements Serializable

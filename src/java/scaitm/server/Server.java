@@ -25,18 +25,17 @@ import org.apache.commons.io.FileUtils;
 import server.ImageWindow;
 import server.ServerEnvironment;
 import server.ServerGUI;
-
 import common.Bot;
 import common.BwapiSettings;
 import common.Game;
 import common.GameStorage;
 import common.Helper;
-import common.PackedFile;
 import common.RMIHelper;
 import common.RunnableWithShutdownHook;
-import common.TargetFile;
 import common.exceptions.InvalidBwapiVersionString;
 import common.exceptions.StarcraftException;
+import common.file.PackedFile;
+import common.file.TargetFile;
 import common.protocols.RemoteClient;
 import common.protocols.RemoteServer;
 

@@ -5,6 +5,8 @@ import java.io.Serializable;
 
 import org.yaml.snakeyaml.TypeDescription;
 
+import common.file.MyFile;
+
 import server.ServerEnvironment;
 
 public class Map implements Serializable

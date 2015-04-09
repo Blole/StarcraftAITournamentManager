@@ -5,9 +5,9 @@ import org.yaml.snakeyaml.representer.Representer;
 import common.Bot;
 import common.Game;
 import common.Map;
-import common.MyFile;
-import common.RequiredFile;
-import common.TargetFile;
+import common.file.MyFile;
+import common.file.RequiredFile;
+import common.file.TargetFile;
 
 public class MyRepresenter extends Representer
 {

@@ -1,4 +1,4 @@
-package common;
+package common.file;
 
 import java.io.FileNotFoundException;
 import java.io.Serializable;

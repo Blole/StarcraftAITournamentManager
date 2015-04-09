@@ -8,10 +8,10 @@ import java.util.Vector;
 
 import common.BotExecutableType;
 import common.Game;
-import common.MyFile;
 import common.exceptions.StarcraftAlreadyRunningException;
 import common.exceptions.StarcraftException;
 import common.exceptions.StarcraftNotRunningException;
+import common.file.MyFile;
 import common.protocols.RemoteStarcraft;
 import common.results.GameResult;
 import common.utils.WindowsCommandTools;

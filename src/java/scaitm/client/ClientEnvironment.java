@@ -6,8 +6,8 @@ import java.util.LinkedHashMap;
 
 import org.yaml.snakeyaml.TypeDescription;
 
-import common.MyFile;
-import common.RequiredFile;
+import common.file.MyFile;
+import common.file.RequiredFile;
 
 public class ClientEnvironment implements Serializable
 {

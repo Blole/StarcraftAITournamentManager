@@ -11,7 +11,7 @@ import org.yaml.snakeyaml.Yaml;
 import common.Bot;
 import common.Game;
 import common.Map;
-import common.MyFile;
+import common.file.MyFile;
 import common.yaml.GameConstructor;
 import common.yaml.GameRepresenter;
 

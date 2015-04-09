@@ -4,7 +4,7 @@ import java.io.IOException;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
 
-import common.PackedFile;
+import common.file.PackedFile;
 
 public interface RemoteClient extends Remote
 {
