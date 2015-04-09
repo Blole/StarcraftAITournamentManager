@@ -4,8 +4,14 @@
 .project
 *.class
 
+*.suo
+*.sdf
+*.user
+*.opensdf
+
 client/client.jar
 server/server.jar
 server/generate.jar
 server/data/bots/
 server/replays/
+src/tournamentmodule/build/
