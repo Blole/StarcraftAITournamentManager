@@ -10,8 +10,6 @@ import org.apache.commons.io.FileUtils;
 import org.yaml.snakeyaml.TypeDescription;
 import org.yaml.snakeyaml.Yaml;
 
-import server.ServerEnvironment;
-
 import common.file.MyFile;
 import common.file.TargetFile;
 import common.yaml.MyConstructor;
@@ -35,7 +33,12 @@ public class Bot implements Serializable
 	
 	private Bot() //dummy constructor for yaml
 	{
-		name = null;
+		this(null);
+	}
+	
+	private Bot(String name) //constructor for yaml
+	{
+		this.name = name;
 		race = null;
 		type = null;
 		bwapiVersion = null;
@@ -44,11 +47,11 @@ public class Bot implements Serializable
 	
 	public static Bot load(File botDir, String name) throws IOException
 	{
-		File thisBotDir = new MyFile(botDir, name+"/");
-		if (!thisBotDir.exists())
-			throw new FileNotFoundException("Bot directory '"+thisBotDir+"' does not exist");
+		MyFile dir = new MyFile(botDir, name);
+		if (!dir.exists())
+			throw new FileNotFoundException("Bot directory '"+dir+"' does not exist");
 		Yaml yaml = new Yaml(new MyConstructor());
-		String yamlData = FileUtils.readFileToString(new File(thisBotDir, "bot.yaml"));
+		String yamlData = FileUtils.readFileToString(new File(dir, "bot.yaml"));
 		return yaml.loadAs(yamlData, Bot.class);
 	}
 	
@@ -60,18 +63,18 @@ public class Bot implements Serializable
 		return String.format("{Bot:%s}", name);
 	}
 	
-	public MyFile getDir(ServerEnvironment env)
+	public MyFile getDir(File botDir)
 	{
-		return new MyFile(env.botDir, name);
+		return new MyFile(botDir, name);
 	}
 
-	public MyFile getReadDir(ServerEnvironment env)
+	public MyFile getReadDir(File botDir)
 	{
-		return new MyFile(getDir(env), "read");
+		return new MyFile(getDir(botDir), "read");
 	}
 
-	public MyFile getWriteDir(ServerEnvironment env)
+	public MyFile getWriteDir(File botDir)
 	{
-		return new MyFile(getDir(env), "write");
+		return new MyFile(getDir(botDir), "write");
 	}
 }

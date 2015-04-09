@@ -22,9 +22,6 @@ import javax.imageio.ImageIO;
 
 import org.apache.commons.io.FileUtils;
 
-import server.ImageWindow;
-import server.ServerEnvironment;
-import server.ServerGUI;
 import common.Bot;
 import common.BwapiSettings;
 import common.Game;
@@ -44,7 +41,7 @@ public class Server extends UnicastRemoteObject implements RemoteServer, Runnabl
 	private static final long serialVersionUID = -6886770266188997347L;
 	
 	private ArrayList<RemoteClient> 		clients = new ArrayList<RemoteClient>();
-    private ArrayList<RemoteClient> 		free = new ArrayList<RemoteClient>();
+	private ArrayList<RemoteClient> 		free = new ArrayList<RemoteClient>();
 	private Lock							gameStarting = new ReentrantLock();
 	private ArrayList<RunningMatch>			runningMatches = new ArrayList<>();
 	private GameStorage						games;
@@ -56,11 +53,11 @@ public class Server extends UnicastRemoteObject implements RemoteServer, Runnabl
 	
 	public final ServerEnvironment env;
 
-    public Server(ServerEnvironment env) throws RemoteException
+	public Server(ServerEnvironment env) throws RemoteException
 	{
-    	this.env = env;
-    }
-
+		this.env = env;
+	}
+	
 	@Override
 	public void run()
 	{
@@ -100,25 +97,25 @@ public class Server extends UnicastRemoteObject implements RemoteServer, Runnabl
 							}
 							
 							log("Round %d finished, moving write directory to read directory", round);
-					    	for (Bot bot : games.getAllBots())
+							for (Bot bot : games.getAllBots())
 							{
-								FileUtils.copyDirectory(bot.getWriteDir(env), bot.getReadDir(env));
+								FileUtils.copyDirectory(bot.getWriteDir(env.botDir), bot.getReadDir(env.botDir));
 								//String copy = "xcopy " + ServerSettings.Instance().ServerBotDir + bot.getName() + "/write/*.* " + ServerSettings.Instance().ServerBotDir + bot.getName() + "/read/ /E /V /Y";
 								//WindowsCommandTools.RunWindowsCommand(copy, true, false);
 								//WindowsCommandTools.CopyDirectory(ServerSettings.Instance().ServerBotDir + bot.getName() + "/write/", ServerSettings.Instance().ServerBotDir + bot.getName() + "/read/");
-					    	}
+							}
 						}
 						
 						List<RemoteClient> players = new ArrayList<>();
 						while (players.size() < nextGame.bots.length)
 							players.add(free.remove(0));
 						
-				    	RunningMatch runningGame = new RunningMatch(nextGame, players);
-				    	runningMatches.add(runningGame);
-				    	new Thread(runningGame).start();
+						RunningMatch runningGame = new RunningMatch(nextGame, players);
+						runningMatches.add(runningGame);
+						new Thread(runningGame).start();
 						
 						log(nextGame + " starting");
-				    	previousScheduledGame = nextGame;
+						previousScheduledGame = nextGame;
 					}
 				}
 				catch (Exception e)
@@ -197,61 +194,61 @@ public class Server extends UnicastRemoteObject implements RemoteServer, Runnabl
 		for (RemoteClient client : clients)
 		{
 			try
-	    	{
+			{
 				client.executeCommand(command);
-	    	}
-	    	catch (Exception e)
-	    	{
-	    		log("%s error sending command", client);
-	    		e.printStackTrace();
-	    	}
+			}
+			catch (Exception e)
+			{
+				log("%s error sending command", client);
+				e.printStackTrace();
+			}
 		}
 	}
 	
-    void killClients()
+	void killClients()
 	{
 		for (RemoteClient client : new ArrayList<RemoteClient>(clients))
 		{
-	    	try
-	    	{
+			try
+			{
 				client.kill();
-	    	}
-	    	catch (RemoteException e)
-	    	{
+			}
+			catch (RemoteException e)
+			{
 				log("%s error killing", client);
-	    	}
-    	}
+			}
+		}
 		clients.clear();
 		free.clear();
-    }
-    
+	}
+	
 	public synchronized void log(String format, Object... args)
 	{
 		String timeStamp = new SimpleDateFormat("[HH:mm:ss]").format(Calendar.getInstance().getTime());
 		gui.logText(timeStamp+" "+String.format(format, args)+"\n");
 	}
-    
+	
 	@Override
 	public void connect(RemoteClient client)
 	{
-        try
+		try
 		{
 			log("%s connected", getClientHost());
 		} catch (ServerNotActiveException e) {}
-        clients.add(client);
-        free.add(client);
+		clients.add(client);
+		free.add(client);
 	}
 	
 	@Override
 	public void disconnect(RemoteClient client)
 	{
-        try
+		try
 		{
 			log("%s disconnected", getClientHost());
 		}
-        catch (ServerNotActiveException e) {}
-        clients.remove(client);
-        free.remove(client);
+		catch (ServerNotActiveException e) {}
+		clients.remove(client);
+		free.remove(client);
 		gui.RemoveClient(client.toString());
 	}
 	
@@ -289,24 +286,24 @@ public class Server extends UnicastRemoteObject implements RemoteServer, Runnabl
 					
 					for (TargetFile file : env.filesToCopyToClientBeforeEachNewMatch)
 						player.extractFile(PackedFile.get(file), file.extractTo);
-			        
+					
 					TargetFile bwapi = bot.bwapiVersion.getFile(env);
 					player.extractFile(PackedFile.get(bwapi), bwapi.extractTo);
 					
 					if (bot.extraFiles != null)
 					{
 						for (TargetFile file : bot.extraFiles)
-				        	player.extractFile(PackedFile.get(file), file.extractTo);
+							player.extractFile(PackedFile.get(file), file.extractTo);
 					}
-			        
-			        player.extractFile(PackedFile.get(bot.getDir(env)), "$starcraft/bwapi-data/");
-			        player.extractFile(PackedFile.get(game.map.getFile(env)), "$starcraft/maps/"+game.map.path);
-			        player.extractFile(PackedFile.get(env.characterFileMultiplayer), "$starcraft/characters/"+bot.name+".mpc");
-			        player.extractFile(PackedFile.get(env.characterFileSingleplayer), "$starcraft/characters/"+bot.name+".spc");
-			        
-			        BwapiSettings bwapiSettings = defaultBwapiSettings.clone();
-			        bwapiSettings.setGame(game, i);
-			        player.extractFile(new PackedFile("bwapi.ini", bwapiSettings.getContentsString().getBytes()), "$starcraft/bwapi-data/");
+					
+					player.extractFile(PackedFile.get(bot.getDir(env.botDir)), "$starcraft/bwapi-data/");
+					player.extractFile(PackedFile.get(game.map.getFile(env)), "$starcraft/maps/"+game.map.path);
+					player.extractFile(PackedFile.get(env.characterFileMultiplayer), "$starcraft/characters/"+bot.name+".mpc");
+					player.extractFile(PackedFile.get(env.characterFileSingleplayer), "$starcraft/characters/"+bot.name+".spc");
+					
+					BwapiSettings bwapiSettings = defaultBwapiSettings.clone();
+					bwapiSettings.setGame(game, i);
+					player.extractFile(new PackedFile("bwapi.ini", bwapiSettings.getContentsString().getBytes()), "$starcraft/bwapi-data/");
 				}
 				
 				startTime = System.currentTimeMillis();
@@ -316,27 +313,27 @@ public class Server extends UnicastRemoteObject implements RemoteServer, Runnabl
 					players[i].starcraft().start(game, i);
 				}
 				
-		        while (true)
-		        {
-		        	boolean allDone = true;
-		        	
-		        	for (RemoteClient player : players)
-		        		allDone &= player.starcraft().getResult() != null;
-		        	
-		        	if (allDone)
-		        		break;
-		        	
-		        	Thread.sleep((long) (env.pollPeriod*1000));
-		        }
-		        
-		        log("%s finished, collecting replays", game);
-		        
+				while (true)
+				{
+					boolean allDone = true;
+					
+					for (RemoteClient player : players)
+						allDone &= player.starcraft().getResult() != null;
+					
+					if (allDone)
+						break;
+					
+					Thread.sleep((long) (env.pollPeriod*1000));
+				}
+				
+				log("%s finished, collecting replays", game);
+				
 				for (int i=0; i<players.length; i++)
 				{
 					RemoteClient player = players[i];
 					Bot bot = game.bots[i];
 					player.getFile("$starcraft/maps/replays/").writeTo(env.replaysDir);
-					player.getFile("$starcraft/bwapi-data/write/").writeTo(bot.getWriteDir(env));
+					player.getFile("$starcraft/bwapi-data/write/").writeTo(bot.getWriteDir(env.botDir));
 					if (game.results == null)
 						game.results = new HashSet<>();
 					game.results.add(player.starcraft().getResult());
@@ -366,8 +363,8 @@ public class Server extends UnicastRemoteObject implements RemoteServer, Runnabl
 			{
 				free.addAll(Arrays.asList(players));
 				
-	        	for (RemoteClient player : players)
-	        	{
+				for (RemoteClient player : players)
+				{
 					try
 					{
 						player.starcraft().kill();
@@ -378,9 +375,9 @@ public class Server extends UnicastRemoteObject implements RemoteServer, Runnabl
 						e.printStackTrace();
 					}
 				}
-	        	
+				
 				runningMatches.remove(this);
 			}
-	    }
+		}
 	}
 }
