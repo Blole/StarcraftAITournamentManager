@@ -6,8 +6,8 @@ import java.rmi.RemoteException;
 import common.Game;
 import common.exceptions.StarcraftAlreadyRunningException;
 import common.exceptions.StarcraftException;
-import common.exceptions.StarcraftNotRunningException;
-import common.results.GameResult;
+import common.status.Done;
+import common.status.GameStatus;
 
 public interface RemoteStarcraft extends Remote
 {
@@ -19,6 +19,7 @@ public interface RemoteStarcraft extends Remote
 	 * 
 	 * @return a result if the match has finished, otherwise null
 	 */
-	GameResult getResult() throws RemoteException, StarcraftException, StarcraftNotRunningException;
+	GameStatus getStatus() throws RemoteException, StarcraftException;
+	Done getResult() throws RemoteException, StarcraftException;
 	void kill() throws RemoteException;
 }

@@ -5,11 +5,23 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.Vector;
 
+import client.Client;
+
 public class WindowsCommandTools
 {
-	public static void KillWindowsProcessID(int pid)
+	public static void killProcess(int pid)
 	{
 		WindowsCommandTools.RunWindowsCommand("taskkill /F /PID " + pid, true, false);
+	}
+	
+	public static void killProcess(String processName)
+	{
+		while (WindowsCommandTools.IsWindowsProcessRunning(processName))
+		{
+			Client.log("killing "+processName);
+			WindowsCommandTools.RunWindowsCommand("taskkill /F /IM "+processName, true, false);
+			try { Thread.sleep(100); } catch (InterruptedException e) {}
+		}
 	}
 	
 	public static void KillExcessWindowsProccess(Vector<Integer> doNotKill)
@@ -24,7 +36,7 @@ public class WindowsCommandTools
 		{
 			if (!(doNotKill.contains(running.get(i))))
 			{
-				KillWindowsProcessID(running.get(i));
+				killProcess(running.get(i));
 			}
 		}
 	}

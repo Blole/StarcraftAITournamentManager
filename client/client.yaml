@@ -1,9 +1,13 @@
 # client settings
 serverUrl:      //bjorn-cellar:1099/scaitm_server
 
-starcraftStartingTimeout: 10
-matchStartingTimeout:     40
-matchEndingTimeout:       60
+killOtherStarcraftProcessesOnStartup:  false
+addWindowsRegistryEntriesOnStartup:    false
+multiInstance:  true
+
+starcraftStartingTimeout:     10
+matchStartingTimeout:         40
+matchAlivePollInterval:       1
 
 starcraftDir:    !required C:/tm/starcraft/
 

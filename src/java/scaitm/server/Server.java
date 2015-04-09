@@ -11,7 +11,6 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
-import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.concurrent.locks.Lock;
@@ -30,11 +29,14 @@ import common.Helper;
 import common.RMIHelper;
 import common.RunnableWithShutdownHook;
 import common.exceptions.InvalidBwapiVersionString;
+import common.exceptions.InvalidResultsException;
 import common.exceptions.StarcraftException;
 import common.file.PackedFile;
 import common.file.TargetFile;
 import common.protocols.RemoteClient;
 import common.protocols.RemoteServer;
+import common.status.GameResult;
+import common.status.GameStatus;
 
 public class Server extends UnicastRemoteObject implements RemoteServer, RunnableWithShutdownHook
 {
@@ -147,7 +149,7 @@ public class Server extends UnicastRemoteObject implements RemoteServer, Runnabl
 	private Game getNextUnstartedGame()
 	{
 		LinkedHashSet<Game> unstartedGames = new LinkedHashSet<>(games.games);
-		unstartedGames.removeIf(g -> !g.hasResults());
+		unstartedGames.removeIf(g -> g.results != null);
 		unstartedGames.removeAll(getRunningGames());
 		
 		if (unstartedGames.isEmpty())
@@ -272,6 +274,7 @@ public class Server extends UnicastRemoteObject implements RemoteServer, Runnabl
 		@Override
 		public void run()
 		{
+			boolean success = false;
 			BwapiSettings defaultBwapiSettings = new BwapiSettings(env.defaultBwapiIni);
 			try
 			{
@@ -315,10 +318,25 @@ public class Server extends UnicastRemoteObject implements RemoteServer, Runnabl
 				
 				while (true)
 				{
+					boolean allStarted = true;
+					
+					for (RemoteClient player : players)
+						allStarted &= player.starcraft().getStatus() != GameStatus.Starting;
+					
+					if (allStarted)
+						break;
+					
+					Thread.sleep((long) (env.pollPeriod*1000));
+				}
+				
+				gameStarting.unlock();
+				
+				while (true)
+				{
 					boolean allDone = true;
 					
 					for (RemoteClient player : players)
-						allDone &= player.starcraft().getResult() != null;
+						allDone &= player.starcraft().getStatus() == GameStatus.Done;
 					
 					if (allDone)
 						break;
@@ -335,9 +353,11 @@ public class Server extends UnicastRemoteObject implements RemoteServer, Runnabl
 					player.getFile("$starcraft/maps/replays/").writeTo(env.replaysDir);
 					player.getFile("$starcraft/bwapi-data/write/").writeTo(bot.getWriteDir(env.botDir));
 					if (game.results == null)
-						game.results = new HashSet<>();
-					game.results.add(player.starcraft().getResult());
+						game.results = new GameResult();
+					game.results.add(bot, player.starcraft().getResult());
 				}
+				
+				success = true;
 			}
 			catch (StarcraftException e)
 			{
@@ -359,23 +379,29 @@ public class Server extends UnicastRemoteObject implements RemoteServer, Runnabl
 			{
 				e.printStackTrace();
 			}
+			catch (InvalidResultsException e)
+			{
+				e.printStackTrace();
+			}
 			finally
 			{
-				free.addAll(Arrays.asList(players));
-				
-				for (RemoteClient player : players)
+				if (!success)
 				{
-					try
+					for (RemoteClient player : players)
 					{
-						player.starcraft().kill();
-					}
-					catch (RemoteException e)
-					{
-						log("error killing remote StarCraft");
-						e.printStackTrace();
+						try
+						{
+							player.starcraft().kill();
+						}
+						catch (RemoteException e)
+						{
+							log("error killing remote StarCraft");
+							e.printStackTrace();
+						}
 					}
 				}
 				
+				free.addAll(Arrays.asList(players));
 				runningMatches.remove(this);
 			}
 		}

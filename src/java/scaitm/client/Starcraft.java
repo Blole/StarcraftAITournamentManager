@@ -4,17 +4,24 @@ import java.io.File;
 import java.io.IOException;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
-import java.util.Vector;
+import java.util.Random;
+
+import org.apache.commons.io.FileUtils;
+import org.yaml.snakeyaml.Yaml;
 
 import common.BotExecutableType;
 import common.Game;
 import common.exceptions.StarcraftAlreadyRunningException;
 import common.exceptions.StarcraftException;
-import common.exceptions.StarcraftNotRunningException;
+import common.exceptions.StarcraftMatchNotFinishedException;
+import common.exceptions.StarcraftMatchNotStartedException;
 import common.file.MyFile;
 import common.protocols.RemoteStarcraft;
-import common.results.GameResult;
+import common.status.Done;
+import common.status.GameStatus;
+import common.status.GameStatusFile;
 import common.utils.WindowsCommandTools;
+import common.yaml.MyConstructor;
 
 public class Starcraft extends UnicastRemoteObject implements RemoteStarcraft
 {
@@ -44,21 +51,25 @@ public class Starcraft extends UnicastRemoteObject implements RemoteStarcraft
 			e.printStackTrace();
 		}
 	}
-	
+
 	@Override
-	public GameResult getResult() throws StarcraftException, StarcraftNotRunningException
+	public GameStatus getStatus() throws StarcraftException
 	{
 		if (thread == null)
-			throw new StarcraftNotRunningException();
-		else if (!thread.isAlive())
-		{
-			if (thread.exception != null)
-				throw thread.exception;
-			else
-				return new GameResult(null, null);
-		}
-		else //matched not yet finished
-			return null;
+			throw new StarcraftMatchNotStartedException();
+		else if (thread.exception != null)
+			throw thread.exception;
+		else
+			return thread.status;
+	}
+	
+	@Override
+	public Done getResult() throws StarcraftException
+	{
+		if (getStatus() == GameStatus.Done)
+			return thread.result;
+		else
+			throw new StarcraftMatchNotFinishedException();
 	}
 
 	@Override
@@ -78,6 +89,8 @@ public class Starcraft extends UnicastRemoteObject implements RemoteStarcraft
 		Game game;
 		int index;
 		StarcraftException exception = null;
+		Done result = null;
+		private GameStatus status;
 		
 		public StarcraftMatch(Game game, int index)
 		{
@@ -88,72 +101,83 @@ public class Starcraft extends UnicastRemoteObject implements RemoteStarcraft
 		@Override
 		public void run()
 		{
+			status = GameStatus.Starting;
 			File starcraftDir = client.env.starcraftDir;
-			Vector<Integer> startingproc = WindowsCommandTools.GetRunningProcesses();
-			ProcessBuilder starcraftProcessBuilder = new ProcessBuilder(new File(starcraftDir, "loader.exe").getAbsolutePath(),
-					"--launch", "StarCraft.exe",
-					"--lib", "bwapi-data/BWAPI.dll");
-			starcraftProcessBuilder.directory(starcraftDir);
+			File starcraftExe = null;
 			
 			try
 			{
-				killStarcraft(null);
+				if (client.env.multiInstance)
+				{
+					starcraftExe = new File(starcraftDir, String.format("StarCraft_%08x.exe", new Random().nextInt(0x7fffffff)));
+					FileUtils.copyFile(new File(starcraftDir, "StarCraft_MultiInstance.exe"), starcraftExe);
+					Client.log("exe is: "+starcraftExe.getName());
+				}
+				else
+					starcraftExe = new File(starcraftDir, "StarCraft.exe");
 				
 				File replayFile = new MyFile(client.env.starcraftDir, "maps/replays/"+game.getReplayString());
-				File gameStateFile = new MyFile(client.env.starcraftDir, "gameState.txt");
+				File statusFile = new MyFile(client.env.starcraftDir, "gamestatus.yaml");
 				replayFile.delete();
-				gameStateFile.delete();
+				statusFile.delete();
+				
 				
 				// If this is a proxy bot, start the proxy bot script before StarCraft starts
 				if (game.bots[index].type == BotExecutableType.proxy)
 					WindowsCommandTools.RunWindowsCommand(new MyFile(client.env.starcraftDir, "bwapi-data/AI/run_proxy.bat").getAbsolutePath(), false, false);
 				
-				Process starcraft = starcraftProcessBuilder.start();
+				Runtime.getRuntime().exec(starcraftDir+"/loader.exe --launch "+starcraftExe.getName()+" --lib bwapi-data/BWAPI.dll", null, starcraftDir);
 				
-				// Record the time that we tried to start the game
+				
 				long time = System.currentTimeMillis();
-				
-				while (!WindowsCommandTools.IsWindowsProcessRunning("StarCraft.exe"))
+				while (!WindowsCommandTools.IsWindowsProcessRunning(starcraftExe.getName()))
 				{
 					if (System.currentTimeMillis()-time > client.env.starcraftStartingTimeout*1000)
 						throw new StarcraftException("timeout starting StarCraft");
 					
-					sleep(500);
+					sleep(100);
 				}
-				Client.log("starcraft started");
+				Client.log("starcraft started in %.1f s", (System.currentTimeMillis() - time)/1000.0);
+				
+				
 				
 				time = System.currentTimeMillis();
-				while (!gameStateFile.exists())
+				while (!statusFile.exists())
 				{
-					if (!WindowsCommandTools.IsWindowsProcessRunning("StarCraft.exe"))
+					if (!WindowsCommandTools.IsWindowsProcessRunning(starcraftExe.getName()))
 						throw new StarcraftException("starcraft died while starting match");
 					if (System.currentTimeMillis()-time > client.env.matchStartingTimeout*1000)
 						throw new StarcraftException("timeout starting match");
 					
-					sleep(1000);
+					sleep(200);
 				}
-				Client.log("match started");
+				Client.log("match started in %.1f s", (System.currentTimeMillis() - time)/1000.0);
+				status = GameStatus.Running;
+				
+				
 				
 				time = System.currentTimeMillis();
-				while (!replayFile.exists())
+				while (true)
 				{
-					if (!WindowsCommandTools.IsWindowsProcessRunning("StarCraft.exe"))
-						throw new StarcraftException("starcraft died during the match");
-					if (System.currentTimeMillis()-time > client.env.matchEndingTimeout*1000)
-						throw new StarcraftException("timeout ending match");
+					GameStatusFile gamestatus = readStatus(statusFile);
+					if (gamestatus.getStatus() == GameStatus.Done && replayFile.exists())
+					{
+						result = (Done) gamestatus;
+						break;
+					}
 					
-					sleep(1000);
+					if (!WindowsCommandTools.IsWindowsProcessRunning(starcraftExe.getName()))
+						throw new StarcraftException("starcraft died during the match");
+					
+					sleep((long)(client.env.matchAlivePollInterval*1000 - (System.currentTimeMillis() - statusFile.lastModified())));
 				}
-				Client.log("match ended");
+				Client.log("match ended in %.1f s", (System.currentTimeMillis() - time)/1000.0);
 				
-				//sleep to make sure StarCraft wrote the replay file correctly
-				sleep(5000);
-				Client.log("match done");
 				
-				//String timeStamp = new SimpleDateFormat("[mm:ss]").format(new Date(gameState.frameCount*42));
 			}
 			catch (InterruptedException e)
 			{
+				exception = new StarcraftException("match interrupted");
 				Client.log("match interrupted");
 			}
 			catch (StarcraftException e)
@@ -163,29 +187,26 @@ public class Starcraft extends UnicastRemoteObject implements RemoteStarcraft
 			}
 			catch (IOException e)
 			{
+				exception = new StarcraftException(e);
 				e.printStackTrace();
 			}
 			finally
 			{
-				killStarcraft(startingproc);
+				WindowsCommandTools.killProcess(starcraftExe.getName());
+				
+				if (client.env.multiInstance && starcraftExe.exists())
+					starcraftExe.delete();
+				
 				Client.log("ready");
+				status = GameStatus.Done;
 			}
 		}
-	}
-	
-	public void killStarcraft(Vector<Integer> startingproc)
-	{
-		while (WindowsCommandTools.IsWindowsProcessRunning("StarCraft.exe"))
+
+		private GameStatusFile readStatus(File statusFile) throws IOException
 		{
-			Client.log("killing Starcraft");
-			WindowsCommandTools.RunWindowsCommand("taskkill /F /IM StarCraft.exe", true, false);
-			try { Thread.sleep(100); } catch (InterruptedException e) {}
+			String status = FileUtils.readFileToString(statusFile);
+			return new Yaml(new MyConstructor()).loadAs(status, GameStatusFile.class);
 		}
-		
-		// Kill any processes that weren't running before startcraft started
-		// This is helpful to kill any proxy bots or java threads that may still be going
-		if (startingproc != null)
-			WindowsCommandTools.KillExcessWindowsProccess(startingproc);
 	}
 	
 	public void addWindowsRegistryEntries()

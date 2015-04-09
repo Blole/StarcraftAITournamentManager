@@ -1,11 +1,10 @@
 package common;
 
 import java.io.Serializable;
-import java.util.Set;
 
 import org.yaml.snakeyaml.TypeDescription;
 
-import common.results.GameResult;
+import common.status.GameResult;
 
 
 public class Game implements Serializable
@@ -15,7 +14,6 @@ public class Game implements Serializable
 	static
 	{
 		typeDescription.putListPropertyType("bots", Bot.class);
-		typeDescription.putListPropertyType("results", GameResult.class);
 	}
 	
 	
@@ -24,8 +22,7 @@ public class Game implements Serializable
 	public final int round;
 	public final Map map;
 	public final Bot[] bots;
-	public Set<GameResult> results = null;
-	public String special = null;
+	public GameResult results = null;
 	
 	
 	public Game() //dummy constructor for yaml
@@ -44,11 +41,6 @@ public class Game implements Serializable
 		this.id = id;
 	}
 
-	public boolean hasResults()
-	{
-		return results == null || results.isEmpty();
-	}
-	
 	public String getReplayString()
 	{
 		StringBuilder sb = new StringBuilder();

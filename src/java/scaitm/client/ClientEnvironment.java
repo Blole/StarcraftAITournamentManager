@@ -17,13 +17,17 @@ public class ClientEnvironment implements Serializable
 	
 	
 	public String serverUrl = null;
+	
+	public boolean killOtherStarcraftProcessesOnStartup = false;
+	public boolean addWindowsRegistryEntriesOnStartup = false;
+	public boolean multiInstance = false;
+	
 	public double starcraftStartingTimeout = 10;
 	public double matchStartingTimeout = 60;
-	public double matchEndingTimeout = 60;
-	private LinkedHashMap<String, ? extends MyFile> shortcuts = null;
+	public double matchAlivePollInterval = 2;
+	
 	public RequiredFile starcraftDir;
-	
-	
+	private LinkedHashMap<String, ? extends MyFile> shortcuts = null;
 	
 	public MyFile lookupFile(String path)
 	{

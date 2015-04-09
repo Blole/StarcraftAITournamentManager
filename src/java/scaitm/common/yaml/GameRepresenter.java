@@ -35,8 +35,6 @@ public class GameRepresenter extends ScalarRepresenter
 				properties.add(new FieldProperty(Game.class.getField("round")));
 				properties.add(new FieldProperty(Game.class.getField("map")));
 				properties.add(new FieldProperty(Game.class.getField("bots")));
-				if (game.special != null)
-					properties.add(new FieldProperty(Game.class.getField("special")));
 				if (game.results != null)
 					properties.add(new FieldProperty(Game.class.getField("results")));
                 return representJavaBean(properties, game);

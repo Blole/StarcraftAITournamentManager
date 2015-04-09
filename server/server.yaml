@@ -6,10 +6,11 @@ pollPeriod:         0.7
 killClientsOnExit:  true
 
 filesToCopyToClientBeforeEachNewMatch:
-  - !target [data/loader.exe,         $starcraft/]
-  - !target [data/tm_settings.ini,    $starcraft/bwapi-data/]
-  - !target [data/BWTA/,              $starcraft/bwapi-data/BWTA/]
-  - !target [data/BWTA2/,             $starcraft/bwapi-data/BWTA2/]
+  - !target [data/loader.exe,             $starcraft/]
+  - !target [data/tm_settings.ini,        $starcraft/bwapi-data/]
+  - !target [data/BWTA/,                  $starcraft/bwapi-data/BWTA/]
+  - !target [data/BWTA2/,                 $starcraft/bwapi-data/BWTA2/]
+  - !target [data/multi_instance_patch/,  $starcraft/bwapi-data/multi_instance_patch/]
 
 bwapiVersions:
     3.7.4:       !target [data/bwapi_374,    $starcraft/]
