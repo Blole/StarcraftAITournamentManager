@@ -6,7 +6,9 @@
     <ServerDir>$(SolutionDir)/../../server/</ServerDir>
   </PropertyGroup>
   <PropertyGroup>
-    <OutDir>$(BuildDir)</OutDir>
+    <OutDir Condition="'$(ConfigurationType)'=='DynamicLibrary'">$(BuildDir)/bin/</OutDir>
+    <OutDir Condition="'$(ConfigurationType)'=='StaticLibrary'">$(BuildDir)/lib/</OutDir>
+    <OutDir Condition="'$(ConfigurationType)'=='Application'">$(BuildDir)/bin/</OutDir>
     <IntDir>$(BuildDir)/intermediate/$(ProjectName)/</IntDir>
     <LinkIncremental>false</LinkIncremental>
   </PropertyGroup>
@@ -22,6 +24,9 @@
       <OutputFile>$(BuildDir)/lib/$(TargetFileName)</OutputFile>
     </Lib>
     <ClCompile />
+    <ClCompile>
+      <AdditionalIncludeDirectories>$(SolutionDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
     <BuildMacro Include="BuildDir">

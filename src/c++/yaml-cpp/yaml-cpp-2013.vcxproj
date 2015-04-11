@@ -1,0 +1,120 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="binary.cpp" />
+    <ClCompile Include="contrib\graphbuilder.cpp" />
+    <ClCompile Include="contrib\graphbuilderadapter.cpp" />
+    <ClCompile Include="convert.cpp" />
+    <ClCompile Include="directives.cpp" />
+    <ClCompile Include="emit.cpp" />
+    <ClCompile Include="emitfromevents.cpp" />
+    <ClCompile Include="emitter.cpp" />
+    <ClCompile Include="emitterstate.cpp" />
+    <ClCompile Include="emitterutils.cpp" />
+    <ClCompile Include="exp.cpp" />
+    <ClCompile Include="memory.cpp" />
+    <ClCompile Include="node.cpp" />
+    <ClCompile Include="nodebuilder.cpp" />
+    <ClCompile Include="nodeevents.cpp" />
+    <ClCompile Include="node_data.cpp" />
+    <ClCompile Include="null.cpp" />
+    <ClCompile Include="ostream_wrapper.cpp" />
+    <ClCompile Include="parse.cpp" />
+    <ClCompile Include="parser.cpp" />
+    <ClCompile Include="regex_yaml.cpp" />
+    <ClCompile Include="scanner.cpp" />
+    <ClCompile Include="scanscalar.cpp" />
+    <ClCompile Include="scantag.cpp" />
+    <ClCompile Include="scantoken.cpp" />
+    <ClCompile Include="simplekey.cpp" />
+    <ClCompile Include="singledocparser.cpp" />
+    <ClCompile Include="stream.cpp" />
+    <ClCompile Include="tag.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="collectionstack.h" />
+    <ClInclude Include="contrib\graphbuilderadapter.h" />
+    <ClInclude Include="directives.h" />
+    <ClInclude Include="emitterstate.h" />
+    <ClInclude Include="emitterutils.h" />
+    <ClInclude Include="exp.h" />
+    <ClInclude Include="indentation.h" />
+    <ClInclude Include="nodebuilder.h" />
+    <ClInclude Include="nodeevents.h" />
+    <ClInclude Include="ptr_stack.h" />
+    <ClInclude Include="ptr_vector.h" />
+    <ClInclude Include="regeximpl.h" />
+    <ClInclude Include="regex_yaml.h" />
+    <ClInclude Include="scanner.h" />
+    <ClInclude Include="scanscalar.h" />
+    <ClInclude Include="scantag.h" />
+    <ClInclude Include="setting.h" />
+    <ClInclude Include="singledocparser.h" />
+    <ClInclude Include="stream.h" />
+    <ClInclude Include="streamcharsource.h" />
+    <ClInclude Include="stringsource.h" />
+    <ClInclude Include="tag.h" />
+    <ClInclude Include="token.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="license.txt" />
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{479CC519-67AF-4D9E-BCC5-62D4697837B1}</ProjectGuid>
+    <RootNamespace>ExampleAIModule</RootNamespace>
+    <Keyword>Win32Proj</Keyword>
+    <ProjectName>yaml-cpp-2013</ProjectName>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <CharacterSet>Unicode</CharacterSet>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <PlatformToolset>v120</PlatformToolset>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="..\output.props" />
+    <Import Project="..\boost.props" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup>
+    <_ProjectFileVersion>10.0.40219.1</_ProjectFileVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <Optimization>MaxSpeed</Optimization>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <DisableSpecificWarnings>
+      </DisableSpecificWarnings>
+    </ClCompile>
+    <Link>
+      <GenerateDebugInformation>false</GenerateDebugInformation>
+      <SubSystem>Windows</SubSystem>
+      <OptimizeReferences>true</OptimizeReferences>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <TargetMachine>MachineX86</TargetMachine>
+      <OutputFile>$(OutDir)/$(TargetFileName)</OutputFile>
+    </Link>
+  </ItemDefinitionGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>
