@@ -24,9 +24,10 @@ public class ClientEnvironment implements Serializable
 	
 	public double starcraftStartingTimeout = 10;
 	public double matchStartingTimeout = 60;
-	public double matchAlivePollInterval = 2;
+	public double matchRunningTimeout = 2;
 	
 	public RequiredFile starcraftDir;
+	public MyFile gamestatusFile;
 	private LinkedHashMap<String, ? extends MyFile> shortcuts = null;
 	
 	public MyFile lookupFile(String path)

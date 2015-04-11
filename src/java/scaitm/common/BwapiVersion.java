@@ -8,6 +8,7 @@ import org.yaml.snakeyaml.TypeDescription;
 import org.yaml.snakeyaml.nodes.Tag;
 
 import server.ServerEnvironment;
+
 import common.exceptions.InvalidBwapiVersionString;
 import common.file.TargetFile;
 
@@ -29,11 +30,7 @@ public class BwapiVersion implements Serializable, Comparable<BwapiVersion>
 	{
 		LinkedHashMap<BwapiVersion,TargetFile> m = new LinkedHashMap<>();
 		for (Entry<BwapiVersion,TargetFile> a : env.bwapiVersions.entrySet())
-		{
 			m.put(a.getKey(), a.getValue());
-		}
-		System.out.println(m.containsKey(this));
-		System.out.println(m);
 		
 		if (env.bwapiVersions.containsKey(this))
 			return env.bwapiVersions.get(this);

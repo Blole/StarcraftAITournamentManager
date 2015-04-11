@@ -1,15 +1,17 @@
 # client settings
-serverUrl:      //bjorn-cellar:1099/scaitm_server
+serverUrl:  //bjorn-cellar:1099/scaitm_server
 
-killOtherStarcraftProcessesOnStartup:  false
-addWindowsRegistryEntriesOnStartup:    false
-multiInstance:  true
-
-starcraftStartingTimeout:     10
-matchStartingTimeout:         40
-matchAlivePollInterval:       1
-
-starcraftDir:    !required C:/tm/starcraft/
+starcraftDir:    !required  C:/tm/starcraft/
+gamestatusFile:  !file      C:/tm/starcraft/gamestatus.yaml
 
 shortcuts:
     $starcraft:  !required  C:/tm/starcraft/
+
+
+killOtherStarcraftProcessesOnStartup:  false
+addWindowsRegistryEntriesOnStartup:    false
+
+multiInstance:  false
+starcraftStartingTimeout:  5
+matchStartingTimeout:      40
+matchRunningTimeout:       5

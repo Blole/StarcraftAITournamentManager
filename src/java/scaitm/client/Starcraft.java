@@ -40,14 +40,16 @@ public class Starcraft extends UnicastRemoteObject implements RemoteStarcraft
 	{
 		if (thread == null)
 			return;
+		
 		try
 		{
 			thread.interrupt();
 			thread.join();
+			Client.log("killed (by remote?)");
 		}
 		catch (InterruptedException e)
 		{
-			System.err.println("interrupted while stopping starcraft game thread");
+			Client.log("interrupted while stopping starcraft game thread");
 			e.printStackTrace();
 		}
 	}
@@ -104,9 +106,14 @@ public class Starcraft extends UnicastRemoteObject implements RemoteStarcraft
 			status = GameStatus.Starting;
 			File starcraftDir = client.env.starcraftDir;
 			File starcraftExe = null;
+			File replayFile = new MyFile(client.env.starcraftDir, "maps/replays/"+game.getReplayString());
+			File statusFile = client.env.gamestatusFile;
 			
 			try
 			{
+				replayFile.delete();
+				statusFile.delete();
+				
 				if (client.env.multiInstance)
 				{
 					starcraftExe = new File(starcraftDir, String.format("StarCraft_%08x.exe", new Random().nextInt(0x7fffffff)));
@@ -114,13 +121,10 @@ public class Starcraft extends UnicastRemoteObject implements RemoteStarcraft
 					Client.log("exe is: "+starcraftExe.getName());
 				}
 				else
+				{
 					starcraftExe = new File(starcraftDir, "StarCraft.exe");
-				
-				File replayFile = new MyFile(client.env.starcraftDir, "maps/replays/"+game.getReplayString());
-				File statusFile = new MyFile(client.env.starcraftDir, "gamestatus.yaml");
-				replayFile.delete();
-				statusFile.delete();
-				
+					WindowsCommandTools.killProcess(starcraftExe.getName());
+				}
 				
 				// If this is a proxy bot, start the proxy bot script before StarCraft starts
 				if (game.bots[index].type == BotExecutableType.proxy)
@@ -159,21 +163,23 @@ public class Starcraft extends UnicastRemoteObject implements RemoteStarcraft
 				time = System.currentTimeMillis();
 				while (true)
 				{
+					if (!WindowsCommandTools.IsWindowsProcessRunning(starcraftExe.getName()))
+						throw new StarcraftException("starcraft died during the match");
+				
+					long timeSinceModification = System.currentTimeMillis() - statusFile.lastModified();
+					
 					GameStatusFile gamestatus = readStatus(statusFile);
-					if (gamestatus.getStatus() == GameStatus.Done && replayFile.exists())
+					if (gamestatus != null && gamestatus.getStatus() == GameStatus.Done && replayFile.exists())
 					{
 						result = (Done) gamestatus;
 						break;
 					}
+					else if (timeSinceModification > client.env.matchRunningTimeout*1000)
+						throw new StarcraftException(statusFile+" was not updated in time");
 					
-					if (!WindowsCommandTools.IsWindowsProcessRunning(starcraftExe.getName()))
-						throw new StarcraftException("starcraft died during the match");
-					
-					sleep((long)(client.env.matchAlivePollInterval*1000 - (System.currentTimeMillis() - statusFile.lastModified())));
+					sleep((long)(client.env.matchRunningTimeout*1000 - timeSinceModification));
 				}
 				Client.log("match ended in %.1f s", (System.currentTimeMillis() - time)/1000.0);
-				
-				
 			}
 			catch (InterruptedException e)
 			{
@@ -205,7 +211,7 @@ public class Starcraft extends UnicastRemoteObject implements RemoteStarcraft
 		private GameStatusFile readStatus(File statusFile) throws IOException
 		{
 			String status = FileUtils.readFileToString(statusFile);
-			return new Yaml(new MyConstructor()).loadAs(status, GameStatusFile.class);
+			return (GameStatusFile) new Yaml(new MyConstructor()).load(status);
 		}
 	}
 	

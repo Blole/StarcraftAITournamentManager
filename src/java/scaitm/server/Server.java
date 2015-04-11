@@ -329,7 +329,7 @@ public class Server extends UnicastRemoteObject implements RemoteServer, Runnabl
 					Thread.sleep((long) (env.pollPeriod*1000));
 				}
 				
-				gameStarting.unlock();
+				//gameStarting.unlock();
 				
 				while (true)
 				{
