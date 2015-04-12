@@ -7,8 +7,6 @@ import org.yaml.snakeyaml.TypeDescription;
 
 import common.file.MyFile;
 
-import server.ServerEnvironment;
-
 public class Map implements Serializable
 {
 	private static final long serialVersionUID = 8525996517284059304L;
@@ -35,8 +33,8 @@ public class Map implements Serializable
 		return String.format("{Map:%s}", getName());
 	}
 	
-	public File getFile(ServerEnvironment env)
+	public File getFile(File mapDir)
 	{
-		return new MyFile(env.mapDir, path);
+		return new MyFile(mapDir, path);
 	}
 }

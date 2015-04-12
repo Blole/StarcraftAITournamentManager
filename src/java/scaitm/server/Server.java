@@ -11,8 +11,10 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
+import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
@@ -20,11 +22,12 @@ import java.util.stream.Collectors;
 import javax.imageio.ImageIO;
 
 import org.apache.commons.io.FileUtils;
+import org.yaml.snakeyaml.Yaml;
 
 import common.Bot;
 import common.BwapiSettings;
 import common.Game;
-import common.GameStorage;
+import common.GameResult;
 import common.Helper;
 import common.RMIHelper;
 import common.RunnableWithShutdownHook;
@@ -35,8 +38,8 @@ import common.file.PackedFile;
 import common.file.TargetFile;
 import common.protocols.RemoteClient;
 import common.protocols.RemoteServer;
-import common.status.GameResult;
 import common.status.GameStatus;
+import common.yaml.GameConstructor;
 
 public class Server extends UnicastRemoteObject implements RemoteServer, RunnableWithShutdownHook
 {
@@ -46,7 +49,7 @@ public class Server extends UnicastRemoteObject implements RemoteServer, Runnabl
 	private ArrayList<RemoteClient> 		free = new ArrayList<RemoteClient>();
 	private Lock							gameStarting = new ReentrantLock();
 	private ArrayList<RunningMatch>			runningMatches = new ArrayList<>();
-	private GameStorage						games;
+	private List<Game>						games;
 	
 	private final int						gameRescheduleTimer = 2000;
 	
@@ -60,6 +63,7 @@ public class Server extends UnicastRemoteObject implements RemoteServer, Runnabl
 		this.env = env;
 	}
 	
+	@SuppressWarnings("unchecked")
 	@Override
 	public void run()
 	{
@@ -69,7 +73,7 @@ public class Server extends UnicastRemoteObject implements RemoteServer, Runnabl
 		try
 		{
 			String gamesFileText = FileUtils.readFileToString(env.gameList);
-			games = new GameStorage(env, gamesFileText);
+			games = new Yaml(new GameConstructor(env.botDir)).loadAs(gamesFileText, List.class);
 		}
 		catch (IOException e)
 		{
@@ -80,7 +84,7 @@ public class Server extends UnicastRemoteObject implements RemoteServer, Runnabl
 		{
 			Game previousScheduledGame = null;
 			Game nextGame = null;
-			while ((nextGame = getNextUnstartedGame()) != null)
+			while ((nextGame = getNextUnstartedGame(games, runningMatches)) != null)
 			{
 				try
 				{
@@ -99,7 +103,7 @@ public class Server extends UnicastRemoteObject implements RemoteServer, Runnabl
 							}
 							
 							log("Round %d finished, moving write directory to read directory", round);
-							for (Bot bot : games.getAllBots())
+							for (Bot bot : getAllBots(games))
 							{
 								FileUtils.copyDirectory(bot.getWriteDir(env.botDir), bot.getReadDir(env.botDir));
 								//String copy = "xcopy " + ServerSettings.Instance().ServerBotDir + bot.getName() + "/write/*.* " + ServerSettings.Instance().ServerBotDir + bot.getName() + "/read/ /E /V /Y";
@@ -146,11 +150,11 @@ public class Server extends UnicastRemoteObject implements RemoteServer, Runnabl
 		log("Done");
 	}
 	
-	private Game getNextUnstartedGame()
+	private static Game getNextUnstartedGame(Collection<Game> games, Collection<RunningMatch> runningMatches)
 	{
-		LinkedHashSet<Game> unstartedGames = new LinkedHashSet<>(games.games);
+		LinkedHashSet<Game> unstartedGames = new LinkedHashSet<>(games);
 		unstartedGames.removeIf(g -> g.results != null);
-		unstartedGames.removeAll(getRunningGames());
+		unstartedGames.removeAll(getRunningGames(runningMatches));
 		
 		if (unstartedGames.isEmpty())
 			return null;
@@ -158,9 +162,16 @@ public class Server extends UnicastRemoteObject implements RemoteServer, Runnabl
 			return unstartedGames.iterator().next();
 	}
 	
-	private List<Game> getRunningGames()
+	private static List<Game> getRunningGames(Collection<RunningMatch> runningMatches)
 	{
 		return runningMatches.stream().map(g -> g.game).collect(Collectors.toList());
+	}
+	
+	private static Set<Bot> getAllBots(List<Game> games)
+	{
+		return games.stream()
+				.flatMap(g -> Arrays.asList(g.bots).stream())
+				.collect(Collectors.toSet());
 	}
 
 	@Override
@@ -300,7 +311,7 @@ public class Server extends UnicastRemoteObject implements RemoteServer, Runnabl
 					}
 					
 					player.extractFile(PackedFile.get(bot.getDir(env.botDir)), "$starcraft/bwapi-data/");
-					player.extractFile(PackedFile.get(game.map.getFile(env)), "$starcraft/maps/"+game.map.path);
+					player.extractFile(PackedFile.get(game.map.getFile(env.mapDir)), "$starcraft/maps/"+game.map.path);
 					player.extractFile(PackedFile.get(env.characterFileMultiplayer), "$starcraft/characters/"+bot.name+".mpc");
 					player.extractFile(PackedFile.get(env.characterFileSingleplayer), "$starcraft/characters/"+bot.name+".spc");
 					
@@ -353,7 +364,7 @@ public class Server extends UnicastRemoteObject implements RemoteServer, Runnabl
 					player.getFile("$starcraft/maps/replays/").writeTo(env.replaysDir);
 					player.getFile("$starcraft/bwapi-data/write/").writeTo(bot.getWriteDir(env.botDir));
 					if (game.results == null)
-						game.results = new GameResult();
+						game.results = new GameResult(game);
 					game.results.add(bot, player.starcraft().getResult());
 				}
 				

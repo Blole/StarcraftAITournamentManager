@@ -4,8 +4,6 @@ import java.io.Serializable;
 
 import org.yaml.snakeyaml.TypeDescription;
 
-import common.status.GameResult;
-
 
 public class Game implements Serializable
 {
@@ -35,10 +33,10 @@ public class Game implements Serializable
 	
 	public Game(int id, int round, Map map, Bot... bots)
 	{
+		this.id = id;
 		this.round = round;
 		this.map = map;
 		this.bots = bots;
-		this.id = id;
 	}
 
 	public String getReplayString()
