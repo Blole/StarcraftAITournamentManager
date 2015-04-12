@@ -198,9 +198,4 @@ public class WindowsCommandTools
 		
 		System.out.println(cmd);
 	}
-	
-	public static void main(String[] args)
-	{
-		RunWindowsCommandAsAdmin("notepad", true, false);
-	}
 }
