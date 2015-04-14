@@ -22,6 +22,7 @@ import javax.imageio.ImageIO;
 
 import org.apache.commons.io.FileUtils;
 import org.yaml.snakeyaml.Yaml;
+import org.yaml.snakeyaml.error.YAMLException;
 
 import common.Bot;
 import common.BwapiSettings;
@@ -39,6 +40,7 @@ import common.protocols.RemoteClient;
 import common.protocols.RemoteServer;
 import common.status.GameStatus;
 import common.yaml.GameConstructor;
+import common.yaml.GameRepresenter;
 
 public class Server extends RunnableUnicastRemoteObject implements RemoteServer
 {
@@ -76,6 +78,7 @@ public class Server extends RunnableUnicastRemoteObject implements RemoteServer
 			throw new RuntimeException("error reading games file '"+env.gameList+"'", e);
 		}
 		
+		tryWriteResults();
 		gui = new ServerGUI(this);
 		RMIHelper.rebindAndHookUnbind(env.serverUrlPath, this);
 		log("server listening on '%s'", Helper.getEndpointAddress(this));
@@ -148,6 +151,21 @@ public class Server extends RunnableUnicastRemoteObject implements RemoteServer
 	{
 		if (env.killClientsOnExit)
 			killClients();
+	}
+	
+	public void tryWriteResults()
+	{
+		try
+		{
+			Yaml yaml = new Yaml(new GameRepresenter());
+			String yamlText = yaml.dump(games);
+			FileUtils.writeStringToFile(env.results, yamlText);
+		}
+		catch (YAMLException | IOException e)
+		{
+			System.err.println("error writing to results file");
+			e.printStackTrace();
+		}
 	}
 	
 	public void getAndDisplayScreenshotFromClient(RemoteClient client)
@@ -382,6 +400,7 @@ public class Server extends RunnableUnicastRemoteObject implements RemoteServer
 				}
 				free.addAll(players);
 				runningMatches.remove(this);
+				tryWriteResults();
 			}
 		}
 	}

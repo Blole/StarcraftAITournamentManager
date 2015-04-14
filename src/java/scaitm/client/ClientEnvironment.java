@@ -13,6 +13,10 @@ public class ClientEnvironment implements Serializable
 {
 	private static final long serialVersionUID = -6040955128596907730L;
 	public static final TypeDescription typeDescription = new TypeDescription(ClientEnvironment.class);
+	static
+	{
+		typeDescription.putMapPropertyType("shortcuts", String.class, MyFile.class);
+	}
 	
 	
 	
@@ -28,7 +32,7 @@ public class ClientEnvironment implements Serializable
 	
 	public RequiredFile starcraftDir;
 	public MyFile gamestatusFile;
-	private LinkedHashMap<String, ? extends MyFile> shortcuts = null;
+	public LinkedHashMap<String, ? extends MyFile> shortcuts = null;
 	
 	public MyFile lookupFile(String path)
 	{
@@ -37,7 +41,7 @@ public class ClientEnvironment implements Serializable
 			String key = e.getKey();
 			String val = e.getValue().getPath();
 			path = path.replace(key, val);
-			//TODO: to allow for case insensitive shorcuts, fix this.
+			//TODO: to allow for case insensitive shorcut names, fix this.
 			//the following fails when inserting '\'
 			//s = Pattern.compile(key, Pattern.LITERAL | Pattern.CASE_INSENSITIVE).matcher(s).replaceAll(val);
 		}

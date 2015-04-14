@@ -34,6 +34,7 @@ public class ServerEnvironment implements Serializable
 	public LinkedHashMap<BwapiVersion, TargetFile> bwapiVersions = new LinkedHashMap<>();
 	
 	public RequiredFile gameList;
+	public MyFile results;
 	public MyFile botDir;
 	public MyFile mapDir;
 	public MyFile replaysDir;

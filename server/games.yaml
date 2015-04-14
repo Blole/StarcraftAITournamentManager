@@ -3,6 +3,13 @@
   round: 0
   map: aiide/(2)Benzene.scx
   bots: [Aiur, Bonjwa]
+  results:
+    common: {time: 61024, frames: 13983}
+    individual:
+    - bot: Aiur
+      result: {won: true, time: 3216, score: 16550}
+    - bot: Bonjwa
+      result: {won: false, time: 13850, score: 874}
 - !game
   id: 1
   round: 1

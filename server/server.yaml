@@ -19,6 +19,8 @@ bwapiVersions:
     4.1.0-Beta:  !target [data/bwapi_410b,   $starcraft/]
 
 gameList:    !required  games.yaml
+results:     !file      results.yaml
+
 botDir:      !required  data/bots/
 mapDir:      !required  data/maps/
 replaysDir:  !required  replays/
