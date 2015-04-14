@@ -4,7 +4,12 @@ import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.MalformedURLException;
+import java.rmi.AccessException;
+import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
+import java.rmi.registry.LocateRegistry;
+import java.rmi.registry.Registry;
 import java.rmi.server.ServerNotActiveException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -29,7 +34,6 @@ import common.BwapiSettings;
 import common.Game;
 import common.GameResult;
 import common.Helper;
-import common.RMIHelper;
 import common.RunnableUnicastRemoteObject;
 import common.exceptions.InvalidBwapiVersionString;
 import common.exceptions.InvalidResultsException;
@@ -58,6 +62,7 @@ public class Server extends RunnableUnicastRemoteObject implements RemoteServer
 	ImageWindow								imageWindow;
 	
 	public final ServerEnvironment env;
+	private Registry registry = null;
 
 	public Server(ServerEnvironment env) throws RemoteException
 	{
@@ -66,7 +71,7 @@ public class Server extends RunnableUnicastRemoteObject implements RemoteServer
 	
 	@SuppressWarnings("unchecked")
 	@Override
-	public void onRun()
+	public void onRun() throws RemoteException, MalformedURLException, InterruptedException
 	{
 		try
 		{
@@ -79,78 +84,80 @@ public class Server extends RunnableUnicastRemoteObject implements RemoteServer
 		}
 		
 		tryWriteResults();
+		
 		gui = new ServerGUI(this);
-		RMIHelper.rebindAndHookUnbind(env.serverUrlPath, this);
+		
+		registry = LocateRegistry.createRegistry(env.port);
+		registry.rebind(env.serverUrlPath, this);
 		log("server listening on '%s'", Helper.getEndpointAddress(this));
 		
-		try
+		Game previousScheduledGame = null;
+		Game nextGame = null;
+		while ((nextGame = getNextUnstartedGame(games, runningMatches)) != null)
 		{
-			Game previousScheduledGame = null;
-			Game nextGame = null;
-			while ((nextGame = getNextUnstartedGame(games, runningMatches)) != null)
+			try
 			{
-				try
+				if (free.size() >= nextGame.bots.length && gameStarting.tryLock())
 				{
-					if (free.size() >= nextGame.bots.length && gameStarting.tryLock())
+					// if new round
+					if (previousScheduledGame != null && nextGame.round > previousScheduledGame.round)
 					{
-						// if new round
-						if (previousScheduledGame != null && nextGame.round > previousScheduledGame.round)
+						int round = previousScheduledGame.round;
+						if (!runningMatches.isEmpty())
 						{
-							int round = previousScheduledGame.round;
-							if (!runningMatches.isEmpty())
-							{
-								log("Waiting for ongoing games in round %d to finish", round);
-								while (runningMatches.isEmpty())
-									Thread.sleep(gameRescheduleTimer);
-							}
-							
-							log("Round %d finished, moving write directory to read directory", round);
-							for (Bot bot : getAllBots(games))
-								FileUtils.copyDirectory(bot.getWriteDir(env.botDir), bot.getReadDir(env.botDir));
+							log("Waiting for ongoing games in round %d to finish", round);
+							while (runningMatches.isEmpty())
+								Thread.sleep(gameRescheduleTimer);
 						}
 						
-						List<RemoteClient> players = new ArrayList<>(free.subList(0, nextGame.bots.length));
-						free.removeAll(players);
-						
-						RunningMatch runningGame = new RunningMatch(nextGame, players);
-						runningMatches.add(runningGame);
-						new Thread(runningGame).start();
-						
-						log(nextGame + " starting");
-						previousScheduledGame = nextGame;
+						log("Round %d finished, moving write directory to read directory", round);
+						for (Bot bot : getAllBots(games))
+							FileUtils.copyDirectory(bot.getWriteDir(env.botDir), bot.getReadDir(env.botDir));
 					}
+					
+					List<RemoteClient> players = new ArrayList<>(free.subList(0, nextGame.bots.length));
+					free.removeAll(players);
+					
+					RunningMatch runningGame = new RunningMatch(nextGame, players);
+					runningMatches.add(runningGame);
+					new Thread(runningGame).start();
+					
+					log(nextGame + " starting");
+					previousScheduledGame = nextGame;
 				}
-				catch (Exception e)
-				{
-					log(e.toString());
-					e.printStackTrace();
-				}
-				
-				Thread.sleep(gameRescheduleTimer);
 			}
-			
-			
-			if (previousScheduledGame == null)
-				log("No more games in games list");
-			else
+			catch (Exception e)
 			{
-				log("No more games in games list, waiting for all ongoing games to finish");
-				while (!runningMatches.isEmpty())
-					Thread.sleep(gameRescheduleTimer);
+				log(e.toString());
+				e.printStackTrace();
 			}
+			
+			Thread.sleep(gameRescheduleTimer);
 		}
-		catch (InterruptedException e)
+		
+		if (previousScheduledGame == null)
+			log("No more games in games list");
+		else
 		{
-			log("interrupted");
+			log("No more games in games list, waiting for all ongoing games to finish");
+			while (!runningMatches.isEmpty())
+				Thread.sleep(gameRescheduleTimer);
 		}
+		
 		log("Done");
 	}
 
 	@Override
-	public void onExit()
+	public void onExit() throws RemoteException, AccessException, NotBoundException
 	{
 		if (env.killClientsOnExit)
 			killClients();
+		
+		if (registry != null)
+			registry.unbind(env.serverUrlPath);
+		
+		if (gui != null)
+			gui.mainFrame.dispose();
 	}
 	
 	public void tryWriteResults()

@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.rmi.RemoteException;
-import java.rmi.registry.LocateRegistry;
 
 import org.apache.commons.io.FileUtils;
 import org.yaml.snakeyaml.Yaml;
@@ -26,8 +25,6 @@ public class ServerMain
 			String environmentText = FileUtils.readFileToString(new File(args[0]));
 			Yaml yaml = new Yaml(new MyConstructor());
 			ServerEnvironment env = yaml.loadAs(environmentText, ServerEnvironment.class);
-			
-			LocateRegistry.createRegistry(env.port);
 			
 			Server server = new Server(env);
 			server.run();

@@ -9,9 +9,6 @@ import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
@@ -35,7 +32,7 @@ public class ServerGUI
 {
 	Server		server;
 	
-    private 	JFrame		mainFrame;
+    JFrame		mainFrame;
     private 	JTable		mainTable;
     private 	JTextArea	bottomText;
     private 	JPanel		bottomPanel;
@@ -158,19 +155,6 @@ public class ServerGUI
     			}
             }
 	    });
-	}
-	
-	public void writeHTMLFile(String html, String filename) throws Exception
-	{
-		File file = new File(filename);
-		if (!file.exists()) {
-			file.createNewFile();
-		}
-		FileWriter fw = new FileWriter(file.getAbsoluteFile());
-		BufferedWriter bw = new BufferedWriter(fw);
-		bw.write(html);
-		bw.close();
-		fw.close();
 	}
 	
 	public static String getTimeStamp()

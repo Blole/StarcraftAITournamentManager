@@ -26,8 +26,6 @@ public class ClientMain
 			Yaml yaml = new Yaml(new MyConstructor());
 			ClientEnvironment env = yaml.loadAs(environmentText, ClientEnvironment.class);
 			
-			
-			
 			Client client = new Client(env);
 			client.run();
 		}

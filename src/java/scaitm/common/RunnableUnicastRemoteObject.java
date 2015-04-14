@@ -4,8 +4,6 @@ import java.rmi.NoSuchObjectException;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 
-import org.apache.commons.lang3.exception.ExceptionUtils;
-
 public abstract class RunnableUnicastRemoteObject extends UnicastRemoteObject implements Runnable
 {
 	private static final long serialVersionUID = -2098573351518535490L;
@@ -26,7 +24,15 @@ public abstract class RunnableUnicastRemoteObject extends UnicastRemoteObject im
 			@Override
 			public void run()
 			{
-				exit();
+				try
+				{
+					exit();
+				}
+				catch (Throwable e)
+				{
+					System.err.println("error running shutdown-hooked exit()");
+					e.printStackTrace();
+				}
 			}
 		});
 		
@@ -52,7 +58,6 @@ public abstract class RunnableUnicastRemoteObject extends UnicastRemoteObject im
 				exception.addSuppressed(e);
 		}
 		
-		ExceptionUtils.printRootCauseStackTrace(exception);
 		try
 		{
 			unexportObject(this, true);
@@ -71,7 +76,7 @@ public abstract class RunnableUnicastRemoteObject extends UnicastRemoteObject im
 		}
 	}
 	
-	private void exit()
+	private void exit() throws Throwable
 	{
 		if (!hasExited)
 		{
@@ -80,6 +85,6 @@ public abstract class RunnableUnicastRemoteObject extends UnicastRemoteObject im
 		}
 	}
 	
-	public abstract void onRun() throws Throwable;
-	public abstract void onExit();
+	protected abstract void onRun() throws Throwable;
+	protected abstract void onExit() throws Throwable;
 }

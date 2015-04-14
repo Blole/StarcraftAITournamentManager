@@ -82,33 +82,4 @@ public class RMIHelper {
 			}
 		}
 	}
-
-	public static void rebindAndHookUnbind(String name, Remote stub)
-	{
-		try
-		{
-			Naming.rebind(name, stub);
-		}
-		catch (Exception e)
-		{
-			System.err.printf("error binding RMI name '%s'\n", name);
-			e.printStackTrace();
-			System.exit(0);
-		}
-		Runtime.getRuntime().addShutdownHook(new Thread()
-		{
-			@Override
-			public void run()
-			{
-				try
-				{
-					Naming.unbind(name);
-				}
-				catch (Exception e)
-				{
-					e.printStackTrace();
-				}
-			}
-		});
-	}
 }
