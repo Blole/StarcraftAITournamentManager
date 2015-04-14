@@ -9,7 +9,6 @@ import java.rmi.registry.LocateRegistry;
 import org.apache.commons.io.FileUtils;
 import org.yaml.snakeyaml.Yaml;
 
-import common.RunnableWithShutdownHook;
 import common.yaml.MyConstructor;
 
 
@@ -31,7 +30,6 @@ public class ServerMain
 			LocateRegistry.createRegistry(env.port);
 			
 			Server server = new Server(env);
-			RunnableWithShutdownHook.addShutdownHook(server);
 			server.run();
 		}
 	}

@@ -8,7 +8,6 @@ import java.rmi.RemoteException;
 import org.apache.commons.io.FileUtils;
 import org.yaml.snakeyaml.Yaml;
 
-import common.RunnableWithShutdownHook;
 import common.yaml.MyConstructor;
 
 
@@ -30,7 +29,6 @@ public class ClientMain
 			
 			
 			Client client = new Client(env);
-			RunnableWithShutdownHook.addShutdownHook(client);
 			client.run();
 		}
 	}

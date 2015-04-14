@@ -9,7 +9,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.rmi.RemoteException;
-import java.rmi.server.UnicastRemoteObject;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 
@@ -19,14 +18,14 @@ import org.apache.commons.io.FileUtils;
 
 import common.Helper;
 import common.RMIHelper;
-import common.RunnableWithShutdownHook;
+import common.RunnableUnicastRemoteObject;
 import common.file.PackedFile;
 import common.protocols.RemoteClient;
 import common.protocols.RemoteServer;
 import common.protocols.RemoteStarcraft;
 import common.utils.WindowsCommandTools;
 
-public class Client extends UnicastRemoteObject implements RemoteClient, RunnableWithShutdownHook
+public class Client extends RunnableUnicastRemoteObject implements RemoteClient
 {
 	private static final long serialVersionUID = 3058199010003999345L;
 	
@@ -41,7 +40,7 @@ public class Client extends UnicastRemoteObject implements RemoteClient, Runnabl
 
 	
 	@Override
-	public synchronized void run()
+	public synchronized void onRun()
 	{
 		if (env.killOtherStarcraftProcessesOnStartup)
 			WindowsCommandTools.killProcess("StarCraft.exe");
