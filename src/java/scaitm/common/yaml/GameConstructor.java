@@ -3,8 +3,8 @@ package common.yaml;
 import java.io.File;
 import java.io.IOException;
 
-import org.yaml.snakeyaml.constructor.AbstractConstruct;
 import org.yaml.snakeyaml.nodes.Node;
+import org.yaml.snakeyaml.nodes.NodeId;
 import org.yaml.snakeyaml.nodes.ScalarNode;
 
 import common.Bot;
@@ -16,23 +16,28 @@ public class GameConstructor extends MyConstructor
 	public GameConstructor(File botDir)
 	{
 		this.botDir = botDir;
-        this.yamlConstructors.put(Bot.typeDescription.getTag(), new ConstructBot());
+		this.yamlClassConstructors.put(NodeId.scalar, new ConstructBot());
     }
 
-    private class ConstructBot extends AbstractConstruct
+    private class ConstructBot extends ConstructScalar
     {
         @Override
-		public Object construct(Node node)
+		public Object construct(Node nnode)
         {
-            String name = (String) constructScalar((ScalarNode)node);
-            try
-			{
-				return Bot.load(botDir, name);
-			}
-            catch (IOException e)
-			{
-				throw new RuntimeException(e);
-			}
+        	if (nnode.getType().equals(Bot.class))
+        	{
+	            String name = (String) constructScalar((ScalarNode)nnode);
+	            try
+				{
+					return Bot.load(botDir, name);
+				}
+	            catch (IOException e)
+				{
+					throw new RuntimeException(e);
+				}
+        	}
+        	else
+        		return super.construct(nnode);
         }
     }
 }

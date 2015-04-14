@@ -33,12 +33,7 @@ public class Bot implements Serializable
 	
 	private Bot() //dummy constructor for yaml
 	{
-		this(null);
-	}
-	
-	private Bot(String name) //constructor for yaml
-	{
-		this.name = name;
+		name = null;
 		race = null;
 		type = null;
 		bwapiVersion = null;

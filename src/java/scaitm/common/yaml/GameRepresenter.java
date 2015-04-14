@@ -18,7 +18,7 @@ public class GameRepresenter extends ScalarRepresenter
     public GameRepresenter()
     {
 		addScalarRepresentation(Map.class, Tag.STR, m -> m.path);
-		addScalarRepresentation(Bot.class, Bot.typeDescription.getTag(), b -> b.name);
+		addScalarRepresentation(Bot.class, Tag.STR, b -> b.name);
         this.representers.put(Game.class, new RepresentGame());
     }
     
@@ -27,7 +27,6 @@ public class GameRepresenter extends ScalarRepresenter
         @Override
 		public Node representData(Object data) {
     		Game game = (Game) data;
-    		//Set<Property> properties = getProperties(Game.class);
     		Set<Property> properties = new LinkedHashSet<>();
     		try
 			{

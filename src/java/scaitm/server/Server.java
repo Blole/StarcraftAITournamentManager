@@ -364,7 +364,7 @@ public class Server extends UnicastRemoteObject implements RemoteServer, Runnabl
 					player.getFile("$starcraft/maps/replays/").writeTo(env.replaysDir);
 					player.getFile("$starcraft/bwapi-data/write/").writeTo(bot.getWriteDir(env.botDir));
 					if (game.results == null)
-						game.results = new GameResult(game);
+						game.results = new GameResult();
 					game.results.add(bot, player.starcraft().getResult());
 				}
 				
