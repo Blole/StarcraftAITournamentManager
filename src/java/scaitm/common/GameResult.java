@@ -2,7 +2,6 @@ package common;
 
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Arrays;
 
 import org.yaml.snakeyaml.TypeDescription;
 
@@ -16,14 +15,8 @@ public class GameResult implements Serializable
 	
 	
 	
-	protected Game game;
 	public Object common = null;
 	public ArrayList<BotResult> individual = new ArrayList<>();
-	
-	public GameResult(Game game)
-	{
-		this.game = game;
-	}
 	
 	public void add(Bot bot, Done result) throws InvalidResultsException
 	{
@@ -31,25 +24,22 @@ public class GameResult implements Serializable
 			common = result.common;
 		
 		if (result.individual != null)
-		{
-			long gameBotCount = Arrays.stream(game.bots).filter(b->b.equals(bot)).count();
-			long alreadyCollectedBotCount = individual.stream().map(r->r.bot).filter(b->b.equals(bot)).count();
-			
-			if (alreadyCollectedBotCount > gameBotCount)
-				throw new InvalidResultsException("tried to record too many individual results for "+bot+" ("+(alreadyCollectedBotCount+1)+" times)");
-			else
-				individual.add(new BotResult(bot, result.individual));
-		}
+			individual.add(new BotResult(bot, result.individual));
 	}
 	
 	
 	
 	public static class BotResult
 	{
-		public final Bot bot;
-		public final Object result;
-
-		BotResult(Bot bot, Object result)
+		public Bot bot;
+		public Object result;
+		
+		@SuppressWarnings("unused")
+		private BotResult() //dummy for yaml
+		{
+		}
+		
+		public BotResult(Bot bot, Object result)
 		{
 			this.bot = bot;
 			this.result = result;
