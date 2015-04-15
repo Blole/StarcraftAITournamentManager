@@ -132,7 +132,9 @@ public class Server extends RunnableUnicastRemoteObject implements RemoteServer
 			Thread.sleep(gameRescheduleTimer);
 		}
 		
-		log("done");
+		log("Done");
+		if (!env.exitWhenDone)
+			Thread.sleep(Long.MAX_VALUE);
 	}
 
 	@Override

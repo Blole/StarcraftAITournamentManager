@@ -29,6 +29,7 @@ public class ServerEnvironment implements Serializable
 	
 	public double matchFinishedPollPeriod = 1.0;
 	public boolean killClientsOnExit = false;
+	public boolean exitWhenDone = false;
 	
 	public List<TargetFile> filesToCopyToClientBeforeEachNewMatch = new ArrayList<>();
 	public LinkedHashMap<BwapiVersion, TargetFile> bwapiVersions = new LinkedHashMap<>();

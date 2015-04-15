@@ -4,6 +4,7 @@ port:           1099
 
 matchFinishedPollPeriod:  0.7
 killClientsOnExit:  true
+exitWhenDone: false
 
 filesToCopyToClientBeforeEachNewMatch:
   - !target [data/loader.exe,             $starcraft/]
