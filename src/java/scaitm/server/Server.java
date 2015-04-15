@@ -50,6 +50,8 @@ public class Server extends RunnableUnicastRemoteObject implements RemoteServer
 {
 	private static final long serialVersionUID = -6886770266188997347L;
 	
+	
+	
 	private ArrayList<RemoteClient> 		clients = new ArrayList<RemoteClient>();
 	private ArrayList<RemoteClient> 		free = new ArrayList<RemoteClient>();
 	private Lock							gameStarting = new ReentrantLock();
@@ -63,7 +65,8 @@ public class Server extends RunnableUnicastRemoteObject implements RemoteServer
 	
 	public final ServerEnvironment env;
 	private Registry registry = null;
-
+	Thread thread = null;
+	
 	public Server(ServerEnvironment env) throws RemoteException
 	{
 		this.env = env;
@@ -71,17 +74,11 @@ public class Server extends RunnableUnicastRemoteObject implements RemoteServer
 	
 	@SuppressWarnings("unchecked")
 	@Override
-	public void onRun() throws RemoteException, MalformedURLException, InterruptedException
+	public void onRun() throws RemoteException, MalformedURLException, InterruptedException, IOException
 	{
-		try
-		{
-			String gamesFileText = FileUtils.readFileToString(env.gameList);
-			games = new Yaml(new GameConstructor(env.botDir)).loadAs(gamesFileText, List.class);
-		}
-		catch (IOException e)
-		{
-			throw new RuntimeException("error reading games file '"+env.gameList+"'", e);
-		}
+		thread = Thread.currentThread();
+		String gamesFileText = FileUtils.readFileToString(env.gameList);
+		games = new Yaml(new GameConstructor(env.botDir)).loadAs(gamesFileText, List.class);
 		
 		tryWriteResults();
 		
@@ -91,60 +88,51 @@ public class Server extends RunnableUnicastRemoteObject implements RemoteServer
 		registry.rebind(env.serverUrlPath, this);
 		log("server listening on '%s'", Helper.getEndpointAddress(this));
 		
-		Game previousScheduledGame = null;
+		int finishedRound = -1;
+		int printedWaitingForRoundToFinish = -1;
+		Game prevGame = null;
 		Game nextGame = null;
-		while ((nextGame = getNextUnstartedGame(games, runningMatches)) != null)
+		while (!games.stream().allMatch(g-> g.results != null))
 		{
-			try
+			nextGame = getNextUnstartedGame(games, runningMatches);
+			
+			// if new round
+			if (prevGame != null && (nextGame == null || nextGame.round > prevGame.round))
 			{
-				if (free.size() >= nextGame.bots.length && gameStarting.tryLock())
+				
+				if (runningMatches.isEmpty() && finishedRound < prevGame.round)
 				{
-					// if new round
-					if (previousScheduledGame != null && nextGame.round > previousScheduledGame.round)
-					{
-						int round = previousScheduledGame.round;
-						if (!runningMatches.isEmpty())
-						{
-							log("Waiting for ongoing games in round %d to finish", round);
-							while (runningMatches.isEmpty())
-								Thread.sleep(gameRescheduleTimer);
-						}
-						
-						log("Round %d finished, moving write directory to read directory", round);
-						for (Bot bot : getAllBots(games))
-							FileUtils.copyDirectory(bot.getWriteDir(env.botDir), bot.getReadDir(env.botDir));
-					}
+					log("Round %d finished, moving write directory to read directory", prevGame.round);
+					for (Bot bot : getAllBots(games))
+						FileUtils.copyDirectory(bot.getWriteDir(env.botDir), bot.getReadDir(env.botDir));
 					
-					List<RemoteClient> players = new ArrayList<>(free.subList(0, nextGame.bots.length));
-					free.removeAll(players);
-					
+					finishedRound = prevGame.round;
+					continue;
+				}
+				else if (printedWaitingForRoundToFinish < prevGame.round)
+				{
+					log("Waiting for ongoing games in round %d to finish", prevGame.round);
+					printedWaitingForRoundToFinish = prevGame.round;
+				}
+			}
+			else if (nextGame != null)
+			{
+				List<RemoteClient> players = getFree(nextGame.bots.length);
+				if (players != null && gameStarting.tryLock())
+				{
 					RunningMatch runningGame = new RunningMatch(nextGame, players);
 					runningMatches.add(runningGame);
 					new Thread(runningGame).start();
 					
 					log(nextGame + " starting");
-					previousScheduledGame = nextGame;
+					prevGame = nextGame;
 				}
-			}
-			catch (Exception e)
-			{
-				log(e.toString());
-				e.printStackTrace();
 			}
 			
 			Thread.sleep(gameRescheduleTimer);
 		}
 		
-		if (previousScheduledGame == null)
-			log("No more games in games list");
-		else
-		{
-			log("No more games in games list, waiting for all ongoing games to finish");
-			while (!runningMatches.isEmpty())
-				Thread.sleep(gameRescheduleTimer);
-		}
-		
-		log("Done");
+		log("done");
 	}
 
 	@Override
@@ -160,6 +148,34 @@ public class Server extends RunnableUnicastRemoteObject implements RemoteServer
 			gui.mainFrame.dispose();
 	}
 	
+	private List<RemoteClient> getFree(int playerCount)
+	{
+		List<RemoteClient> players = new ArrayList<>();
+		
+		while (players.size() < playerCount && free.size()+players.size() >= playerCount)
+		{
+			RemoteClient player = free.remove(0);
+			try
+			{
+				if (player.isAlive())
+					players.add(player);
+			}
+			catch (RemoteException e)
+			{
+				log("unable to contact "+player);
+				clients.remove(player);
+			}
+		}
+		
+		if (players.size() == playerCount)
+			return players;
+		else
+		{
+			free.addAll(players);
+			return null;
+		}
+	}
+
 	public void tryWriteResults()
 	{
 		try
@@ -222,7 +238,7 @@ public class Server extends RunnableUnicastRemoteObject implements RemoteServer
 			}
 			catch (RemoteException e)
 			{
-				log("%s error killing", client);
+				log("error killing "+client);
 			}
 		}
 		clients.clear();
@@ -258,6 +274,12 @@ public class Server extends RunnableUnicastRemoteObject implements RemoteServer
 		free.remove(client);
 		gui.RemoveClient(client.toString());
 	}
+
+	@Override
+	public boolean isAlive()
+	{
+		return true;
+	}
 	
 	
 	
@@ -279,9 +301,10 @@ public class Server extends RunnableUnicastRemoteObject implements RemoteServer
 		public void run()
 		{
 			boolean success = false;
-			BwapiSettings defaultBwapiSettings = new BwapiSettings(env.defaultBwapiIni);
 			try
 			{
+				BwapiSettings defaultBwapiSettings = new BwapiSettings(env.defaultBwapiIni);
+				
 				for (int i=0; i<players.size(); i++)
 				{
 					RemoteClient player = players.get(i);
@@ -331,7 +354,7 @@ public class Server extends RunnableUnicastRemoteObject implements RemoteServer
 					if (allStarted)
 						break;
 					
-					Thread.sleep((long) (env.pollPeriod*1000));
+					Thread.sleep((long) (env.matchFinishedPollPeriod*1000));
 				}
 				
 				//gameStarting.unlock();
@@ -346,7 +369,7 @@ public class Server extends RunnableUnicastRemoteObject implements RemoteServer
 					if (allDone)
 						break;
 					
-					Thread.sleep((long) (env.pollPeriod*1000));
+					Thread.sleep((long) (env.matchFinishedPollPeriod*1000));
 				}
 				
 				log("%s finished, collecting replays", game);
@@ -378,7 +401,7 @@ public class Server extends RunnableUnicastRemoteObject implements RemoteServer
 			}
 			catch (InterruptedException e)
 			{
-				log("interrupted");
+				log("match interrupted");
 			}
 			catch (InvalidBwapiVersionString e)
 			{

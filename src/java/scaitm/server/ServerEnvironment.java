@@ -27,7 +27,7 @@ public class ServerEnvironment implements Serializable
 	public String serverUrlPath = null;
 	public int port = 1099;
 	
-	public double pollPeriod = 1;
+	public double matchFinishedPollPeriod = 1.0;
 	public boolean killClientsOnExit = false;
 	
 	public List<TargetFile> filesToCopyToClientBeforeEachNewMatch = new ArrayList<>();

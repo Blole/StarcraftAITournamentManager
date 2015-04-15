@@ -8,6 +8,9 @@ import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.rmi.Naming;
+import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -17,7 +20,6 @@ import javax.imageio.ImageIO;
 import org.apache.commons.io.FileUtils;
 
 import common.Helper;
-import common.RMIHelper;
 import common.RunnableUnicastRemoteObject;
 import common.file.PackedFile;
 import common.protocols.RemoteClient;
@@ -29,65 +31,79 @@ public class Client extends RunnableUnicastRemoteObject implements RemoteClient
 {
 	private static final long serialVersionUID = 3058199010003999345L;
 	
+	
+	
 	public final ClientEnvironment env;
 	private RemoteServer server = null;
 	private final Starcraft starcraft = new Starcraft(this);
+	private Thread thread = null;
 
 	public Client(ClientEnvironment env) throws RemoteException
 	{
 		this.env = env;
 	}
-
 	
 	@Override
-	public synchronized void onRun()
+	public synchronized void onRun() throws InterruptedException, MalformedURLException
 	{
+		thread = Thread.currentThread();
 		if (env.killOtherStarcraftProcessesOnStartup)
 			WindowsCommandTools.killProcess("StarCraft.exe");
 		if (env.addWindowsRegistryEntriesOnStartup)
 			starcraft.addWindowsRegistryEntries();
+		if (env.addStarcraftFirewallExceptionOnStartup)
+			WindowsCommandTools.RunWindowsCommand("netsh firewall add allowedprogram program = " + new File(env.starcraftDir, "starcraft.exe").getAbsolutePath() + " name = Starcraft mode = ENABLE scope = ALL", true, false);
 		
-		String serverURL = env.serverUrl;
-		log("connecting to server '%s'", serverURL);
-		server = (RemoteServer) RMIHelper.lookupAndWaitForRemoteToStartIfNecessary(serverURL, 1000);
-		
-		try
+		while (true)
 		{
-			server.connect(this);
+			int attempts = 0;
+			log("connecting to server '%s'", env.serverUrl);
+			
+			while (server == null)
+			{
+				try
+				{
+					server = (RemoteServer) Naming.lookup(env.serverUrl);
+					server.connect(this);
+				}
+				catch (RemoteException | NotBoundException e)
+				{
+					if (attempts == 0)
+						log("error connecting to server:\n%s", e.getMessage());
+					log("retry %d failed...\r", attempts);
+					attempts++;
+	
+					Thread.sleep(1000);
+				}
+			}
+			
+			if (attempts > 0)
+				log("");
+			
 			log("connected");
+			log("ready");
+			
+			try
+			{
+				while (server.isAlive())
+					Thread.sleep((long) (env.serverAlivePollPeriod*1000));
+			}
+			catch (RemoteException e) {}
+			
+			log("server disconnected");
+			server = null;
 		}
-		catch (RemoteException e)
-		{
-			log("error connecting to server");
-			e.printStackTrace();
-			System.exit(0);
-		}
-		
-		// Set up local firewall access
-		//WindowsCommandTools.RunWindowsCommand("netsh firewall add allowedprogram program = " + env.get("starcraft") + "starcraft.exe name = Starcraft mode = ENABLE scope = ALL", true, false);
-		
-		log("ready");
-		
-		try
-		{
-			while (true)
-				Thread.sleep(10000);
-		}
-		catch (InterruptedException e) {}
 	}
 	
 	@Override
-	public void onExit()
+	public void onExit() throws RemoteException
 	{
-		try
-		{
-			server.disconnect(this);
-		}
-		catch (RemoteException e)
-		{
-			log("error disconnecting from server");
-		}
 		starcraft.kill();
+		
+		unexportObject(starcraft, true);
+		
+		if (server != null)
+			server.disconnect(this);
 	}
 	
 	@Override
@@ -125,10 +141,17 @@ public class Client extends RunnableUnicastRemoteObject implements RemoteClient
 	}
 	
 	@Override
+	public boolean isAlive()
+	{
+		return true;
+	}
+	
+	@Override
 	public void kill()
 	{
 		log("killed by server");
-		System.exit(0);
+		if (thread != null)
+			thread.interrupt();
 	}
 
 	@Override
@@ -161,7 +184,8 @@ public class Client extends RunnableUnicastRemoteObject implements RemoteClient
 	public static void log(String format, Object... args)
 	{
 		String timeStamp = new SimpleDateFormat("[HH:mm:ss]").format(Calendar.getInstance().getTime());
-		System.out.println(timeStamp+" "+String.format(format, args));
+		String line = timeStamp+" "+String.format(format, args);
+		System.out.print(line + (line.endsWith("\r")?"":"\n"));
 	}
 	
 	@Override
@@ -169,4 +193,5 @@ public class Client extends RunnableUnicastRemoteObject implements RemoteClient
 	{
 		return String.format("[Client %s]", Helper.getEndpointAddress(this));
 	}
+
 }

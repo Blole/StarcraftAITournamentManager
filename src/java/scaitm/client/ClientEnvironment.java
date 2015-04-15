@@ -24,11 +24,14 @@ public class ClientEnvironment implements Serializable
 	
 	public boolean killOtherStarcraftProcessesOnStartup = false;
 	public boolean addWindowsRegistryEntriesOnStartup = false;
+	public boolean addStarcraftFirewallExceptionOnStartup = false;
 	public boolean multiInstance = false;
+	
+	public double serverAlivePollPeriod = 10;
 	
 	public double starcraftStartingTimeout = 10;
 	public double matchStartingTimeout = 60;
-	public double matchRunningTimeout = 2;
+	public double matchAlivePollPeriod = 5;
 	
 	public RequiredFile starcraftDir;
 	public MyFile gamestatusFile;

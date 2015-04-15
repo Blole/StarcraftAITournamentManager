@@ -7,11 +7,13 @@ gamestatusFile:  !file      C:/tm/starcraft/gamestatus.yaml
 shortcuts:
     $starcraft:  !required  C:/tm/starcraft/
 
+serverAlivePollPeriod: 5.0
 
-killOtherStarcraftProcessesOnStartup:  false
-addWindowsRegistryEntriesOnStartup:    false
+killOtherStarcraftProcessesOnStartup:   false
+addWindowsRegistryEntriesOnStartup:     false
+addStarcraftFirewallExceptionOnStartup: false
 
 multiInstance:  false
 starcraftStartingTimeout:  5
 matchStartingTimeout:      40
-matchRunningTimeout:       5
+matchAlivePollPeriod:      5

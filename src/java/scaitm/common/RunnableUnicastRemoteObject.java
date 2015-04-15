@@ -41,6 +41,10 @@ public abstract class RunnableUnicastRemoteObject extends UnicastRemoteObject im
 		{
 			onRun();
 		}
+		catch (InterruptedException e)
+		{
+			//interruptions are kind of expected
+		}
 		catch (Throwable e)
 		{
 			exception = e;
@@ -64,7 +68,7 @@ public abstract class RunnableUnicastRemoteObject extends UnicastRemoteObject im
 		}
 		catch (NoSuchObjectException e1)
 		{
-			//don't care
+			//not that important
 		}
 		
 		if (exception != null)
@@ -86,5 +90,11 @@ public abstract class RunnableUnicastRemoteObject extends UnicastRemoteObject im
 	}
 	
 	protected abstract void onRun() throws Throwable;
+	
+	/**
+	 * To be run after onRun finished, even if an exception was thrown.
+	 * Should never call System.exit() as this method may be called by a
+	 * shutdown hook, and would then deadlock.
+	 */
 	protected abstract void onExit() throws Throwable;
 }

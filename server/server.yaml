@@ -2,7 +2,7 @@
 serverUrlPath:  scaitm_server
 port:           1099
 
-pollPeriod:         0.7
+matchFinishedPollPeriod:  0.7
 killClientsOnExit:  true
 
 filesToCopyToClientBeforeEachNewMatch:

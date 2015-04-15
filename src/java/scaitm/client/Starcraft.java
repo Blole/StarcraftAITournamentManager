@@ -174,10 +174,10 @@ public class Starcraft extends UnicastRemoteObject implements RemoteStarcraft
 						result = (Done) gamestatus;
 						break;
 					}
-					else if (timeSinceModification > client.env.matchRunningTimeout*1000)
+					else if (timeSinceModification > client.env.matchAlivePollPeriod*1000)
 						throw new StarcraftException(statusFile+" was not updated in time");
 					
-					sleep((long)(client.env.matchRunningTimeout*1000 - timeSinceModification));
+					sleep((long)(client.env.matchAlivePollPeriod*1000 - timeSinceModification));
 				}
 				Client.log("match ended in %.1f s", (System.currentTimeMillis() - time)/1000.0);
 			}

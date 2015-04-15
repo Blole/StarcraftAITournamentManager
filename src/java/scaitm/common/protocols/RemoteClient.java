@@ -14,6 +14,7 @@ public interface RemoteClient extends Remote
 	void extractFile(PackedFile file, String extractTo) throws RemoteException, IOException;
 	PackedFile getFile(String path) throws RemoteException, IOException;
 	
+	boolean isAlive() throws RemoteException;
 	void kill() throws RemoteException;
 	void executeCommand(String command) throws RemoteException;
 	byte[] screenshot() throws RemoteException;

@@ -1,6 +1,7 @@
 package common;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.Serializable;
 import java.nio.file.Files;
 
@@ -172,69 +173,60 @@ public class BwapiSettings implements Serializable, Cloneable
 	
 	
 	
-	public BwapiSettings(File file)
+	public BwapiSettings(File file) throws IOException
 	{
-		try
+		for (String line : Files.readAllLines(file.toPath()))
 		{
-			for (String line : Files.readAllLines(file.toPath()))
+			line = line.trim();
+			
+			if (!line.startsWith(";") && line.contains("="))
 			{
-				line = line.trim();
+				String key = line.substring(0, line.indexOf('=')).trim();
+				String value = line.substring(line.indexOf('=') + 1).trim();
 				
-				if (!line.startsWith(";") && line.contains("="))
+				switch(key.toLowerCase())
 				{
-					String key = line.substring(0, line.indexOf('=')).trim();
-					String value = line.substring(line.indexOf('=') + 1).trim();
-					
-					switch(key.toLowerCase())
-					{
-					case "ai":					ai = value; 						break;
-					case "ai_dbg":				ai_dbg = value; 					break;
-					case "tournament":			tournament = value; 				break;
-					case "auto_menu":			auto_menu = value; 					break;
-					case "pause_dbg":			pause_dbg = value; 					break;
-					case "lan_mode":			lan_mode = value; 					break;
-					case "auto_restart":		auto_restart = value; 				break;
-					case "map":					map = value; 						break;
-					case "game":				game = value; 						break;
-					case "mapiteration":		mapiteration = value; 				break;
-					case "race":				race = value; 						break;
-					case "enemy_count":			enemy_count = value; 				break;
-					case "enemy_race":			enemy_race = value; 				break;
-					case "enemy_race_1":		enemy_race_1 = value; 				break;
-					case "enemy_race_2":		enemy_race_2 = value; 				break;
-					case "enemy_race_3":		enemy_race_3 = value; 				break;
-					case "enemy_race_4":		enemy_race_4 = value; 				break;
-					case "enemy_race_5":		enemy_race_5 = value; 				break;
-					case "enemy_race_6":		enemy_race_6 = value; 				break;
-					case "enemy_race_7":		enemy_race_7 = value; 				break;
-					case "game_type":			game_type = value; 					break;
-					case "save_replay":			save_replay = value; 				break;
-					case "wait_for_min_players":wait_for_min_players = value;		break;
-					case "wait_for_max_players":wait_for_max_players = value;		break;
-					case "wait_for_time":		wait_for_time = value; 				break;
-					case "holiday":				holiday = value; 					break;
-					case "show_warnings":		show_warnings = value; 				break;
-					case "shared_memory":		shared_memory = value; 				break;
-					case "windowed":			windowed = value; 					break;
-					case "left":				left = value; 						break;
-					case "top":					top = value; 						break;
-					case "width":				width = value; 						break;
-					case "height":				height = value; 					break;
-					case "sound":				sound = value; 						break;
-					case "screenshots":			screenshots = value; 				break;
-					case "log_path":			log_path = value; 					break;
-					default:
-						System.err.printf("unrecocognized key '%s' = '%s' while parsing '%s', ignoring\n", key, value, file);
-						break;
-					}
+				case "ai":					ai = value; 						break;
+				case "ai_dbg":				ai_dbg = value; 					break;
+				case "tournament":			tournament = value; 				break;
+				case "auto_menu":			auto_menu = value; 					break;
+				case "pause_dbg":			pause_dbg = value; 					break;
+				case "lan_mode":			lan_mode = value; 					break;
+				case "auto_restart":		auto_restart = value; 				break;
+				case "map":					map = value; 						break;
+				case "game":				game = value; 						break;
+				case "mapiteration":		mapiteration = value; 				break;
+				case "race":				race = value; 						break;
+				case "enemy_count":			enemy_count = value; 				break;
+				case "enemy_race":			enemy_race = value; 				break;
+				case "enemy_race_1":		enemy_race_1 = value; 				break;
+				case "enemy_race_2":		enemy_race_2 = value; 				break;
+				case "enemy_race_3":		enemy_race_3 = value; 				break;
+				case "enemy_race_4":		enemy_race_4 = value; 				break;
+				case "enemy_race_5":		enemy_race_5 = value; 				break;
+				case "enemy_race_6":		enemy_race_6 = value; 				break;
+				case "enemy_race_7":		enemy_race_7 = value; 				break;
+				case "game_type":			game_type = value; 					break;
+				case "save_replay":			save_replay = value; 				break;
+				case "wait_for_min_players":wait_for_min_players = value;		break;
+				case "wait_for_max_players":wait_for_max_players = value;		break;
+				case "wait_for_time":		wait_for_time = value; 				break;
+				case "holiday":				holiday = value; 					break;
+				case "show_warnings":		show_warnings = value; 				break;
+				case "shared_memory":		shared_memory = value; 				break;
+				case "windowed":			windowed = value; 					break;
+				case "left":				left = value; 						break;
+				case "top":					top = value; 						break;
+				case "width":				width = value; 						break;
+				case "height":				height = value; 					break;
+				case "sound":				sound = value; 						break;
+				case "screenshots":			screenshots = value; 				break;
+				case "log_path":			log_path = value; 					break;
+				default:
+					System.err.printf("unrecocognized key '%s' = '%s' while parsing '%s', ignoring\n", key, value, file);
+					break;
 				}
 			}
-		}
-		catch (Exception e)
-		{
-			System.err.printf("error loading BWAPI settings file '%s'\n", file);
-			e.printStackTrace();
-			System.exit(-1);
 		}
 	}
 	
