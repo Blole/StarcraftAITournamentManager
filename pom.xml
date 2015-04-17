@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" 
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 
+                             http://maven.apache.org/maven-v4_0_0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	
+	<groupId>com.github.blole</groupId>
+	<artifactId>scaitm-parent</artifactId>
+	<version>1.0-SNAPSHOT</version>
+	<packaging>pom</packaging>
+	
+	<name>StarCraft AI Tournament Manager</name>
+	<description>Tournament manager software for StarCraft AI competitions</description>
+	<url>https://github.com/blole/StarcraftAITournamentManager</url>
+	
+	<scm>
+		<url>https://github.com/blole/StarcraftAITournamentManager</url>
+		<connection>scm:git:https://github.com/blole/StarcraftAITournamentManager.git</connection>
+		<developerConnection>scm:git:https://github.com/blole/StarcraftAITournamentManager.git</developerConnection>
+	</scm>
+		
+	<modules>
+		<module>common</module>
+		<module>client</module>
+		<module>server</module>
+		<module>generate</module>
+	</modules>
+	
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<java.version>1.8</java.version>
+		<root.installdir>${user.dir}/build</root.installdir>
+		<project.installdir>${root.installdir}/${project.artifactId}</project.installdir>
+		
+		<capsule.maven.plugin.version>0.10.3</capsule.maven.plugin.version>
+		<maven.compiler.plugin.version>3.3</maven.compiler.plugin.version>
+		<maven.source.plugin.version>2.4</maven.source.plugin.version>
+		<maven.clean.plugin.version>2.6.1</maven.clean.plugin.version>
+		<commons-lang3.version>3.4</commons-lang3.version>
+		<commons-io.version>2.4</commons-io.version>
+		<snakeyaml.version>1.15</snakeyaml.version>
+	</properties>
+
+	<build>
+		<resources>
+			<resource>
+				<directory>${project.basedir}/src/main/resources</directory>
+				<targetPath>${project.installdir}</targetPath>
+			</resource>
+		</resources>
+		
+		<pluginManagement>
+		<plugins>
+			
+			<!-- COMPILER -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>${maven.compiler.plugin.version}</version>
+				<configuration>
+					<source>${java.version}</source>
+					<target>${java.version}</target>
+				</configuration>
+			</plugin>
+			
+			<!-- SOURCES JAR -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-source-plugin</artifactId>
+				<version>${maven.source.plugin.version}</version>
+				<executions>
+					<execution>
+						<id>attach-sources</id>
+						<goals>
+							<goal>jar</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			
+			<plugin>
+				<groupId>com.github.chrischristo</groupId>
+				<artifactId>capsule-maven-plugin</artifactId>
+				<version>${capsule.maven.plugin.version}</version>
+				<configuration>
+					<output>${project.installdir}</output>
+					<types>fat</types>
+					<customDescriptorFat>-run</customDescriptorFat>
+				</configuration>
+				<executions>
+					<execution>
+						<goals>
+							<goal>build</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			
+		</plugins>
+		</pluginManagement>
+		<plugins>
+			<!--<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-release-plugin</artifactId>
+				<version>2.5.1</version>
+				<configuration>
+					<goals>install</goals>
+					<preparationGoals>install</preparationGoals>
+				</configuration>
+			</plugin>-->
+		</plugins>
+	</build>
+	
+	<dependencies>
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-lang3</artifactId>
+			<version>${commons-lang3.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>commons-io</groupId>
+			<artifactId>commons-io</artifactId>
+			<version>${commons-io.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.yaml</groupId>
+			<artifactId>snakeyaml</artifactId>
+			<version>${snakeyaml.version}</version>
+		</dependency>
+	</dependencies>
+</project>

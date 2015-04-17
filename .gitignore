@@ -1,17 +1,10 @@
 .metadata/
+.settings/
 .recommenders/
 .classpath
 .project
-*.class
 
-*.suo
-*.sdf
-*.user
-*.opensdf
+target/
+/build/
 
-client/client.jar
-server/server.jar
-server/generate.jar
-server/data/bots/
-server/replays/
-src/c++/build/
+server/src/main/resources/data/bots
