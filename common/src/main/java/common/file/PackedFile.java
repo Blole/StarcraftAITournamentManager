@@ -21,7 +21,7 @@ public class PackedFile implements Serializable
 	public PackedFile(String displayName, byte[] fileData) throws IOException
 	{
 		this.name = displayName;
-		this.data = ZipTools.Zip(fileData);
+		this.data = ZipTools.zip(fileData);
 		this.isDir = false;
 	}
 
@@ -31,12 +31,12 @@ public class PackedFile implements Serializable
 		
 		if (name.endsWith(".zip") && !src.isDirectory())
 		{
-			data = ZipTools.LoadZipFileToByteArray(src);
+			data = FileUtils.readFileToByteArray(src);
 			isDir = true;
 		}
 		else
 		{
-			data = ZipTools.ZipDirToByteArray(src);
+			data = ZipTools.zip(src);
 			isDir = src.isDirectory();
 		}
 	}
@@ -56,13 +56,12 @@ public class PackedFile implements Serializable
 	{
 		if (dest.isDirectory() && !isDir)
 			dest = new File(dest, name);
-		ZipTools.UnzipByteArrayToDir(data, dest);
+		ZipTools.unzip(data, dest);
 	}
 	
 	@Override
 	public String toString()
 	{
-		
 		return String.format("{%s, %s}", name, FileUtils.byteCountToDisplaySize(data.length));
 	}
 }

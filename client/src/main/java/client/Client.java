@@ -128,8 +128,8 @@ public class Client extends RunnableUnicastRemoteObject implements RemoteClient
 	@Override
 	public PackedFile getFile(String path) throws IOException
 	{
+		log("sending " + path);
 		PackedFile file = PackedFile.get(env.lookupFile(path));
-		log("sent " + path);
 		return file;
 	}
 
