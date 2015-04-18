@@ -23,7 +23,9 @@ public class ServerMain
 		else
 		{
 			String environmentText = FileUtils.readFileToString(new File(args[0]));
-			Yaml yaml = new Yaml(new MyConstructor());
+			MyConstructor constructor = new MyConstructor();
+			constructor.addTypeDescription(ServerEnvironment.typeDescription);
+			Yaml yaml = new Yaml(constructor);
 			ServerEnvironment env = yaml.loadAs(environmentText, ServerEnvironment.class);
 			
 			Server server = new Server(env);

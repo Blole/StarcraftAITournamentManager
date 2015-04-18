@@ -23,7 +23,9 @@ public class ClientMain
 		else
 		{
 			String environmentText = FileUtils.readFileToString(new File(args[0]));
-			Yaml yaml = new Yaml(new MyConstructor());
+			MyConstructor constructor = new MyConstructor();
+			constructor.addTypeDescription(ClientEnvironment.typeDescription);
+			Yaml yaml = new Yaml(constructor);
 			ClientEnvironment env = yaml.loadAs(environmentText, ClientEnvironment.class);
 			
 			Client client = new Client(env);

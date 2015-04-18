@@ -1,8 +1,6 @@
 package common;
 
 import java.io.Serializable;
-import java.util.LinkedHashMap;
-import java.util.Map.Entry;
 
 import org.yaml.snakeyaml.TypeDescription;
 import org.yaml.snakeyaml.nodes.Tag;
@@ -26,12 +24,10 @@ public class BwapiVersion implements Serializable, Comparable<BwapiVersion>
 	
 	public TargetFile getFile(java.util.Map<BwapiVersion, TargetFile> knownBwapiVersions) throws InvalidBwapiVersionString
 	{
-		LinkedHashMap<BwapiVersion,TargetFile> m = new LinkedHashMap<>();
-		for (Entry<BwapiVersion,TargetFile> a : knownBwapiVersions.entrySet())
-			m.put(a.getKey(), a.getValue());
+		TargetFile file = knownBwapiVersions.get(this);
 		
-		if (knownBwapiVersions.containsKey(this))
-			return knownBwapiVersions.get(this);
+		if (file != null)
+			return file;
 		else
 			throw new InvalidBwapiVersionString(knownBwapiVersions, this);
 	}
