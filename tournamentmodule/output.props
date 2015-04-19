@@ -23,7 +23,6 @@
     <Lib>
       <OutputFile>$(BuildDir)/lib/$(TargetFileName)</OutputFile>
     </Lib>
-    <ClCompile />
     <ClCompile>
       <AdditionalIncludeDirectories>$(SolutionDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>

@@ -3,6 +3,7 @@
 .recommenders/
 .classpath
 .project
+*.versionsBackup
 
 target/
 /build/

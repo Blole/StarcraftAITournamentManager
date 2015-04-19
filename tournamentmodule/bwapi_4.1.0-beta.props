@@ -5,18 +5,18 @@
     <DebugSuffix Condition="'$(Configuration)'=='Debug'">d</DebugSuffix>
     <DebugSuffix Condition="'$(Configuration)'!='Debug'">
     </DebugSuffix>
-    <BWAPI_DIR>$(BWAPI_DIR_410B)</BWAPI_DIR>
+    <BWAPI_ROOT>$(BWAPI_ROOT_4_1_0_BETA)</BWAPI_ROOT>
   </PropertyGroup>
   <PropertyGroup>
     <_PropertySheetDisplayName>BWAPI 4.1.0-Beta</_PropertySheetDisplayName>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
-      <AdditionalIncludeDirectories>$(BWAPI_DIR)/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(BWAPI_ROOT)/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>BWAPI_VER=40100;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>$(BWAPI_DIR)/lib/BWAPI$(DebugSuffix).lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>$(BWAPI_ROOT)/lib/BWAPI$(DebugSuffix).lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>

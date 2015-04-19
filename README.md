@@ -3,7 +3,7 @@ Starcraft AI Tournament Manager
 
 A tournament manager software for bots using [BWAPI](https://github.com/bwapi/bwapi) in StarCraft: Brood War.  
 This fork uses YAML files for settings and Java RMI for server-client communications.  
-Currently supports BWAPI versions: `3.7.4`, `4.0.1-Beta`, `4.1.0-Beta`.
+Currently supports BWAPI versions: `4.1.0-Beta`, `4.0.1-Beta`, `3.7.4`.
 
 #Building from source
 ##Java
@@ -14,7 +14,20 @@ cd StarcraftAITournamentManager
 mvn install
 ```
 ##C++
-However, you will also need to compile the Visual Studio 2013 solution under `tournamentmodule/`, and additionally, to support bots built with different versions of BWAPI, you need have the corresponding versions of Visual Studio installed (2008, 2010 and 2013).
+You will also need to compile the Visual Studio 2013 solution under `tournamentmodule/`.
+To support bots compiled against different versions of BWAPI, you need to have both the BWAPI version and the corresponding version of Visual Studio installed.
+You also need to define an environment variable with the path to the BWAPI directory (e.g. `C:\Program Files (x86)\BWAPI_4.1.0-Beta`).
+
+| BWAPI version | Environment variable  | Visual Studio version |
+|---------------|-----------------------|-----------------------|
+| 4.1.0-Beta    | BWAPI_ROOT_4_1_0_BETA | 2013                  |
+| 4.0.1-Beta    | BWAPI_ROOT_4_0_1_BETA | 2010                  |
+| 3.7.4         | BWAPI_ROOT_3_7_4      | 2008                  |
+
+___NOTE!___
+You don't get any specific error message for missing a tournamentmodule.dll yet.
+The client will just never recognize that the match has started, timeout and kill StarCraft.
+
 ##Output
 The built jar's, dll's and stuff will be placed under `build/`:
 ```
@@ -39,7 +52,7 @@ StarcraftAITournamentManager/
 ```
 
 #Running
-- Have two computers (optionally virtual) with StarCraft: Brood War installed.
+- Have two computers (optionally virtual) with StarCraft: Brood War 1.16.1 and Java 8+ installed.
 - Copy the files from `build/client/` to the second computer.
 - In client.yaml, configure serverUrl and the starcraft directory dependent properties.
 - Run both server.bat and client.bat on the first computer.
