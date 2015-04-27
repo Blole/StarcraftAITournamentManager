@@ -97,7 +97,7 @@ public class Server extends RunnableUnicastRemoteObject implements RemoteServer
 			nextGame = getNextUnstartedGame(games, runningMatches);
 			
 			// if new round
-			if (prevGame != null && (nextGame == null || nextGame.round > prevGame.round))
+			if (prevGame != null && (nextGame == null || nextGame.round > prevGame.round) && prevGame.round != finishedRound)
 			{
 				
 				if (runningMatches.isEmpty() && finishedRound < prevGame.round)

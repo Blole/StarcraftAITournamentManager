@@ -15,3 +15,18 @@
   round: 1
   map: aiide/(2)Destination.scx
   bots: [Aiur, Bonjwa]
+- !game
+  id: 2
+  round: 2
+  map: aiide/(2)Destination.scx
+  bots: [Aiur, Bonjwa]
+- !game
+  id: 2
+  round: 2
+  map: aiide/(2)Destination.scx
+  bots: [Aiur, Bonjwa]
+- !game
+  id: 3
+  round: 3
+  map: aiide/(2)Destination.scx
+  bots: [Aiur, Bonjwa]
