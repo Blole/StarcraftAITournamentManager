@@ -33,13 +33,13 @@
 		<root.installdir>${user.dir}/build</root.installdir>
 		<project.installdir>${root.installdir}/${project.artifactId}</project.installdir>
 		
-		<capsule.maven.plugin.version>0.10.3</capsule.maven.plugin.version>
+		<capsule.maven.plugin.version>0.10.8</capsule.maven.plugin.version>
 		<maven.compiler.plugin.version>3.3</maven.compiler.plugin.version>
 		<maven.source.plugin.version>2.4</maven.source.plugin.version>
 		<maven.clean.plugin.version>2.6.1</maven.clean.plugin.version>
 		<commons-lang3.version>3.4</commons-lang3.version>
 		<commons-io.version>2.4</commons-io.version>
-		<snakeyaml.version>1.15</snakeyaml.version>
+		<snakeyaml.version>1.16</snakeyaml.version>
 	</properties>
 
 	<build>
@@ -100,6 +100,22 @@
 		</plugins>
 		</pluginManagement>
 		<plugins>
+			
+			  <plugin>
+				<artifactId>maven-clean-plugin</artifactId>
+				<version>2.6.1</version>
+				<configuration>
+					<filesets>
+						<fileset>
+							<directory>${project.installdir}</directory>
+							<includes>
+								<include>*-run.jar</include>
+							</includes>
+						</fileset>
+					</filesets>
+				</configuration>
+			</plugin>
+			
 			<!--<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-release-plugin</artifactId>
