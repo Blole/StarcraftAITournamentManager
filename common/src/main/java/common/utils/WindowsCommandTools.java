@@ -175,25 +175,4 @@ public class WindowsCommandTools
 			}
 		}
 	}
-	
-	public static void RegEdit(String keyName, String valueName, String type, String data)
-	{
-		String q = "\"";
-	
-		// make sure there are no quotations in the input strings
-		keyName.replaceAll(q, "");
-		valueName.replaceAll(q, "");
-		type.replaceAll(q, "");
-		data.replaceAll(q, "");
-		
-		// wrap quotations around the values to be sure
-		keyName = q + keyName + q;
-		valueName = q + valueName + q;
-		data = q + data + q;
-		
-		String cmd = "reg add " + keyName + " /f /v " + valueName + " /t " + type + " /d " + data;
-		RunWindowsCommand(cmd, true, false);
-		
-		System.out.println(cmd);
-	}
 }

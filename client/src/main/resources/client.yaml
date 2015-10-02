@@ -10,7 +10,6 @@ shortcuts:
 serverAlivePollPeriod: 5.0
 
 killOtherStarcraftProcessesOnStartup:   false
-addWindowsRegistryEntriesOnStartup:     false
 addStarcraftFirewallExceptionOnStartup: false
 
 multiInstance:  false

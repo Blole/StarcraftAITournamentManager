@@ -54,8 +54,6 @@ public class Client extends RunnableUnicastRemoteObject implements RemoteClient
 	{
 		if (env.killOtherStarcraftProcessesOnStartup)
 			WindowsCommandTools.killProcess("StarCraft.exe");
-		if (env.addWindowsRegistryEntriesOnStartup)
-			Starcraft.addWindowsRegistryEntries(env.starcraftDir.toString());
 		if (env.addStarcraftFirewallExceptionOnStartup)
 			WindowsCommandTools.RunWindowsCommand("netsh firewall add allowedprogram program = " + new File(env.starcraftDir, "starcraft.exe").getAbsolutePath() + " name = Starcraft mode = ENABLE scope = ALL", true, false);
 		
@@ -134,6 +132,10 @@ public class Client extends RunnableUnicastRemoteObject implements RemoteClient
 			{
 				log("server disconnected");
 			}
+			
+			for (Starcraft starcraft : starcrafts)
+				starcraft.kill();
+			starcrafts.clear();
 		}
 	}
 	
@@ -145,6 +147,7 @@ public class Client extends RunnableUnicastRemoteObject implements RemoteClient
 		
 		for (Starcraft starcraft : starcrafts)
 			starcraft.kill();
+		starcrafts.clear();
 	}
 	
 	@Override

@@ -24,7 +24,6 @@ public class ClientEnvironment extends CommonEnvironment implements Serializable
 	public String serverUrl = null;
 	
 	public boolean killOtherStarcraftProcessesOnStartup = false;
-	public boolean addWindowsRegistryEntriesOnStartup = false;
 	public boolean addStarcraftFirewallExceptionOnStartup = false;
 	public boolean multiInstance = false;
 	

@@ -260,25 +260,4 @@ public class Starcraft extends RunnableUnicastRemoteObject implements RemoteStar
 		String matchTimeStamp = String.format("[%02d:%04.3f] ", (int)(sinceMatchStart/60), sinceMatchStart%60);
 		Client.log(matchTimeStamp+format, args);
 	}
-
-	public static void addWindowsRegistryEntries(String starcraftDir)
-	{
-		Client.log("registering StarCraft");
-		
-		// 32-bit machine StarCraft settings
-		String sc32KeyName =     "HKEY_LOCAL_MACHINE\\SOFTWARE\\Blizzard Entertainment\\Starcraft";
-		String sc32UserKeyName = "HKEY_CURRENT_USER\\SOFTWARE\\Blizzard Entertainment\\Starcraft";
-		WindowsCommandTools.RegEdit(sc32KeyName,     "InstallPath", "REG_SZ",    starcraftDir + "\\");
-		WindowsCommandTools.RegEdit(sc32KeyName,     "Program",     "REG_SZ",    starcraftDir + "StarCraft.exe");
-		WindowsCommandTools.RegEdit(sc32KeyName,     "GamePath",    "REG_SZ",    starcraftDir + "StarCraft.exe");
-		WindowsCommandTools.RegEdit(sc32UserKeyName, "introX",      "REG_DWORD", "00000000");
-		
-		// 64-bit machine StarCraft settings
-		String sc64KeyName =     "HKEY_LOCAL_MACHINE\\SOFTWARE\\Wow6432Node\\Blizzard Entertainment\\Starcraft";
-		String sc64UserKeyName = "HKEY_CURRENT_USER\\SOFTWARE\\Wow6432Node\\Blizzard Entertainment\\Starcraft";
-		WindowsCommandTools.RegEdit(sc64KeyName, "InstallPath", "REG_SZ", starcraftDir + "\\");
-		WindowsCommandTools.RegEdit(sc64KeyName, "Program",     "REG_SZ", starcraftDir + "StarCraft.exe");
-		WindowsCommandTools.RegEdit(sc64KeyName, "GamePath",    "REG_SZ", starcraftDir + "StarCraft.exe");
-		WindowsCommandTools.RegEdit(sc64UserKeyName, "introX",      "REG_DWORD", "00000000");
-	}
 }
