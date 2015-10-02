@@ -15,22 +15,22 @@
     <ClInclude Include="tournamentmodule.hpp" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\yaml-cpp\yaml-cpp-2013.vcxproj">
-      <Project>{479cc519-67af-4d9e-bcc5-62d4697837b1}</Project>
+    <ProjectReference Include="..\yaml-cpp\yaml-cpp-2008.vcxproj">
+      <Project>{2bbff4d9-363e-49d4-a87b-9b43d8635d8c}</Project>
     </ProjectReference>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{A7E2405B-BC7F-4231-8DB7-3A2F683B8DBA}</ProjectGuid>
+    <ProjectGuid>{F32E5BB8-002D-486C-B11E-D73865BB9573}</ProjectGuid>
     <RootNamespace>ExampleAIModule</RootNamespace>
     <Keyword>Win32Proj</Keyword>
-    <ProjectName>tournamentmodule-4.1.0-Beta</ProjectName>
+    <ProjectName>tournamentmodule-3.7</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <CharacterSet>Unicode</CharacterSet>
     <WholeProgramOptimization>true</WholeProgramOptimization>
-    <PlatformToolset>v120</PlatformToolset>
+    <PlatformToolset>v90</PlatformToolset>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
@@ -38,7 +38,7 @@
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
     <Import Project="..\output.props" />
-    <Import Project="..\bwapi_4.1.0-beta.props" />
+    <Import Project="..\bwapi_3.7.props" />
     <Import Project="..\boost.props" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
@@ -46,7 +46,7 @@
     <_ProjectFileVersion>10.0.40219.1</_ProjectFileVersion>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <OutDir>$(ServerDir)/data/bwapi_410b/bwapi-data/</OutDir>
+    <OutDir>$(ServerDir)/data/bwapi_37/bwapi-data/</OutDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>

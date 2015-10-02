@@ -1,6 +1,6 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Express 2013 for Windows Desktop
-VisualStudioVersion = 12.0.21005.1
+# Visual Studio 14
+VisualStudioVersion = 14.0.23107.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "yaml-cpp-2008", "yaml-cpp\yaml-cpp-2008.vcxproj", "{2BBFF4D9-363E-49D4-A87B-9B43D8635D8C}"
 EndProject
@@ -8,11 +8,11 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "yaml-cpp-2010", "yaml-cpp\y
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "yaml-cpp-2013", "yaml-cpp\yaml-cpp-2013.vcxproj", "{479CC519-67AF-4D9E-BCC5-62D4697837B1}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "tournamentmodule-3.7.4", "tournamentmodule\tournamentmodule-3.7.4.vcxproj", "{F32E5BB8-002D-486C-B11E-D73865BB9573}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "tournamentmodule-3.7", "tournamentmodule\tournamentmodule-3.7.vcxproj", "{F32E5BB8-002D-486C-B11E-D73865BB9573}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "tournamentmodule-4.0.1-Beta", "tournamentmodule\tournamentmodule-4.0.1-beta.vcxproj", "{49078FE5-D467-44B3-8011-6C069D607A6D}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "tournamentmodule-4.0", "tournamentmodule\tournamentmodule-4.0.vcxproj", "{49078FE5-D467-44B3-8011-6C069D607A6D}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "tournamentmodule-4.1.0-Beta", "tournamentmodule\tournamentmodule-4.1.0-beta.vcxproj", "{A7E2405B-BC7F-4231-8DB7-3A2F683B8DBA}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "tournamentmodule-4.1", "tournamentmodule\tournamentmodule-4.1.vcxproj", "{A7E2405B-BC7F-4231-8DB7-3A2F683B8DBA}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

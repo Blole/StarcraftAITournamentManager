@@ -3,21 +3,23 @@
   <ImportGroup Label="PropertySheets" />
   <PropertyGroup Label="UserMacros">
     <DebugSuffix Condition="'$(Configuration)'=='Debug'">d</DebugSuffix>
-    <DebugSuffix Condition="'$(Configuration)'!='Debug'">
-    </DebugSuffix>
-    <BWAPI_ROOT>$(BWAPI_ROOT_4_0_1_BETA)</BWAPI_ROOT>
+    <DebugSuffix Condition="'$(Configuration)'!='Debug'"></DebugSuffix>
+    <BWAPI_ROOT>$(BWAPI_ROOT_4_0)</BWAPI_ROOT>
   </PropertyGroup>
   <PropertyGroup>
-    <_PropertySheetDisplayName>BWAPI 4.0.1-Beta</_PropertySheetDisplayName>
+    <_PropertySheetDisplayName>BWAPI 4.0</_PropertySheetDisplayName>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
       <AdditionalIncludeDirectories>$(BWAPI_ROOT)/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>BWAPI_VER=40001;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>BWAPI_VER=400;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <AdditionalDependencies>$(BWAPI_ROOT)/lib/BWAPI$(DebugSuffix).lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+	<Lib>
+      <AdditionalDependencies>$(BWAPI_ROOT)/lib/BWAPI$(DebugSuffix).lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
     <BuildMacro Include="DebugSuffix">

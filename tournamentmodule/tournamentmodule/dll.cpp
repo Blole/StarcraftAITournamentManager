@@ -4,7 +4,7 @@
 #include "tournamentmodule/tournamentmodule.hpp"
 
 
-#if (BWAPI_VER == 30704) //3.7.4
+#if (BWAPI_VER == 307) //3.7
 	namespace BWAPI { Game* Broodwar; }
 	extern "C" __declspec(dllexport) BWAPI::AIModule* newTournamentAI(BWAPI::Game* game)
 	{
