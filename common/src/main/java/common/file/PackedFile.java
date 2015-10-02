@@ -3,6 +3,7 @@ package common.file;
 import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
+import java.nio.file.Files;
 import java.util.HashMap;
 
 import org.apache.commons.io.FileUtils;
@@ -25,7 +26,7 @@ public class PackedFile implements Serializable
 		this.isDir = false;
 	}
 
-	private PackedFile(File src) throws IOException
+	public PackedFile(File src) throws IOException
 	{
 		name = src.getName();
 		
@@ -57,6 +58,14 @@ public class PackedFile implements Serializable
 		if (dest.isDirectory() && !isDir)
 			dest = new File(dest, name);
 		ZipTools.unzip(data, dest);
+	}
+	
+	public void syncTo(File destDir) throws IOException
+	{
+		assert(isDir);
+		File srcDir = Files.createTempDirectory("scaitm_sync").toFile();
+		writeTo(srcDir);
+		new MyFile(srcDir).syncToDirectory(destDir);;
 	}
 	
 	@Override

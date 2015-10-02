@@ -1,25 +1,23 @@
 package server;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
 
 import org.yaml.snakeyaml.TypeDescription;
 
 import common.BwapiVersion;
+import common.CommonEnvironment;
 import common.file.MyFile;
 import common.file.RequiredFile;
-import common.file.TargetFile;
+import common.file.CopyFile;
 
-public class ServerEnvironment implements Serializable
+public class ServerEnvironment extends CommonEnvironment implements Serializable
 {
-	private static final long serialVersionUID = -6040955128596907730L;
+	private static final long serialVersionUID = -2475588136001739940L;
 	public static final TypeDescription typeDescription = new TypeDescription(ServerEnvironment.class);
 	static
 	{
-		typeDescription.putListPropertyType("filesToCopyToClientBeforeEachNewMatch", TargetFile.class);
-		typeDescription.putMapPropertyType("bwapiVersions", BwapiVersion.class, TargetFile.class);
+		typeDescription.putListPropertyType("filesToCopyToClientBeforeEachNewMatch", CopyFile.class);
+		typeDescription.putMapPropertyType("bwapiVersions", BwapiVersion.class, CopyFile.class);
 	}
 	
 	
@@ -31,15 +29,12 @@ public class ServerEnvironment implements Serializable
 	public boolean killClientsOnExit = false;
 	public boolean exitWhenDone = false;
 	
-	public List<TargetFile> filesToCopyToClientBeforeEachNewMatch = new ArrayList<>();
-	public LinkedHashMap<BwapiVersion, TargetFile> bwapiVersions = new LinkedHashMap<>();
-	
 	public RequiredFile gameList;
 	public MyFile results;
-	public MyFile botDir;
-	public MyFile mapDir;
 	public MyFile replaysDir;
-	public MyFile characterFileMultiplayer;
-	public MyFile characterFileSingleplayer;
-	public MyFile defaultBwapiIni;
+	
+	public MyFile starcraftDir()
+	{
+		return new MyFile(dataDir, "starcraft/");
+	}
 }

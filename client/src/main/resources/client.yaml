@@ -2,7 +2,7 @@
 serverUrl:  //bjorn-cellar:1099/scaitm_server
 
 starcraftDir:    !required  C:/tm/starcraft/
-gamestatusFile:  !file      C:/tm/starcraft/gamestatus.yaml
+gamestatusFileName: gamestatus.yaml
 
 shortcuts:
     $starcraft:  !required  C:/tm/starcraft/
@@ -14,6 +14,6 @@ addWindowsRegistryEntriesOnStartup:     false
 addStarcraftFirewallExceptionOnStartup: false
 
 multiInstance:  false
-starcraftStartingTimeout:  5
-matchStartingTimeout:      40
-matchAlivePollPeriod:      5
+matchStartingTimeout:    40
+matchAlivePollPeriod:    5
+starcraftClosingTimeout: 10

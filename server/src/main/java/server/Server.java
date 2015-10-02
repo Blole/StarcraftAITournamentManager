@@ -30,21 +30,18 @@ import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.error.YAMLException;
 
 import common.Bot;
-import common.BwapiSettings;
 import common.Game;
 import common.GameResult;
 import common.Helper;
 import common.RunnableUnicastRemoteObject;
-import common.exceptions.InvalidBwapiVersionString;
 import common.exceptions.InvalidResultsException;
 import common.exceptions.StarcraftException;
 import common.file.PackedFile;
-import common.file.TargetFile;
 import common.protocols.RemoteClient;
 import common.protocols.RemoteServer;
-import common.status.GameStatus;
-import common.yaml.GameConstructor;
-import common.yaml.GameRepresenter;
+import common.protocols.RemoteStarcraft;
+import common.yaml.MyConstructor;
+import common.yaml.MyRepresenter;
 
 public class Server extends RunnableUnicastRemoteObject implements RemoteServer
 {
@@ -65,7 +62,6 @@ public class Server extends RunnableUnicastRemoteObject implements RemoteServer
 	
 	public final ServerEnvironment env;
 	private Registry registry = null;
-	Thread thread = null;
 	
 	public Server(ServerEnvironment env) throws RemoteException
 	{
@@ -76,9 +72,8 @@ public class Server extends RunnableUnicastRemoteObject implements RemoteServer
 	@Override
 	public void onRun() throws RemoteException, MalformedURLException, InterruptedException, IOException
 	{
-		thread = Thread.currentThread();
 		String gamesFileText = FileUtils.readFileToString(env.gameList);
-		games = new Yaml(new GameConstructor(env.botDir)).loadAs(gamesFileText, List.class);
+		games = new Yaml(new MyConstructor(env)).loadAs(gamesFileText, List.class);
 		
 		tryWriteResults();
 		
@@ -104,7 +99,7 @@ public class Server extends RunnableUnicastRemoteObject implements RemoteServer
 				{
 					log("Round %d finished, moving write directory to read directory", prevGame.round);
 					for (Bot bot : getAllBots(games))
-						FileUtils.copyDirectory(bot.getWriteDir(env.botDir), bot.getReadDir(env.botDir));
+						FileUtils.copyDirectory(bot.getWriteDir(env), bot.getReadDir(env));
 					
 					finishedRound = prevGame.round;
 					continue;
@@ -159,8 +154,8 @@ public class Server extends RunnableUnicastRemoteObject implements RemoteServer
 			RemoteClient player = free.remove(0);
 			try
 			{
-				if (player.isAlive())
-					players.add(player);
+				player.checkAlive();
+				players.add(player);
 			}
 			catch (RemoteException e)
 			{
@@ -182,7 +177,7 @@ public class Server extends RunnableUnicastRemoteObject implements RemoteServer
 	{
 		try
 		{
-			Yaml yaml = new Yaml(new GameRepresenter());
+			Yaml yaml = new Yaml(new MyRepresenter());
 			String yamlText = yaml.dump(games);
 			FileUtils.writeStringToFile(env.results, yamlText);
 		}
@@ -278,9 +273,8 @@ public class Server extends RunnableUnicastRemoteObject implements RemoteServer
 	}
 
 	@Override
-	public boolean isAlive()
+	public void checkAlive()
 	{
-		return true;
 	}
 	
 	
@@ -291,6 +285,7 @@ public class Server extends RunnableUnicastRemoteObject implements RemoteServer
 	{
 		private final Game game;
 		private final List<RemoteClient> players;
+		private final List<RemoteStarcraft> starcrafts = new ArrayList<>();
 		private long startTime;
 		
 		RunningMatch(Game game, List<RemoteClient> players)
@@ -305,37 +300,14 @@ public class Server extends RunnableUnicastRemoteObject implements RemoteServer
 			boolean success = false;
 			try
 			{
-				BwapiSettings defaultBwapiSettings = new BwapiSettings(env.defaultBwapiIni);
-				
 				for (int i=0; i<players.size(); i++)
 				{
 					RemoteClient player = players.get(i);
 					Bot bot = game.bots[i];
 					
-					player.delete("$starcraft/bwapi-data/");
-					player.delete("$starcraft/characters/");
-					player.delete("$starcraft/maps/");
+//					player.delete("$starcraft/bwapi-data/");
+//					player.delete("$starcraft/maps/");
 					
-					for (TargetFile file : env.filesToCopyToClientBeforeEachNewMatch)
-						player.extractFile(PackedFile.get(file), file.extractTo);
-					
-					TargetFile bwapi = bot.bwapiVersion.getFile(env.bwapiVersions);
-					player.extractFile(PackedFile.get(bwapi), bwapi.extractTo);
-					
-					if (bot.extraFiles != null)
-					{
-						for (TargetFile file : bot.extraFiles)
-							player.extractFile(PackedFile.get(file), file.extractTo);
-					}
-					
-					player.extractFile(PackedFile.get(bot.getDir(env.botDir)), "$starcraft/bwapi-data/");
-					player.extractFile(PackedFile.get(game.map.getFile(env.mapDir)), "$starcraft/maps/"+game.map.path);
-					player.extractFile(PackedFile.get(env.characterFileMultiplayer), "$starcraft/characters/"+bot.name+".mpc");
-					player.extractFile(PackedFile.get(env.characterFileSingleplayer), "$starcraft/characters/"+bot.name+".spc");
-					
-					BwapiSettings bwapiSettings = defaultBwapiSettings.clone();
-					bwapiSettings.setGame(game, i);
-					player.extractFile(new PackedFile("bwapi.ini", bwapiSettings.getContentsString().getBytes()), "$starcraft/bwapi-data/");
 				}
 				
 				startTime = System.currentTimeMillis();
@@ -343,34 +315,32 @@ public class Server extends RunnableUnicastRemoteObject implements RemoteServer
 				{
 					RemoteClient player = players.get(i);
 					gui.UpdateRunningStats(player, game, i, startTime);
-					player.starcraft().start(game, i);
+					starcrafts.add(player.startMatch(game, i));
 				}
 				
-				while (true)
-				{
-					boolean allStarted = true;
-					
-					for (RemoteClient player : players)
-						allStarted &= player.starcraft().getStatus() != GameStatus.Starting;
-					
-					if (allStarted)
-						break;
-					
-					Thread.sleep((long) (env.matchFinishedPollPeriod*1000));
-				}
+//				while (true)
+//				{
+//					boolean allStarted = true;
+//
+//					for (RemoteClient player : players)
+//						allStarted &= player.starcraft().getStatus() != GameStatus.Starting;
+//
+//					if (allStarted)
+//						break;
+//
+//					Thread.sleep((long) (env.matchFinishedPollPeriod*1000));
+//				}
 				
 				//gameStarting.unlock();
+				
 				
 				while (true)
 				{
 					boolean allDone = true;
-					
-					for (RemoteClient player : players)
-						allDone &= player.starcraft().getStatus() == GameStatus.Done;
-					
+					for (RemoteStarcraft starcraft : starcrafts)
+						allDone &= starcraft.isFinished();
 					if (allDone)
 						break;
-					
 					Thread.sleep((long) (env.matchFinishedPollPeriod*1000));
 				}
 				
@@ -379,15 +349,20 @@ public class Server extends RunnableUnicastRemoteObject implements RemoteServer
 				for (int i=0; i<players.size(); i++)
 				{
 					RemoteClient player = players.get(i);
+					RemoteStarcraft starcraft = starcrafts.get(i);
 					Bot bot = game.bots[i];
-					player.getFile("$starcraft/maps/replays/").writeTo(env.replaysDir);
-					player.getFile("$starcraft/bwapi-data/write/").writeTo(bot.getWriteDir(env.botDir));
+					starcraft.getReplay().writeTo(env.replaysDir);
+					starcraft.getWriteDirectory().writeTo(bot.getWriteDir(env));
 					if (game.results == null)
 						game.results = new GameResult();
-					game.results.add(bot, player.starcraft().getResult());
+					game.results.add(bot, starcraft.getResult());
 				}
 				
 				success = true;
+			}
+			catch (InterruptedException e)
+			{
+				log("match interrupted");
 			}
 			catch (StarcraftException e)
 			{
@@ -401,14 +376,6 @@ public class Server extends RunnableUnicastRemoteObject implements RemoteServer
 			{
 				e.printStackTrace();
 			}
-			catch (InterruptedException e)
-			{
-				log("match interrupted");
-			}
-			catch (InvalidBwapiVersionString e)
-			{
-				e.printStackTrace();
-			}
 			catch (InvalidResultsException e)
 			{
 				e.printStackTrace();
@@ -417,11 +384,11 @@ public class Server extends RunnableUnicastRemoteObject implements RemoteServer
 			{
 				if (!success)
 				{
-					for (RemoteClient player : players)
+					for (RemoteStarcraft starcraft : starcrafts)
 					{
 						try
 						{
-							player.starcraft().kill();
+							starcraft.kill();
 						}
 						catch (RemoteException e)
 						{
@@ -463,5 +430,11 @@ public class Server extends RunnableUnicastRemoteObject implements RemoteServer
 		return games.stream()
 				.flatMap(g -> Arrays.asList(g.bots).stream())
 				.collect(Collectors.toSet());
+	}
+
+	@Override
+	public PackedFile getDataDir() throws IOException
+	{
+		return PackedFile.get(env.dataDir);
 	}
 }

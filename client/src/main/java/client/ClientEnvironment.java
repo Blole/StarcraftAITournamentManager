@@ -6,10 +6,11 @@ import java.util.LinkedHashMap;
 
 import org.yaml.snakeyaml.TypeDescription;
 
+import common.CommonEnvironment;
 import common.file.MyFile;
 import common.file.RequiredFile;
 
-public class ClientEnvironment implements Serializable
+public class ClientEnvironment extends CommonEnvironment implements Serializable
 {
 	private static final long serialVersionUID = -6040955128596907730L;
 	public static final TypeDescription typeDescription = new TypeDescription(ClientEnvironment.class);
@@ -29,12 +30,12 @@ public class ClientEnvironment implements Serializable
 	
 	public double serverAlivePollPeriod = 10;
 	
-	public double starcraftStartingTimeout = 10;
 	public double matchStartingTimeout = 60;
 	public double matchAlivePollPeriod = 5;
+	public double starcraftClosingTimeout = 10;
 	
 	public RequiredFile starcraftDir;
-	public MyFile gamestatusFile;
+	public String gamestatusFileName;
 	public LinkedHashMap<String, ? extends MyFile> shortcuts = null;
 	
 	public MyFile lookupFile(String path)

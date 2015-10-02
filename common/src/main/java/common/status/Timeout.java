@@ -18,10 +18,4 @@ public class Timeout extends GameStatusFile implements Serializable
 	{
 		throw new BotTimeoutException(bot);
 	}
-
-	@Override
-	public GameStatus getStatus()
-	{
-		return null;
-	}
 }

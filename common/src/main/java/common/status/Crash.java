@@ -18,10 +18,4 @@ public class Crash extends GameStatusFile implements Serializable
 	{
 		throw new BotCrashException(bot);
 	}
-
-	@Override
-	public GameStatus getStatus()
-	{
-		return null;
-	}
 }

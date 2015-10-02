@@ -5,8 +5,9 @@ import java.util.function.Function;
 import org.yaml.snakeyaml.nodes.Node;
 import org.yaml.snakeyaml.nodes.Tag;
 import org.yaml.snakeyaml.representer.Represent;
+import org.yaml.snakeyaml.representer.Representer;
 
-public class ScalarRepresenter extends MyRepresenter
+public class ScalarRepresenter extends Representer
 {
     public <T> void addScalarRepresentation(Class<T> clazz, Tag tag, Function<T,String> function)
     {

@@ -6,30 +6,39 @@ import org.yaml.snakeyaml.TypeDescription;
 import org.yaml.snakeyaml.nodes.Tag;
 
 import common.exceptions.InvalidBwapiVersionString;
-import common.file.TargetFile;
+import common.file.MyFile;
 
 public class BwapiVersion implements Serializable, Comparable<BwapiVersion>
 {
 	private static final long serialVersionUID = -6896962609170302139L;
-	public static final TypeDescription typeDescription = new TypeDescription(BwapiVersion.class, new Tag("!lol"));
+	public static final TypeDescription typeDescription = new TypeDescription(BwapiVersion.class, new Tag("!bwapi_ver"));
 	
 	
 	
 	private final String versionString;
 
-	public BwapiVersion(String versionString)
+	public BwapiVersion(CommonEnvironment env, String versionString) throws InvalidBwapiVersionString
 	{
 		this.versionString = versionString;
+		
+		MyFile dir = new MyFile(env.bwapiVersionsDir(), versionString);
+		if (!dir.exists())
+			throw new InvalidBwapiVersionString(env, this);
+	}
+
+	public MyFile getDir(CommonEnvironment env)
+	{
+		return new MyFile(env.bwapiVersionsDir(), versionString);
 	}
 	
-	public TargetFile getFile(java.util.Map<BwapiVersion, TargetFile> knownBwapiVersions) throws InvalidBwapiVersionString
+	public MyFile getDll(CommonEnvironment env)
 	{
-		TargetFile file = knownBwapiVersions.get(this);
-		
-		if (file != null)
-			return file;
-		else
-			throw new InvalidBwapiVersionString(knownBwapiVersions, this);
+		return new MyFile(getDir(env), "BWAPI.dll");
+	}
+
+	public MyFile getTournamentDll(CommonEnvironment env)
+	{
+		return new MyFile(getDir(env), "tournamentmodule.dll");
 	}
 	
 	@Override

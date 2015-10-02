@@ -11,7 +11,7 @@ import org.yaml.snakeyaml.TypeDescription;
 import org.yaml.snakeyaml.Yaml;
 
 import common.file.MyFile;
-import common.file.TargetFile;
+import common.file.CopyFile;
 import common.yaml.MyConstructor;
 
 public class Bot implements Serializable
@@ -20,7 +20,7 @@ public class Bot implements Serializable
 	public static final TypeDescription typeDescription = new TypeDescription(Bot.class, "!bot");
 	static
 	{
-		typeDescription.putListPropertyType("extraFiles", TargetFile.class);
+		typeDescription.putListPropertyType("extraFiles", CopyFile.class);
 	}
 	
 	
@@ -29,7 +29,7 @@ public class Bot implements Serializable
 	public final Race race;
 	public final BotExecutableType type;
 	public final BwapiVersion bwapiVersion;
-	public final List<TargetFile> extraFiles;
+	public final List<CopyFile> extraFiles;
 	
 	private Bot() //dummy constructor for yaml
 	{
@@ -40,12 +40,12 @@ public class Bot implements Serializable
 		extraFiles = null;
 	}
 	
-	public static Bot load(File botDir, String name) throws IOException
+	public static Bot load(CommonEnvironment env, String name) throws IOException
 	{
-		MyFile dir = new MyFile(botDir, name);
+		MyFile dir = new MyFile(env.botDir(), name);
 		if (!dir.exists())
 			throw new FileNotFoundException("Bot directory '"+dir+"' does not exist");
-		Yaml yaml = new Yaml(new MyConstructor());
+		Yaml yaml = new Yaml(new MyConstructor(env));
 		String yamlData = FileUtils.readFileToString(new File(dir, "bot.yaml"));
 		return yaml.loadAs(yamlData, Bot.class);
 	}
@@ -58,18 +58,28 @@ public class Bot implements Serializable
 		return String.format("{Bot:%s}", name);
 	}
 	
-	public MyFile getDir(File botDir)
+	public MyFile getDir(CommonEnvironment env)
 	{
-		return new MyFile(botDir, name);
+		return new MyFile(env.botDir(), name);
 	}
 
-	public MyFile getReadDir(File botDir)
+	public MyFile getReadDir(CommonEnvironment env)
 	{
-		return new MyFile(getDir(botDir), "read");
+		return new MyFile(getDir(env), "read");
 	}
 
-	public MyFile getWriteDir(File botDir)
+	public MyFile getWriteDir(CommonEnvironment env)
 	{
-		return new MyFile(getDir(botDir), "write");
+		return new MyFile(getDir(env), "write");
+	}
+
+	public MyFile getDll(CommonEnvironment env)
+	{
+		return new MyFile(getDir(env), name+".dll");
+	}
+
+	public String displayName()
+	{
+		return name;
 	}
 }

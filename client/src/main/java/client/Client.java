@@ -8,24 +8,31 @@ import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
-import java.net.MalformedURLException;
 import java.rmi.Naming;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.List;
 
 import javax.imageio.ImageIO;
 
 import org.apache.commons.io.FileUtils;
+import org.yaml.snakeyaml.Yaml;
 
+import common.Game;
 import common.Helper;
 import common.RunnableUnicastRemoteObject;
+import common.exceptions.StarcraftAlreadyRunningException;
+import common.file.CopyFile;
+import common.file.MyFile;
 import common.file.PackedFile;
 import common.protocols.RemoteClient;
 import common.protocols.RemoteServer;
 import common.protocols.RemoteStarcraft;
 import common.utils.WindowsCommandTools;
+import common.yaml.MyConstructor;
 
 public class Client extends RunnableUnicastRemoteObject implements RemoteClient
 {
@@ -35,8 +42,7 @@ public class Client extends RunnableUnicastRemoteObject implements RemoteClient
 	
 	public final ClientEnvironment env;
 	private RemoteServer server = null;
-	private final Starcraft starcraft = new Starcraft(this);
-	private Thread thread = null;
+	private ArrayList<Starcraft> starcrafts = new ArrayList<>();
 
 	public Client(ClientEnvironment env) throws RemoteException
 	{
@@ -44,74 +50,114 @@ public class Client extends RunnableUnicastRemoteObject implements RemoteClient
 	}
 	
 	@Override
-	public synchronized void onRun() throws InterruptedException, MalformedURLException
+	public synchronized void onRun() throws InterruptedException, IOException, StarcraftAlreadyRunningException
 	{
-		thread = Thread.currentThread();
 		if (env.killOtherStarcraftProcessesOnStartup)
 			WindowsCommandTools.killProcess("StarCraft.exe");
 		if (env.addWindowsRegistryEntriesOnStartup)
-			starcraft.addWindowsRegistryEntries();
+			Starcraft.addWindowsRegistryEntries(env.starcraftDir.toString());
 		if (env.addStarcraftFirewallExceptionOnStartup)
 			WindowsCommandTools.RunWindowsCommand("netsh firewall add allowedprogram program = " + new File(env.starcraftDir, "starcraft.exe").getAbsolutePath() + " name = Starcraft mode = ENABLE scope = ALL", true, false);
 		
+		log("connecting to server '%s'", env.serverUrl);
 		while (true)
 		{
-			int attempts = 0;
-			log("connecting to server '%s'", env.serverUrl);
+			server = null;
 			
-			while (server == null)
+			for (int attempts=0; server==null; attempts++)
 			{
 				try
 				{
 					server = (RemoteServer) Naming.lookup(env.serverUrl);
-					server.connect(this);
+					if (attempts > 0)
+						log("");
 				}
 				catch (RemoteException | NotBoundException e)
 				{
 					if (attempts == 0)
-						log("error connecting to server:\n%s", e.getMessage());
+					{
+						if (e.getMessage().matches("Connection refused to host: .*?; nested exception is: \n\tjava.net.ConnectException: Connection refused: connect"))
+							log("error: connection refused");
+						else if (e instanceof NotBoundException)
+							log("error: not bound %s", e.getMessage());
+						else
+							log("error: %s", e.getMessage());
+					}
 					log("retry %d failed...\r", attempts);
-					attempts++;
 	
 					Thread.sleep(1000);
 				}
 			}
+			log("found server, getting files");
 			
-			if (attempts > 0)
-				log("");
+			PackedFile serverDataDir = null;
+			try
+			{
+				serverDataDir = server.getDataDir();
+			}
+			catch (IOException e)
+			{
+				log("error getting server's data dir, reconnecting");
+				e.printStackTrace();
+				continue;
+			}
 			
+			serverDataDir.syncTo(env.dataDir); //don't recover if this throws
+			log("got files");
+			
+			MyFile extraFiles = new MyFile(env.dataDir, "extrafiles.yaml");
+			if (extraFiles.exists())
+			{
+				String extraFilesString = FileUtils.readFileToString(extraFiles);
+				Yaml yaml = new Yaml(new MyConstructor(env));
+				@SuppressWarnings("unchecked")
+				List<CopyFile> copyFiles = yaml.loadAs(extraFilesString, List.class);
+				for (CopyFile copyFile : copyFiles)
+					copyFile.copyDiffering(env.lookupFile(copyFile.extractTo));
+			}
+			else
+				log("'"+extraFiles+"' not found, ignoring");
+			
+			
+			server.connect(this);
 			log("connected");
-			log("ready");
 			
 			try
 			{
-				while (server.isAlive())
+				while (true)
+				{
 					Thread.sleep((long) (env.serverAlivePollPeriod*1000));
+					server.checkAlive();
+				}
 			}
-			catch (RemoteException e) {}
-			
-			log("server disconnected");
-			server = null;
+			catch (RemoteException e)
+			{
+				log("server disconnected");
+			}
 		}
 	}
 	
 	@Override
 	public void onExit() throws RemoteException
 	{
-		starcraft.kill();
-		
-		unexportObject(starcraft, true);
-		
 		if (server != null)
 			server.disconnect(this);
+		
+		for (Starcraft starcraft : starcrafts)
+			starcraft.kill();
 	}
 	
 	@Override
-	public RemoteStarcraft starcraft() throws RemoteException
+	public RemoteStarcraft startMatch(Game game, int index) throws RemoteException, StarcraftAlreadyRunningException
 	{
+		if (!starcrafts.isEmpty() && !env.multiInstance)
+			throw new StarcraftAlreadyRunningException();
+		Starcraft starcraft = new Starcraft(env, game, index);
+		new Thread(starcraft).start();
 		return starcraft;
 	}
 
+	@Deprecated
 	@Override
 	public void delete(String path) throws RemoteException, IOException
 	{
@@ -125,6 +171,7 @@ public class Client extends RunnableUnicastRemoteObject implements RemoteClient
 			file.delete();
 	}
 	
+	@Deprecated
 	@Override
 	public PackedFile getFile(String path) throws IOException
 	{
@@ -133,6 +180,7 @@ public class Client extends RunnableUnicastRemoteObject implements RemoteClient
 		return file;
 	}
 
+	@Deprecated
 	@Override
 	public void extractFile(PackedFile file, String extractTo) throws IOException
 	{
@@ -141,9 +189,8 @@ public class Client extends RunnableUnicastRemoteObject implements RemoteClient
 	}
 	
 	@Override
-	public boolean isAlive()
+	public void checkAlive()
 	{
-		return true;
 	}
 	
 	@Override

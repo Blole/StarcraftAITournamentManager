@@ -19,10 +19,4 @@ public class Done extends GameStatusFile implements Serializable
 		common = null;
 		individual = null;
 	}
-
-	@Override
-	public GameStatus getStatus()
-	{
-		return GameStatus.Done;
-	}
 }

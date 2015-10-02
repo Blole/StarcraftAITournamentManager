@@ -24,7 +24,7 @@ public class Map implements Serializable
 	
 	public String getName()
 	{
-		return new File(path).getName();
+		return new MyFile(path).getName();
 	}
 
 	@Override
@@ -33,8 +33,8 @@ public class Map implements Serializable
 		return String.format("{Map:%s}", getName());
 	}
 	
-	public File getFile(File mapDir)
+	public File getFile(CommonEnvironment env)
 	{
-		return new MyFile(mapDir, path);
+		return new MyFile(env.mapDir(), path);
 	}
 }

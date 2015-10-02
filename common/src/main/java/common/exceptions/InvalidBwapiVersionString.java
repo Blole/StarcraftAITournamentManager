@@ -1,9 +1,10 @@
 package common.exceptions;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import common.BwapiVersion;
-import common.file.TargetFile;
+import common.CommonEnvironment;
 
 public class InvalidBwapiVersionString extends Exception
 {
@@ -11,9 +12,9 @@ public class InvalidBwapiVersionString extends Exception
 	
 	
 	
-	public InvalidBwapiVersionString(java.util.Map<BwapiVersion, TargetFile> knownBwapiVersions, BwapiVersion bwapiVersion)
+	public InvalidBwapiVersionString(CommonEnvironment env, BwapiVersion bwapiVersion)
 	{
-		super("bwapiVersion '"+bwapiVersion+ "' not recognized, known versions are:\n- '"+
-				StringUtils.join(knownBwapiVersions.keySet(), "'\n- '")+"'");
+		super("bwapiVersion '"+bwapiVersion+ "' not recognized, known versions are:\n- "+
+				StringUtils.join(FileUtils.listFiles(env.bwapiVersionsDir(), null, false), "\n- "));
 	}
 }

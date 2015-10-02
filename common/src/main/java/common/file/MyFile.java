@@ -3,7 +3,10 @@ package common.file;
 import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
+import java.util.Iterator;
 
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.filefilter.TrueFileFilter;
 import org.yaml.snakeyaml.TypeDescription;
 
 public class MyFile extends File implements Serializable
@@ -18,6 +21,11 @@ public class MyFile extends File implements Serializable
 	public MyFile(String name)
 	{
 		this(null, name);
+	}
+	
+	public MyFile(File file)
+	{
+		this(null, file.getPath());
 	}
 	
 	public MyFile(File base, String name)
@@ -68,5 +76,40 @@ public class MyFile extends File implements Serializable
 	public String toString()
 	{
 		return super.toString();
+	}
+	
+	public void syncToDirectory(File destDir) throws IOException
+	{
+		FileUtils.forceMkdir(destDir);
+		assert(isDirectory());
+		
+		// delete the extra files
+		Iterator<File> iter = FileUtils.iterateFilesAndDirs(destDir, TrueFileFilter.TRUE, TrueFileFilter.TRUE);
+		while (iter.hasNext())
+		{
+			File fileInDestDir = iter.next();
+			File srcFile = this.toPath().resolve(destDir.toPath().relativize(fileInDestDir.toPath())).toFile();
+			
+			if (!srcFile.exists())
+				FileUtils.forceDelete(fileInDestDir);
+		}
+		// copy in the differing ones
+		copyDiffering(destDir);
+	}
+	
+	public void copyDiffering(File destDir) throws IOException
+	{
+		FileUtils.forceMkdir(destDir);
+		assert(isDirectory());
+		
+		Iterator<File> iter = FileUtils.iterateFiles(this, null, true);
+		while (iter.hasNext())
+		{
+			File srcFile = iter.next();
+			File destFile = destDir.toPath().resolve(this.toPath().relativize(srcFile.toPath())).toFile();
+			
+			if (!FileUtils.contentEquals(srcFile, destFile))
+				FileUtils.copyFile(srcFile, destFile);
+		}
 	}
 }

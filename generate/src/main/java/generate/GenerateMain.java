@@ -11,9 +11,8 @@ import org.yaml.snakeyaml.Yaml;
 import common.Bot;
 import common.Game;
 import common.Map;
-import common.file.MyFile;
-import common.yaml.GameConstructor;
-import common.yaml.GameRepresenter;
+import common.yaml.MyConstructor;
+import common.yaml.MyRepresenter;
 
 
 public final class GenerateMain
@@ -28,11 +27,11 @@ public final class GenerateMain
 		else
 		{
 			//System.setIn(new FileInputStream("generate.yaml")); //TODO: remove line
-			GameConstructor constructor = new GameConstructor(new MyFile("data/bots/")); //TODO: read this 'data/bots/' from somewhere...
+			MyConstructor constructor = new MyConstructor(); //TODO: read this 'data/bots/' from somewhere...
 			//but reading it from the same yaml doesn't work, as the bots we'll read are dependent on the value...
 			constructor.addTypeDescription(GenerationSettings.typeDescription);
 			
-			Yaml yaml = new Yaml(constructor, new GameRepresenter());
+			Yaml yaml = new Yaml(constructor, new MyRepresenter());
 			GenerationSettings settings = yaml.loadAs(System.in, GenerationSettings.class);
 			
 			List<Game> games = generate1v1RoundRobin(settings.rounds, settings.maps, settings.bots);

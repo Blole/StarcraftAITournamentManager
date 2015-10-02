@@ -11,14 +11,23 @@ public abstract class RunnableUnicastRemoteObject extends UnicastRemoteObject im
 	
 	
 	private boolean hasExited = false;
+	private Exception exception = null;
+	public Thread thread;
 	
 	protected RunnableUnicastRemoteObject() throws RemoteException
 	{
+	}
+	
+	protected Exception getException()
+	{
+		return exception;
 	}
 
 	@Override
 	final public void run()
 	{
+		thread = Thread.currentThread();
+		
 		Runtime.getRuntime().addShutdownHook(new Thread()
 		{
 			@Override
@@ -36,7 +45,6 @@ public abstract class RunnableUnicastRemoteObject extends UnicastRemoteObject im
 			}
 		});
 		
-		Throwable exception = null;
 		try
 		{
 			onRun();
@@ -45,7 +53,7 @@ public abstract class RunnableUnicastRemoteObject extends UnicastRemoteObject im
 		{
 			//interruptions are kind of expected
 		}
-		catch (Throwable e)
+		catch (Exception e)
 		{
 			exception = e;
 		}
@@ -54,7 +62,7 @@ public abstract class RunnableUnicastRemoteObject extends UnicastRemoteObject im
 		{
 			exit();
 		}
-		catch (Throwable e)
+		catch (Exception e)
 		{
 			if (exception == null)
 				exception = e;
@@ -80,7 +88,7 @@ public abstract class RunnableUnicastRemoteObject extends UnicastRemoteObject im
 		}
 	}
 	
-	private void exit() throws Throwable
+	private void exit() throws Exception
 	{
 		if (!hasExited)
 		{
@@ -89,12 +97,12 @@ public abstract class RunnableUnicastRemoteObject extends UnicastRemoteObject im
 		}
 	}
 	
-	protected abstract void onRun() throws Throwable;
+	protected abstract void onRun() throws Exception;
 	
 	/**
 	 * To be run after onRun finished, even if an exception was thrown.
 	 * Should never call System.exit() as this method may be called by a
 	 * shutdown hook, and would then deadlock.
 	 */
-	protected abstract void onExit() throws Throwable;
+	protected abstract void onExit() throws Exception;
 }

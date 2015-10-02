@@ -11,10 +11,4 @@ public class Running extends GameStatusFile implements Serializable
 	
 	public Running() {}
 	public Running(String dummy) {}
-	
-	@Override
-	public GameStatus getStatus()
-	{
-		return GameStatus.Running;
-	}
 }

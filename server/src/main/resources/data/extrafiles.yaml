@@ -1,0 +1,3 @@
+#files to copy somewhere special on startup
+#- !copy [data/starcraft/,             $starcraft/bwapi-data/BWTA/]
+#- !copy [data/BWTA2/,                 $starcraft/bwapi-data/BWTA2/]
