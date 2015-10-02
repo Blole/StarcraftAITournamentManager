@@ -156,37 +156,6 @@ public class Client extends RunnableUnicastRemoteObject implements RemoteClient
 		new Thread(starcraft).start();
 		return starcraft;
 	}
-
-	@Deprecated
-	@Override
-	public void delete(String path) throws RemoteException, IOException
-	{
-		File file = env.lookupFile(path);
-		
-		log("deleted %s", file);
-		
-		if (file.isDirectory())
-			FileUtils.deleteDirectory(file);
-		else
-			file.delete();
-	}
-	
-	@Deprecated
-	@Override
-	public PackedFile getFile(String path) throws IOException
-	{
-		log("sending " + path);
-		PackedFile file = PackedFile.get(env.lookupFile(path));
-		return file;
-	}
-
-	@Deprecated
-	@Override
-	public void extractFile(PackedFile file, String extractTo) throws IOException
-	{
-		log("unpacked %20s to %-30s", file.name, extractTo);
-		file.writeTo(env.lookupFile(extractTo));
-	}
 	
 	@Override
 	public void checkAlive()
