@@ -13,25 +13,18 @@ import java.rmi.registry.Registry;
 import java.rmi.server.ServerNotActiveException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Calendar;
-import java.util.Collection;
-import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
-import java.util.stream.Collectors;
 
 import javax.imageio.ImageIO;
 
 import org.apache.commons.io.FileUtils;
-import org.yaml.snakeyaml.Yaml;
-import org.yaml.snakeyaml.error.YAMLException;
 
 import common.Bot;
 import common.Game;
-import common.GameResult;
+import common.GameResults;
 import common.Helper;
 import common.RunnableUnicastRemoteObject;
 import common.exceptions.InvalidResultsException;
@@ -40,8 +33,7 @@ import common.file.PackedFile;
 import common.protocols.RemoteClient;
 import common.protocols.RemoteServer;
 import common.protocols.RemoteStarcraft;
-import common.yaml.MyConstructor;
-import common.yaml.MyRepresenter;
+import common.status.Done;
 
 public class Server extends RunnableUnicastRemoteObject implements RemoteServer
 {
@@ -52,8 +44,7 @@ public class Server extends RunnableUnicastRemoteObject implements RemoteServer
 	private ArrayList<RemoteClient> 		clients = new ArrayList<RemoteClient>();
 	private ArrayList<RemoteClient> 		free = new ArrayList<RemoteClient>();
 	private Lock							gameStarting = new ReentrantLock();
-	private ArrayList<RunningMatch>			runningMatches = new ArrayList<>();
-	private List<Game>						games;
+	private Games							games;
 	
 	private final int						gameRescheduleTimer = 2000;
 	
@@ -66,19 +57,13 @@ public class Server extends RunnableUnicastRemoteObject implements RemoteServer
 	public Server(ServerEnvironment env) throws RemoteException
 	{
 		this.env = env;
+		this.games = new Games(env);
 	}
 	
-	@SuppressWarnings("unchecked")
 	@Override
 	public void onRun() throws RemoteException, MalformedURLException, InterruptedException, IOException
 	{
-		String gamesFileText = FileUtils.readFileToString(env.gameList);
-		games = new Yaml(new MyConstructor(env)).loadAs(gamesFileText, List.class);
-		
-		tryWriteResults();
-		
 		gui = new ServerGUI(this);
-		
 		registry = LocateRegistry.createRegistry(env.port);
 		registry.rebind(env.serverUrlPath, this);
 		log("server listening on '%s'", Helper.getEndpointAddress(this));
@@ -86,19 +71,18 @@ public class Server extends RunnableUnicastRemoteObject implements RemoteServer
 		int finishedRound = -1;
 		int printedWaitingForRoundToFinish = -1;
 		Game prevGame = null;
-		Game nextGame = null;
-		while (!games.stream().allMatch(g-> g.results != null))
+		while (!games.allDone())
 		{
-			nextGame = getNextUnstartedGame(games, runningMatches);
+			ServerGame nextGame = games.getNextUnstartedGame();
 			
 			// if new round
 			if (prevGame != null && (nextGame == null || nextGame.round > prevGame.round) && prevGame.round != finishedRound)
 			{
 				
-				if (runningMatches.isEmpty() && finishedRound < prevGame.round)
+				if (games.runningMatches.isEmpty() && finishedRound < prevGame.round)
 				{
 					log("Round %d finished, moving write directory to read directory", prevGame.round);
-					for (Bot bot : getAllBots(games))
+					for (Bot bot : games.getAllBots())
 						FileUtils.copyDirectory(bot.getWriteDir(env), bot.getReadDir(env));
 					
 					finishedRound = prevGame.round;
@@ -116,7 +100,7 @@ public class Server extends RunnableUnicastRemoteObject implements RemoteServer
 				if (players != null && gameStarting.tryLock())
 				{
 					RunningMatch runningGame = new RunningMatch(nextGame, players);
-					runningMatches.add(runningGame);
+					games.runningMatches.add(runningGame);
 					new Thread(runningGame).start();
 					
 					log(nextGame + " starting");
@@ -173,21 +157,6 @@ public class Server extends RunnableUnicastRemoteObject implements RemoteServer
 		}
 	}
 
-	public void tryWriteResults()
-	{
-		try
-		{
-			Yaml yaml = new Yaml(new MyRepresenter());
-			String yamlText = yaml.dump(games);
-			FileUtils.writeStringToFile(env.results, yamlText);
-		}
-		catch (YAMLException | IOException e)
-		{
-			System.err.println("error writing to results file");
-			e.printStackTrace();
-		}
-	}
-	
 	public void getAndDisplayScreenshotFromClient(RemoteClient client)
 	{
 		try
@@ -283,12 +252,12 @@ public class Server extends RunnableUnicastRemoteObject implements RemoteServer
 	
 	class RunningMatch implements Runnable
 	{
-		private final Game game;
+		public final ServerGame game;
 		private final List<RemoteClient> players;
 		private final List<RemoteStarcraft> starcrafts = new ArrayList<>();
 		private long startTime;
 		
-		RunningMatch(Game game, List<RemoteClient> players)
+		RunningMatch(ServerGame game, List<RemoteClient> players)
 		{
 			this.game = game;
 			this.players = players;
@@ -346,17 +315,24 @@ public class Server extends RunnableUnicastRemoteObject implements RemoteServer
 				
 				log("%s finished, collecting replays", game);
 				
+				PackedFile[] writeDirs = new PackedFile[game.bots.length];
+				GameResults results = new GameResults();
+				PackedFile replay = null;
 				for (int i=0; i<players.size(); i++)
 				{
-					RemoteClient player = players.get(i);
 					RemoteStarcraft starcraft = starcrafts.get(i);
-					Bot bot = game.bots[i];
-					starcraft.getReplay().writeTo(env.replaysDir);
-					starcraft.getWriteDirectory().writeTo(bot.getWriteDir(env));
-					if (game.results == null)
-						game.results = new GameResult();
-					game.results.add(bot, starcraft.getResult());
+					writeDirs[i] = starcraft.getWriteDirectory();
+					
+					replay = starcraft.getReplay();
+					Done done = starcraft.getResult();
+					results.add(i, done);
 				}
+				game.reportResults(results, replay);
+				
+				//do this only after the results have been collected and recorded from everybody,
+				//to minimize the risk that one bot learns more due to disconnecting clients
+				for (int i=0; i<writeDirs.length; i++)
+					writeDirs[i].writeTo(game.bots[i].getWriteDir(env));
 				
 				success = true;
 			}
@@ -398,8 +374,7 @@ public class Server extends RunnableUnicastRemoteObject implements RemoteServer
 					}
 				}
 				free.addAll(players);
-				runningMatches.remove(this);
-				tryWriteResults();
+				games.runningMatches.remove(this);
 			}
 		}
 	}
@@ -408,30 +383,6 @@ public class Server extends RunnableUnicastRemoteObject implements RemoteServer
 	
 	
 	
-	private static Game getNextUnstartedGame(Collection<Game> games, Collection<RunningMatch> runningMatches)
-	{
-		LinkedHashSet<Game> unstartedGames = new LinkedHashSet<>(games);
-		unstartedGames.removeIf(g -> g.results != null);
-		unstartedGames.removeAll(getRunningGames(runningMatches));
-		
-		if (unstartedGames.isEmpty())
-			return null;
-		else
-			return unstartedGames.iterator().next();
-	}
-	
-	private static List<Game> getRunningGames(Collection<RunningMatch> runningMatches)
-	{
-		return runningMatches.stream().map(g -> g.game).collect(Collectors.toList());
-	}
-	
-	private static Set<Bot> getAllBots(List<Game> games)
-	{
-		return games.stream()
-				.flatMap(g -> Arrays.asList(g.bots).stream())
-				.collect(Collectors.toSet());
-	}
-
 	@Override
 	public PackedFile getDataDir() throws IOException
 	{

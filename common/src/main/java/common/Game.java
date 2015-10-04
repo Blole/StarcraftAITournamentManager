@@ -20,7 +20,6 @@ public class Game implements Serializable
 	public final int round;
 	public final Map map;
 	public final Bot[] bots;
-	public GameResult results = null;
 	
 	
 	public Game() //dummy constructor for yaml

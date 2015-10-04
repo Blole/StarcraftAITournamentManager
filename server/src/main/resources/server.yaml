@@ -6,7 +6,5 @@ matchFinishedPollPeriod:  0.7
 killClientsOnExit:  false
 exitWhenDone: false
 
-gameList:    !required  games.yaml
-results:     !file      results.yaml
-
-replaysDir:  !file      replays/
+gameQueueDir:   !required  game_queue
+gameResultsDir: !file      game_results

@@ -12,9 +12,9 @@ import org.yaml.snakeyaml.representer.Represent;
 import common.Bot;
 import common.Game;
 import common.Map;
+import common.file.CopyFile;
 import common.file.MyFile;
 import common.file.RequiredFile;
-import common.file.CopyFile;
 
 public class MyRepresenter extends ScalarRepresenter
 {
@@ -44,8 +44,6 @@ public class MyRepresenter extends ScalarRepresenter
 				properties.add(new FieldProperty(Game.class.getField("round")));
 				properties.add(new FieldProperty(Game.class.getField("map")));
 				properties.add(new FieldProperty(Game.class.getField("bots")));
-				if (game.results != null)
-					properties.add(new FieldProperty(Game.class.getField("results")));
                 return representJavaBean(properties, game);
 			}
     		catch (NoSuchFieldException | SecurityException e)

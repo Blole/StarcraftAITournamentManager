@@ -1,0 +1,5 @@
+!game
+id: 2
+round: 2
+map: aiide/(2)Destination.scx
+bots: [main-mcts, main-attack-closest]

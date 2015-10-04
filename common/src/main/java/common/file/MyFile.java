@@ -72,6 +72,16 @@ public class MyFile extends File implements Serializable
 		return super.getName() + (isDirectory() ? File.separatorChar : "");
 	}
 	
+	public String getNameWithoutExtension()
+	{
+		assert(!isDirectory());
+		String name = super.getName();
+		if (name.lastIndexOf('.') == -1)
+			return name;
+		else
+			return name.substring(0, name.lastIndexOf('.'));
+	}
+	
 	@Override
 	public String toString()
 	{
