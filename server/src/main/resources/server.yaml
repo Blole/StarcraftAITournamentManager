@@ -2,8 +2,9 @@
 serverUrlPath:  scaitm_server
 port:           1099
 
-matchFinishedPollPeriod:  0.7
-killClientsOnExit:  false
+matchFinishedPollPeriod: 0.7
+gameReschedulePeriod: 2
+killClientsOnExit: false
 exitWhenDone: false
 
 gameQueueDir:   !required  game_queue

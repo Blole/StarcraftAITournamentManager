@@ -19,6 +19,7 @@ public class ServerEnvironment extends CommonEnvironment implements Serializable
 	public int port = 1099;
 	
 	public double matchFinishedPollPeriod = 1.0;
+	public double gameReschedulePeriod = 2.0;
 	public boolean killClientsOnExit = false;
 	public boolean exitWhenDone = false;
 	

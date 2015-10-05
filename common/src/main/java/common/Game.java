@@ -57,10 +57,14 @@ public class Game implements Serializable
 	public String toString()
 	{
 		StringBuilder sb = new StringBuilder();
-		for (Bot bot : bots)
-			sb.append(bot.name + " vs. ");
-		sb.setLength(sb.length()-5);
+		if (bots != null)
+		{
+			sb.append(": ");
+			for (Bot bot : bots)
+				sb.append(bot.name + " vs. ");
+			sb.setLength(sb.length()-5);
+		}
 		
-		return String.format("{Game %d/%d: %s}", id, round, sb.toString());
+		return String.format("{Game %d/%d%s}", id, round, sb);
 	}
 }

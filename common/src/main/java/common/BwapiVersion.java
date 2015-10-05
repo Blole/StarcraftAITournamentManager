@@ -3,7 +3,6 @@ package common;
 import java.io.Serializable;
 
 import org.yaml.snakeyaml.TypeDescription;
-import org.yaml.snakeyaml.nodes.Tag;
 
 import common.exceptions.InvalidBwapiVersionString;
 import common.file.MyFile;
@@ -11,7 +10,7 @@ import common.file.MyFile;
 public class BwapiVersion implements Serializable, Comparable<BwapiVersion>
 {
 	private static final long serialVersionUID = -6896962609170302139L;
-	public static final TypeDescription typeDescription = new TypeDescription(BwapiVersion.class, new Tag("!bwapi_ver"));
+	public static final TypeDescription typeDescription = new TypeDescription(BwapiVersion.class, "!bwapi_ver");
 	
 	
 	

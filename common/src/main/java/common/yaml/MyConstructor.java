@@ -2,11 +2,6 @@ package common.yaml;
 
 import java.io.IOException;
 
-import org.yaml.snakeyaml.constructor.Constructor;
-import org.yaml.snakeyaml.nodes.Node;
-import org.yaml.snakeyaml.nodes.NodeId;
-import org.yaml.snakeyaml.nodes.ScalarNode;
-
 import common.Bot;
 import common.BwapiVersion;
 import common.CommonEnvironment;
@@ -21,7 +16,7 @@ import common.status.Done;
 import common.status.Running;
 import common.status.Timeout;
 
-public class MyConstructor extends Constructor
+public class MyConstructor extends ScalarConstructor
 {
 	private void addTypes()
 	{
@@ -49,35 +44,29 @@ public class MyConstructor extends Constructor
 	public MyConstructor(CommonEnvironment env)
 	{
 		addTypes();
-		this.yamlClassConstructors.put(NodeId.scalar, new Constructor(env));
-	}
-
-    private class Constructor extends ConstructScalar
-    {
-    	private CommonEnvironment env = null;
-    	
-    	public Constructor(CommonEnvironment env)
-    	{
-    		this.env = env;
-    	}
-    	
-        @Override
-		public Object construct(Node nnode)
-        {
-        	String string = (String) constructScalar((ScalarNode)nnode);
-            try
+		addScalarConstructor(BwapiVersion.class, s ->
+		{
+			try
 			{
-	        	if (nnode.getType().equals(BwapiVersion.class))
-					return new BwapiVersion(env, string);
-	        	else if (nnode.getType().equals(Bot.class))
-					return Bot.load(env, string);
-        	}
-            catch (IOException | InvalidBwapiVersionString e)
+				return new BwapiVersion(env, s);
+			}
+			catch (InvalidBwapiVersionString e)
 			{
 				throw new RuntimeException(e);
 			}
-            
-            return super.construct(nnode);
-        }
-    }
+		}
+		);
+		addScalarConstructor(Bot.class, s ->
+		{
+			try
+			{
+				return Bot.load(env, s);
+			}
+			catch (IOException e)
+			{
+				throw new RuntimeException(e);
+			}
+		}
+		);
+	}
 }
