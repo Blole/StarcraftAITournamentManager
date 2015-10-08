@@ -1,6 +1,7 @@
 package server;
 
 import java.io.IOException;
+import java.nio.file.FileAlreadyExistsException;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.List;
@@ -34,13 +35,16 @@ public class ServerGame
 	private ServerGameState state;
 	private RunningGame runningGame = null;
 	
-	public ServerGame(Game game, MyFile file, GameQueueManager games)
+	public ServerGame(Game game, MyFile file, GameQueueManager games) throws FileAlreadyExistsException
 	{
 		this.server = games.server;
 		this.games = games;
 		this.state = ServerGameState.QUEUED;
 		this.file = file;
 		this.game = game;
+		
+		if (resultsDir().exists())
+			throw new FileAlreadyExistsException(resultsDir().toString());
 	}
 	
 	public void start(List<RemoteClient> players)

@@ -2,6 +2,7 @@ package server;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.FileAlreadyExistsException;
 import java.rmi.RemoteException;
 import java.util.HashMap;
 import java.util.Set;
@@ -9,6 +10,8 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOCase;
+import org.apache.commons.io.filefilter.SuffixFileFilter;
 import org.apache.commons.io.monitor.FileAlterationListenerAdaptor;
 import org.apache.commons.io.monitor.FileAlterationObserver;
 import org.yaml.snakeyaml.Yaml;
@@ -32,7 +35,7 @@ public class GameQueueManager extends FileAlterationListenerAdaptor
 	{
 		this.server = server;
 		this.env = server.env;
-		this.obs = new FileAlterationObserver(env.gameQueueDir);
+		this.obs = new FileAlterationObserver(env.gameQueueDir, new SuffixFileFilter(".yaml",IOCase.INSENSITIVE));
 		this.yaml = new Yaml(new MyConstructor(server.env));
 		obs.addListener(this);
 	}
@@ -49,24 +52,26 @@ public class GameQueueManager extends FileAlterationListenerAdaptor
 	
 	
 	/**
-	 * @return true if successfully queued
+	 * @return the read game or null if error
 	 */
-	private boolean queue(File file)
+	private ServerGame read(File file)
 	{
 		try
 		{
 			String gameText = FileUtils.readFileToString(file);
 			Game game = yaml.loadAs(gameText, Game.class);
-			ServerGame serverGame = new ServerGame(game, new MyFile(file), this);
-			games.put(file, serverGame);
+			return new ServerGame(game, new MyFile(file), this);
+		}
+		catch (FileAlreadyExistsException e)
+		{
+			server.log("error parsing queued game file '%s', the corresponding results dir already exists '%s'", file, e.getFile());
 		}
 		catch (IOException|YAMLException e)
 		{
 			server.log("error parsing queued game file '%s'", file);
 			e.printStackTrace();
-			return false;
 		}
-		return true;
+		return null;
 	}
 	
 	/**
@@ -89,8 +94,12 @@ public class GameQueueManager extends FileAlterationListenerAdaptor
 	@Override
 	public void onFileCreate(File file)
 	{
-		if (queue(file))
-			server.log(file+" queued");
+		ServerGame game = read(file);
+		if (game != null)
+		{
+			games.put(file, game);
+			server.log(game+" queued");
+		}
 	}
 	
 	@Override
@@ -99,11 +108,11 @@ public class GameQueueManager extends FileAlterationListenerAdaptor
 		ServerGame game = games.get(file);
 		if (game != null && tryStop(game))
 			server.log(game+" stopped");
-			
 		
-		if (queue(file))
+		game = read(file);
+		if (game != null)
 		{
-			game = games.get(file);
+			games.put(file, game);
 			server.log(game+" updated");
 		}
 	}
@@ -140,10 +149,6 @@ public class GameQueueManager extends FileAlterationListenerAdaptor
 	{
 		return gamesInState(ServerGameState.RUNNING);
 	}
-	public Stream<ServerGame> done()
-	{
-		return gamesInState(ServerGameState.DONE);
-	}
 	public ServerGame getNextUnstartedGame()
 	{
 		return queued().findFirst().orElse(null);
@@ -162,7 +167,7 @@ public class GameQueueManager extends FileAlterationListenerAdaptor
 	@Override
 	public String toString()
 	{
-		return String.format("[GameQueueManager %d queued, %d running, %d done]",
-				queued().count(), running().count(), done().count());
+		return String.format("[GameQueueManager %d queued, %d running]",
+				queued().count(), running().count());
 	}
 }

@@ -48,7 +48,6 @@ public class Game implements Serializable
 			sb.append(bots[i].name+"-");
 		
 		sb.setLength(sb.length()-1);
-		sb.append(".rep");
 		
 		return sb.toString();
 	}
