@@ -1,7 +1,7 @@
 package server;
 
+import java.io.File;
 import java.io.IOException;
-import java.nio.file.FileAlreadyExistsException;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.List;
@@ -18,7 +18,9 @@ import common.file.PackedFile;
 import common.protocols.RemoteClient;
 import common.protocols.RemoteStarcraft;
 import common.status.Done;
+import common.yaml.MyConstructor;
 import common.yaml.MyRepresenter;
+import server.exceptions.ServerGameResultsDirAlreadyExistsException;
 
 /**
  * This class "takes ownership" of the yamlFile, and will move it
@@ -35,7 +37,7 @@ public class ServerGame
 	private ServerGameState state;
 	private RunningGame runningGame = null;
 	
-	public ServerGame(Game game, MyFile file, GameQueueManager games) throws FileAlreadyExistsException
+	public ServerGame(Game game, MyFile file, GameQueueManager games) throws ServerGameResultsDirAlreadyExistsException
 	{
 		this.server = games.server;
 		this.games = games;
@@ -44,7 +46,7 @@ public class ServerGame
 		this.game = game;
 		
 		if (resultsDir().exists())
-			throw new FileAlreadyExistsException(resultsDir().toString());
+			throw new ServerGameResultsDirAlreadyExistsException(file, resultsDir());
 	}
 	
 	public void start(List<RemoteClient> players)
@@ -196,5 +198,15 @@ public class ServerGame
 	public String toString()
 	{
 		return game.toString().replace("Game", "ServerGame").replace("}", " "+state().name()+"}");
+	}
+
+	public static ServerGame load(GameQueueManager games, File file_) throws ServerGameResultsDirAlreadyExistsException, IOException
+	{
+		MyFile file = new MyFile(file_);
+		String gameText = FileUtils.readFileToString(file);
+		Yaml yaml = new Yaml(new MyConstructor(games.server.env));
+		Game game = yaml.loadAs(gameText, Game.class);
+		game.id = file.getNameWithoutExtension();
+		return new ServerGame(game, file, games);
 	}
 }

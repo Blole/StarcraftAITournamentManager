@@ -1,0 +1,4 @@
+round: 1
+map: 1m.scx
+bots:
+- main-mcts

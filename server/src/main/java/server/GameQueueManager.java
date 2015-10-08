@@ -2,26 +2,21 @@ package server;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.FileAlreadyExistsException;
 import java.rmi.RemoteException;
 import java.util.HashMap;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOCase;
 import org.apache.commons.io.filefilter.SuffixFileFilter;
 import org.apache.commons.io.monitor.FileAlterationListenerAdaptor;
 import org.apache.commons.io.monitor.FileAlterationObserver;
-import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.error.YAMLException;
 
 import common.Bot;
-import common.Game;
-import common.file.MyFile;
-import common.yaml.MyConstructor;
 import server.ServerGame.ServerGameState;
+import server.exceptions.ServerGameResultsDirAlreadyExistsException;
 
 public class GameQueueManager extends FileAlterationListenerAdaptor
 {
@@ -29,14 +24,12 @@ public class GameQueueManager extends FileAlterationListenerAdaptor
 	public final Server server;
 	private final ServerEnvironment env;
 	private final FileAlterationObserver obs;
-	private Yaml yaml;
 
 	public GameQueueManager(Server server)
 	{
 		this.server = server;
 		this.env = server.env;
 		this.obs = new FileAlterationObserver(env.gameQueueDir, new SuffixFileFilter(".yaml",IOCase.INSENSITIVE));
-		this.yaml = new Yaml(new MyConstructor(server.env));
 		obs.addListener(this);
 	}
 	
@@ -54,17 +47,15 @@ public class GameQueueManager extends FileAlterationListenerAdaptor
 	/**
 	 * @return the read game or null if error
 	 */
-	private ServerGame read(File file)
+	private ServerGame tryRead(File file)
 	{
 		try
 		{
-			String gameText = FileUtils.readFileToString(file);
-			Game game = yaml.loadAs(gameText, Game.class);
-			return new ServerGame(game, new MyFile(file), this);
+			return ServerGame.load(this, file);
 		}
-		catch (FileAlreadyExistsException e)
+		catch (ServerGameResultsDirAlreadyExistsException e)
 		{
-			server.log("error parsing queued game file '%s', the corresponding results dir already exists '%s'", file, e.getFile());
+			server.log(e.getMessage());
 		}
 		catch (IOException|YAMLException e)
 		{
@@ -94,7 +85,7 @@ public class GameQueueManager extends FileAlterationListenerAdaptor
 	@Override
 	public void onFileCreate(File file)
 	{
-		ServerGame game = read(file);
+		ServerGame game = tryRead(file);
 		if (game != null)
 		{
 			games.put(file, game);
@@ -109,7 +100,7 @@ public class GameQueueManager extends FileAlterationListenerAdaptor
 		if (game != null && tryStop(game))
 			server.log(game+" stopped");
 		
-		game = read(file);
+		game = tryRead(file);
 		if (game != null)
 		{
 			games.put(file, game);

@@ -30,7 +30,7 @@ public class Map implements Serializable
 	@Override
 	public String toString()
 	{
-		return String.format("{Map:%s}", getName());
+		return String.format("{Map %s}", getName());
 	}
 	
 	public File getFile(CommonEnvironment env)

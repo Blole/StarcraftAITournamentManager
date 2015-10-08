@@ -51,7 +51,7 @@ public class Starcraft extends RunnableUnicastRemoteObject implements RemoteStar
 		this.game = game;
 		this.index = index;
 		this.bot = game.bots[index];
-		instanceDir = new MyFile("client"+index+"_"+game.getReplayString());
+		instanceDir = new MyFile("game"+game.id+"_player"+index);
 	}
 	
 	@Override

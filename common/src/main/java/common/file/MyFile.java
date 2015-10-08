@@ -82,12 +82,6 @@ public class MyFile extends File implements Serializable
 			return name.substring(0, name.lastIndexOf('.'));
 	}
 	
-	@Override
-	public String toString()
-	{
-		return super.toString();
-	}
-	
 	public void syncToDirectory(File destDir) throws IOException
 	{
 		FileUtils.forceMkdir(destDir);

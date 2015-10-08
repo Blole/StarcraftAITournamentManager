@@ -1,7 +1,9 @@
 package common;
 
 import java.io.Serializable;
+import java.util.stream.Stream;
 
+import org.apache.commons.lang3.StringUtils;
 import org.yaml.snakeyaml.TypeDescription;
 
 
@@ -16,7 +18,7 @@ public class Game implements Serializable
 	
 	
 	
-	public final int id;
+	public String id = null;
 	public final int round;
 	public final Map map;
 	public final Bot[] bots;
@@ -24,46 +26,30 @@ public class Game implements Serializable
 	
 	public Game() //dummy constructor for yaml
 	{
-		id = 0;
 		round = 0;
 		map = null;
 		bots = null;
 	}
 	
-	public Game(int id, int round, Map map, Bot... bots)
+	public Game(String id, int round, Map map, Bot... bots)
 	{
 		this.id = id;
 		this.round = round;
 		this.map = map;
 		this.bots = bots;
 	}
-
-	public String getReplayString()
-	{
-		StringBuilder sb = new StringBuilder();
-		
-		sb.append(String.format("%05d_", id));
-		
-		for (int i=0; i<bots.length; i++)
-			sb.append(bots[i].name+"-");
-		
-		sb.setLength(sb.length()-1);
-		
-		return sb.toString();
-	}
-
+	
 	@Override
 	public String toString()
 	{
-		StringBuilder sb = new StringBuilder();
-		if (bots != null)
-		{
-			sb.append(": ");
-			for (Bot bot : bots)
-				sb.append(bot.name + " vs. ");
-			sb.setLength(sb.length()-5);
-		}
-		
-		return String.format("{Game %d/%d%s}", id, round, sb);
+		return String.format("{Game %s}", id);
+	}
+	
+	public String botsString()
+	{
+		if (bots == null)
+			return "";
+		else
+			return StringUtils.join(Stream.of(bots).map(b->b.name).iterator(), " vs. ");
 	}
 }

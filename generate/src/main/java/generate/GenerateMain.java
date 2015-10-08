@@ -5,14 +5,8 @@ import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.yaml.snakeyaml.TypeDescription;
 import org.yaml.snakeyaml.Yaml;
-
-import common.Bot;
-import common.Game;
-import common.Map;
-import common.yaml.MyConstructor;
-import common.yaml.MyRepresenter;
+import org.yaml.snakeyaml.constructor.Constructor;
 
 
 public final class GenerateMain
@@ -27,56 +21,36 @@ public final class GenerateMain
 		else
 		{
 			//System.setIn(new FileInputStream("generate.yaml")); //TODO: remove line
-			MyConstructor constructor = new MyConstructor(); //TODO: read this 'data/bots/' from somewhere...
-			//but reading it from the same yaml doesn't work, as the bots we'll read are dependent on the value...
-			constructor.addTypeDescription(GenerationSettings.typeDescription);
+			Constructor constructor = new Constructor();
+			constructor.addTypeDescription(GenerationEnvironment.typeDescription);
+			Yaml yaml = new Yaml(constructor);
+			GenerationEnvironment settings = yaml.loadAs(System.in, GenerationEnvironment.class);
 			
-			Yaml yaml = new Yaml(constructor, new MyRepresenter());
-			GenerationSettings settings = yaml.loadAs(System.in, GenerationSettings.class);
-			
-			List<Game> games = generate1v1RoundRobin(settings.rounds, settings.maps, settings.bots);
-			
+			List<GameMockup> games = generate1v1RoundRobin(settings.rounds, settings.maps, settings.bots);
 			yaml.dump(games, new OutputStreamWriter(System.out));
 		}
 	}
 	
-	public static List<Game> generate1v1RoundRobin(int rounds, List<Map> maps, List<Bot> bots)
+	public static List<GameMockup> generate1v1RoundRobin(int rounds, List<String> maps, List<String> bots)
 	{
-		List<Game> games = new ArrayList<>();
-		
-		int id = 0;
+		List<GameMockup> games = new ArrayList<>();
 		
 		for (int round=0; round<rounds; round++)
 		{
-			for(Map map : maps)
+			for(String map : maps)
 			{
 				for (int i = 0; i < bots.size(); i++)
 				{
 					for (int j = i+1; j < bots.size(); j++)
 					{
-						Bot a = bots.get(i);
-						Bot b = bots.get(j);
-						games.add(new Game(id++, round, map, a, b));
+						String a = bots.get(i);
+						String b = bots.get(j);
+						games.add(new GameMockup(round, map, a, b));
 					}
 				}
 			}
 		}
 		
 		return games;
-	}
-	
-	private static class GenerationSettings
-	{
-		public static final TypeDescription typeDescription = new TypeDescription(GenerationSettings.class);
-		static
-		{
-			typeDescription.putListPropertyType("bots", Bot.class);
-			typeDescription.putListPropertyType("maps", Map.class);
-		}
-		
-		public int rounds;
-		public List<Bot> bots;
-		public List<Map> maps;
-		
 	}
 }

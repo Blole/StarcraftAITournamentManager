@@ -10,8 +10,8 @@ import org.apache.commons.io.FileUtils;
 import org.yaml.snakeyaml.TypeDescription;
 import org.yaml.snakeyaml.Yaml;
 
-import common.file.MyFile;
 import common.file.CopyFile;
+import common.file.MyFile;
 import common.yaml.MyConstructor;
 
 public class Bot implements Serializable
@@ -55,7 +55,7 @@ public class Bot implements Serializable
 	@Override
 	public String toString()
 	{
-		return String.format("{Bot:%s}", name);
+		return String.format("{Bot %s}", name);
 	}
 	
 	public MyFile getDir(CommonEnvironment env)

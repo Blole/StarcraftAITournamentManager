@@ -1,4 +1,3 @@
-id: 3
-round: 3
+round: 2
 map: aiide/(2)Destination.scx
 bots: [main-mcts, main-attack-closest]
