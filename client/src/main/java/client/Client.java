@@ -110,8 +110,11 @@ public class Client extends RunnableUnicastRemoteObject implements RemoteClient
 				Yaml yaml = new Yaml(new MyConstructor(env));
 				@SuppressWarnings("unchecked")
 				List<CopyFile> copyFiles = yaml.loadAs(extraFilesString, List.class);
-				for (CopyFile copyFile : copyFiles)
-					copyFile.copyDiffering(env.lookupFile(copyFile.extractTo));
+				if (copyFiles != null)
+				{
+					for (CopyFile copyFile : copyFiles)
+						copyFile.copyDiffering(env.lookupFile(copyFile.extractTo));
+				}
 			}
 			else
 				log("'"+extraFiles+"' not found, ignoring");

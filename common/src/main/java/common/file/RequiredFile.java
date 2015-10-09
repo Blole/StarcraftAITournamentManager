@@ -15,13 +15,31 @@ public class RequiredFile extends MyFile implements Serializable
 	
 	public RequiredFile(String name) throws FileNotFoundException
 	{
-		this(null, name);
+		super(name);
+		check();
+	}
+	
+	public RequiredFile(File file) throws FileNotFoundException
+	{
+		super(file);
+		check();
 	}
 	
 	public RequiredFile(File base, String name) throws FileNotFoundException
 	{
 		super(base, name);
-		
+		check();
+	}
+	
+	@Override
+	public RequiredFile require() throws FileNotFoundException
+	{
+		check(); //check again
+		return this;
+	}
+	
+	private void check() throws FileNotFoundException
+	{
 		if (!exists())
 			throw new FileNotFoundException("File '" + this + "' does not exist");
 	}

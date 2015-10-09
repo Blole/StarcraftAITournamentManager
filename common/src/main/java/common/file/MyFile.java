@@ -1,6 +1,7 @@
 package common.file;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.Iterator;
@@ -47,6 +48,11 @@ public class MyFile extends File implements Serializable
 	}
 	
 	
+	
+	public RequiredFile require() throws FileNotFoundException
+	{
+		return new RequiredFile(this);
+	}
 	
 	@Override
 	public String getAbsolutePath()

@@ -68,9 +68,9 @@ public class Starcraft extends RunnableUnicastRemoteObject implements RemoteStar
 			FileUtils.cleanDirectory(instanceDir);
 			FileUtils.forceDeleteOnExit(instanceDir);
 			
-			File replayFile = new MyFile(instanceDir, "replay.rep");
+			MyFile replayFile = new MyFile(instanceDir, "replay.rep");
 			MyFile statusFile = new MyFile(instanceDir, env.gamestatusFileName);
-			File tournamentYaml = env.tournamentModuleYaml();
+			MyFile tournamentYaml = env.tournamentModuleYaml();
 			
 			if (env.multiInstance)
 			{
@@ -88,26 +88,26 @@ public class Starcraft extends RunnableUnicastRemoteObject implements RemoteStar
 				WindowsCommandTools.RunWindowsCommand(new RequiredFile(env.dataDir, "run_proxy.bat").getAbsolutePath(), false, false);
 			
 			ProcessBuilder pb = new ProcessBuilder();
-			pb.command("injectory.exe", "--launch", "starcraft_multiinstance.exe", "--inject", bot.bwapiVersion.getDll(env).getAbsolutePath(), "--kill-on-exit", "--wait-for-exit");
+			pb.command("data/injectory.exe", "--launch", "starcraft_multiinstance.exe", "--inject", bot.bwapiVersion.getDll(env).getAbsolutePath(), "--kill-on-exit", "--wait-for-exit");
 			pb.directory(starcraftDir);
-			pb.environment().put("BWAPI_CONFIG_INI", 	    				env.iniFile().getAbsolutePath());
-			pb.environment().put("BWAPI_CONFIG_AI__AI",     				bot.getDll(env).getAbsolutePath());
-			pb.environment().put("BWAPI_CONFIG_AI__AI_DBG", 				bot.getDll(env).getAbsolutePath());
-			pb.environment().put("BWAPI_CONFIG_AI__TOURNAMENT",				bot.bwapiVersion.getTournamentDll(env).getAbsolutePath());
+			pb.environment().put("BWAPI_CONFIG_INI", 	    				env.iniFile().require().getAbsolutePath());
+			pb.environment().put("BWAPI_CONFIG_AI__AI",     				bot.getDll(env).require().getAbsolutePath());
+			pb.environment().put("BWAPI_CONFIG_AI__AI_DBG", 				bot.getDll(env).require().getAbsolutePath());
+			pb.environment().put("BWAPI_CONFIG_AI__TOURNAMENT",				bot.bwapiVersion.getTournamentDll(env).require().getAbsolutePath());
 			pb.environment().put("BWAPI_CONFIG_AUTO_MENU__CHARACTER_NAME",	bot.displayName());
 			pb.environment().put("BWAPI_CONFIG_AUTO_MENU__AUTO_RESTART",	"EXIT");
-			pb.environment().put("BWAPI_CONFIG_AUTO_MENU__MAP",				index==0?game.map.getFile(env).getAbsolutePath():"");
+			pb.environment().put("BWAPI_CONFIG_AUTO_MENU__MAP",				index==0?game.map.getFile(env).require().getAbsolutePath():"");
 			pb.environment().put("BWAPI_CONFIG_AUTO_MENU__GAME",			game.id+"");
 			//TODO: pb.environment().put("BWAPI_CONFIG_AUTO_MENU__GAME_TYPE", game.type);
 			pb.environment().put("BWAPI_CONFIG_AUTO_MENU__RACE",			bot.race.toString());
 			pb.environment().put("BWAPI_CONFIG_AUTO_MENU__SAVE_REPLAY",		replayFile.getAbsolutePath());
 			pb.environment().put("BWAPI_CONFIG_AUTO_MENU__WAIT_FOR_MIN_PLAYERS", game.bots.length+"");
 			pb.environment().put("BWAPI_CONFIG_AUTO_MENU__WAIT_FOR_MAX_PLAYERS", game.bots.length+"");
-			pb.environment().put("SCAITM_TOURNAMENT_CONFIG",				tournamentYaml.getAbsolutePath());
+			pb.environment().put("SCAITM_TOURNAMENT_CONFIG",				tournamentYaml.require().getAbsolutePath());
 			pb.environment().put("SCAITM_TOURNAMENT_STATUS_FILE",			statusFile.getAbsolutePath());
 			pb.redirectError(Redirect.INHERIT);
 			pb.redirectOutput(Redirect.INHERIT);
-			//log(pb.command().toString());
+			//log(String.join(" ", pb.command()));
 			
 			if (bot.extraFiles != null)
 			{
@@ -180,6 +180,8 @@ public class Starcraft extends RunnableUnicastRemoteObject implements RemoteStar
 		}
 		finally
 		{
+			starcraftProcess.destroyForcibly();
+			
 			if (env.multiInstance && starcraftExe != null && starcraftExe.exists())
 				starcraftExe.delete();
 		}

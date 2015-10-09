@@ -1,6 +1,5 @@
 package common;
 
-import java.io.File;
 import java.io.Serializable;
 
 import org.yaml.snakeyaml.TypeDescription;
@@ -33,7 +32,7 @@ public class Map implements Serializable
 		return String.format("{Map %s}", getName());
 	}
 	
-	public File getFile(CommonEnvironment env)
+	public MyFile getFile(CommonEnvironment env)
 	{
 		return new MyFile(env.mapDir(), path);
 	}
