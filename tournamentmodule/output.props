@@ -3,7 +3,7 @@
   <ImportGroup Label="PropertySheets" />
   <PropertyGroup Label="UserMacros">
     <BuildDir>$(SolutionDir)/build/$(Configuration)/</BuildDir>
-    <ServerDir>$(SolutionDir)/../build/server/</ServerDir>
+    <ServerDir>$(SolutionDir)/../server/src/main/resources/</ServerDir>
   </PropertyGroup>
   <PropertyGroup>
     <OutDir Condition="'$(ConfigurationType)'=='DynamicLibrary'">$(BuildDir)/bin/</OutDir>

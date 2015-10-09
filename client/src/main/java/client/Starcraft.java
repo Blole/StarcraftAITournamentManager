@@ -103,6 +103,7 @@ public class Starcraft extends RunnableUnicastRemoteObject implements RemoteStar
 			pb.environment().put("BWAPI_CONFIG_AUTO_MENU__SAVE_REPLAY",		replayFile.getAbsolutePath());
 			pb.environment().put("BWAPI_CONFIG_AUTO_MENU__WAIT_FOR_MIN_PLAYERS", game.bots.length+"");
 			pb.environment().put("BWAPI_CONFIG_AUTO_MENU__WAIT_FOR_MAX_PLAYERS", game.bots.length+"");
+			//TODO tournament environment config
 			pb.environment().put("SCAITM_TOURNAMENT_CONFIG",				tournamentYaml.require().getAbsolutePath());
 			pb.environment().put("SCAITM_TOURNAMENT_STATUS_FILE",			statusFile.getAbsolutePath());
 			pb.redirectError(Redirect.INHERIT);

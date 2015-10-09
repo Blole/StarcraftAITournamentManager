@@ -3,7 +3,7 @@
 #include <vector>
 #include <windows.h>
 
-#if (BWAPI_VER == 30704) //3.7.4
+#if (BWAPI_VER == 307) //3.7.x
 	typedef BWAPI::Player*	player_t;
 	typedef BWAPI::Unit*	unit_t;
 	#define nullptr	NULL
