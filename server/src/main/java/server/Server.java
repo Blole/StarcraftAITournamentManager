@@ -21,11 +21,11 @@ import javax.imageio.ImageIO;
 import org.apache.commons.io.FileUtils;
 
 import common.Bot;
-import common.Helper;
 import common.RunnableUnicastRemoteObject;
 import common.file.PackedFile;
 import common.protocols.RemoteClient;
 import common.protocols.RemoteServer;
+import common.utils.Helper;
 
 public class Server extends RunnableUnicastRemoteObject implements RemoteServer
 {
@@ -235,5 +235,11 @@ public class Server extends RunnableUnicastRemoteObject implements RemoteServer
 	public PackedFile getDataDir() throws IOException
 	{
 		return PackedFile.get(env.dataDir);
+	}
+	
+	@Override
+	public String toString()
+	{
+		return String.format("{Server %s}", Helper.getEndpointAddress(this));
 	}
 }

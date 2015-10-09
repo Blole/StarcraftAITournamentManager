@@ -22,7 +22,6 @@ import org.apache.commons.io.FileUtils;
 import org.yaml.snakeyaml.Yaml;
 
 import common.Game;
-import common.Helper;
 import common.RunnableUnicastRemoteObject;
 import common.exceptions.StarcraftAlreadyRunningException;
 import common.file.CopyFile;
@@ -31,6 +30,7 @@ import common.file.PackedFile;
 import common.protocols.RemoteClient;
 import common.protocols.RemoteServer;
 import common.protocols.RemoteStarcraft;
+import common.utils.Helper;
 import common.utils.WindowsCommandTools;
 import common.yaml.MyConstructor;
 
@@ -213,7 +213,6 @@ public class Client extends RunnableUnicastRemoteObject implements RemoteClient
 	@Override
 	public String toString()
 	{
-		return String.format("[Client %s]", Helper.getEndpointAddress(this));
+		return String.format("{Client %s}", Helper.getEndpointAddress(this));
 	}
-
 }

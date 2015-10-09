@@ -23,6 +23,7 @@ import common.file.RequiredFile;
 import common.protocols.RemoteStarcraft;
 import common.status.Done;
 import common.status.GameStatusFile;
+import common.utils.Helper;
 import common.utils.WindowsCommandTools;
 import common.yaml.MyConstructor;
 
@@ -262,5 +263,11 @@ public class Starcraft extends RunnableUnicastRemoteObject implements RemoteStar
 		double sinceMatchStart = (System.currentTimeMillis() - startTime)/1000.0;
 		String matchTimeStamp = String.format("[%02d:%04.3f] ", (int)(sinceMatchStart/60), sinceMatchStart%60);
 		Client.log(matchTimeStamp+format, args);
+	}
+	
+	@Override
+	public String toString()
+	{
+		return String.format("{Starcraft %s}", Helper.getEndpointAddress(this));
 	}
 }
