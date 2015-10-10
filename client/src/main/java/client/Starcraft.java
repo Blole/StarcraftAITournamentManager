@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.ProcessBuilder.Redirect;
 import java.rmi.RemoteException;
-import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.io.FileUtils;
@@ -31,6 +30,7 @@ public class Starcraft extends RunnableUnicastRemoteObject implements RemoteStar
 {
 	private static final long serialVersionUID = 5069349040098758632L;
 	
+	final private Client client;
 	final private ClientEnvironment env;
 	final private Game game;
 	final private int index;
@@ -46,9 +46,10 @@ public class Starcraft extends RunnableUnicastRemoteObject implements RemoteStar
 	private MyFile instanceDir;
 	private Process starcraftProcess = null;
 
-	public Starcraft(ClientEnvironment env, Game game, int index) throws RemoteException
+	public Starcraft(Client client, Game game, int index) throws RemoteException
 	{
-		this.env = env;
+		this.client = client;
+		this.env = client.env;
 		this.game = game;
 		this.index = index;
 		this.bot = game.bots[index];
@@ -59,7 +60,6 @@ public class Starcraft extends RunnableUnicastRemoteObject implements RemoteStar
 	protected void onRun() throws IOException
 	{
 		startTime = System.currentTimeMillis();
-		File starcraftExe = null;
 		try
 		{
 			File starcraftDir = env.starcraftDir;
@@ -72,17 +72,6 @@ public class Starcraft extends RunnableUnicastRemoteObject implements RemoteStar
 			MyFile replayFile = new MyFile(instanceDir, "replay.rep");
 			MyFile statusFile = new MyFile(instanceDir, env.gamestatusFileName);
 			MyFile tournamentYaml = env.tournamentModuleYaml();
-			
-			if (env.multiInstance)
-			{
-				starcraftExe = new File(starcraftDir, String.format("StarCraft_%08x.exe", new Random().nextInt(0x7fffffff)));
-				FileUtils.copyFile(new File(starcraftDir, "StarCraft_MultiInstance.exe"), starcraftExe);
-				log("exe is: "+starcraftExe.getName());
-			}
-			else
-			{
-				starcraftExe = new File(starcraftDir, "StarCraft.exe");
-			}
 			
 			// If this is a proxy bot, start the proxy bot script before StarCraft starts
 			if (bot.type == BotExecutableType.proxy)
@@ -183,9 +172,6 @@ public class Starcraft extends RunnableUnicastRemoteObject implements RemoteStar
 		finally
 		{
 			starcraftProcess.destroyForcibly();
-			
-			if (env.multiInstance && starcraftExe != null && starcraftExe.exists())
-				starcraftExe.delete();
 		}
 	}
 	
@@ -193,6 +179,7 @@ public class Starcraft extends RunnableUnicastRemoteObject implements RemoteStar
 	protected void onExit()
 	{
 		FileUtils.deleteQuietly(instanceDir);
+		client.onMatchDone(this);
 	}
 	
 	@Override
@@ -261,7 +248,7 @@ public class Starcraft extends RunnableUnicastRemoteObject implements RemoteStar
 	private void log(String format, Object... args)
 	{
 		double sinceMatchStart = (System.currentTimeMillis() - startTime)/1000.0;
-		String matchTimeStamp = String.format("[%02d:%04.3f] ", (int)(sinceMatchStart/60), sinceMatchStart%60);
+		String matchTimeStamp = String.format("[%02d:%02d] ", (int)(sinceMatchStart/60), (int)(sinceMatchStart%60));
 		Client.log(matchTimeStamp+format, args);
 	}
 	

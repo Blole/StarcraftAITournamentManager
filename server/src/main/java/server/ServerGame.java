@@ -4,22 +4,22 @@ import java.io.File;
 import java.io.IOException;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
-import java.util.List;
 
 import org.apache.commons.io.FileUtils;
 import org.yaml.snakeyaml.Yaml;
 
 import common.Game;
 import common.GameResults;
+import common.exceptions.AllStarcraftInstanceSlotsAlreadyUsedException;
 import common.exceptions.InvalidResultsException;
 import common.exceptions.StarcraftException;
 import common.file.MyFile;
 import common.file.PackedFile;
-import common.protocols.RemoteClient;
 import common.protocols.RemoteStarcraft;
 import common.status.Done;
 import common.yaml.MyConstructor;
 import common.yaml.MyRepresenter;
+import server.exceptions.NotEnoughStarcraftInstancesCouldBeStartedException;
 import server.exceptions.ServerGameResultsDirAlreadyExistsException;
 
 /**
@@ -30,17 +30,15 @@ public class ServerGame
 {
 	public static enum ServerGameState {QUEUED, RUNNING, DONE, ERROR};
 	private final Server server;
-	private final GameQueueManager games;
 	public final Game game;
 	public final MyFile file;
 	
 	private ServerGameState state;
 	private RunningGame runningGame = null;
 	
-	public ServerGame(Game game, MyFile file, GameQueueManager games) throws ServerGameResultsDirAlreadyExistsException
+	public ServerGame(Game game, MyFile file, Server server) throws ServerGameResultsDirAlreadyExistsException
 	{
-		this.server = games.server;
-		this.games = games;
+		this.server = server;
 		this.state = ServerGameState.QUEUED;
 		this.file = file;
 		this.game = game;
@@ -49,11 +47,33 @@ public class ServerGame
 			throw new ServerGameResultsDirAlreadyExistsException(file, resultsDir());
 	}
 	
-	public void start(List<RemoteClient> players)
+	public void start() throws NotEnoughStarcraftInstancesCouldBeStartedException
 	{
-		runningGame = new RunningGame(players);
+		ArrayList<RemoteStarcraft> starcrafts = new ArrayList<>();
+		for (ProxyClient client : server.clientManager.clients())
+		{
+			try
+			{
+				while (starcrafts.size() < game.bots.length)
+					starcrafts.add(client.startMatch(game, starcrafts.size()));
+			}
+			catch (RemoteException e)
+			{
+				server.clientManager.disconnected(client);
+			}
+			catch (AllStarcraftInstanceSlotsAlreadyUsedException e)
+			{
+			}
+		}
+		
+		if (starcrafts.size() < game.bots.length)
+			throw new NotEnoughStarcraftInstancesCouldBeStartedException(this, starcrafts.size());
+		
+		runningGame = new RunningGame(starcrafts);
 		runningGame.start();
 		state = ServerGameState.RUNNING;
+		
+		//server.gui.UpdateRunningStats(player, game, i, startTime);
 	}
 	
 	/**
@@ -92,7 +112,7 @@ public class ServerGame
 			throw e;
 		}
 		state = ServerGameState.DONE;
-		games.checkAndNotify();
+		server.gameManager.checkAndNotify();
 	}
 	
 	public void onException(Exception e)
@@ -107,30 +127,19 @@ public class ServerGame
 	
 	private class RunningGame extends Thread
 	{
-		private List<RemoteClient> players = null;
+		private final ArrayList<RemoteStarcraft> starcrafts;
 		
-		public RunningGame(List<RemoteClient> players)
+		public RunningGame(ArrayList<RemoteStarcraft> starcrafts)
 		{
-			this.players = players;
+			this.starcrafts = starcrafts;
 		}
 
 		@Override
 		public void run()
 		{
 			server.log(game + " starting");
-			List<RemoteStarcraft> starcrafts = new ArrayList<>();
-			long startTime = System.currentTimeMillis();
 			try
 			{
-				for (int i=0; i<players.size(); i++)
-				{
-					RemoteClient player = players.get(i);
-					RemoteStarcraft starcraft = player.startMatch(game, i);
-					server.gui.UpdateRunningStats(player, game, i, startTime);
-					starcrafts.add(starcraft);
-				}
-				
-				
 				while (true)
 				{
 					boolean allDone = true;
@@ -146,7 +155,7 @@ public class ServerGame
 				PackedFile[] writeDirs = new PackedFile[game.bots.length];
 				GameResults results = new GameResults();
 				PackedFile replay = null;
-				for (int i=0; i<players.size(); i++)
+				for (int i=0; i<game.bots.length; i++)
 				{
 					RemoteStarcraft starcraft = starcrafts.get(i);
 					writeDirs[i] = starcraft.getWriteDirectory();
@@ -175,7 +184,7 @@ public class ServerGame
 			}
 			finally
 			{
-				games.server.free.addAll(players);
+				server.notifyAll();
 			}
 		}
 	}
@@ -200,13 +209,13 @@ public class ServerGame
 		return game.toString().replace("Game", "ServerGame").replace("}", " "+state().name()+"}");
 	}
 
-	public static ServerGame load(GameQueueManager games, File file_) throws ServerGameResultsDirAlreadyExistsException, IOException
+	public static ServerGame load(Server server, File file_) throws ServerGameResultsDirAlreadyExistsException, IOException
 	{
 		MyFile file = new MyFile(file_);
 		String gameText = FileUtils.readFileToString(file);
-		Yaml yaml = new Yaml(new MyConstructor(games.server.env));
+		Yaml yaml = new Yaml(new MyConstructor(server.env));
 		Game game = yaml.loadAs(gameText, Game.class);
 		game.id = file.getNameWithoutExtension();
-		return new ServerGame(game, file, games);
+		return new ServerGame(game, file, server);
 	}
 }

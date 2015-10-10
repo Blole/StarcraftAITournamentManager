@@ -12,7 +12,7 @@ serverAlivePollPeriod: 5.0
 killOtherStarcraftProcessesOnStartup:   false
 addStarcraftFirewallExceptionOnStartup: false
 
-multiInstance:  false
+maxStarcraftInstances: 1
 matchStartingTimeout:    40
 matchAlivePollPeriod:    5
 starcraftClosingTimeout: 10

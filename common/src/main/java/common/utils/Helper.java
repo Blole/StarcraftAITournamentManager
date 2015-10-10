@@ -22,4 +22,16 @@ public abstract class Helper
 		{}
 		return endpointAddress;
 	}
+	
+	public int getUnusedPortAbove(int start) throws IOException
+	{
+		try (ServerSocket socket = new ServerSocket(start))
+		{
+			return socket.getLocalPort();
+		}
+		catch (IOException e)
+		{
+			throw new IOException("Error finding unused port above "+start, e);
+		}
+	}
 }

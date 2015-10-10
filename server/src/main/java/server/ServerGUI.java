@@ -105,7 +105,7 @@ public class ServerGUI
             	
             	if (command != null && command.trim().length() > 0)
             	{
-            		server.sendCommandToAllClients(command);
+            		server.clientManager.sendCommandToAll(command);
             	}
             }
         });

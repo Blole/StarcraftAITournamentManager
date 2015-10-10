@@ -23,7 +23,7 @@ import org.yaml.snakeyaml.Yaml;
 
 import common.Game;
 import common.RunnableUnicastRemoteObject;
-import common.exceptions.StarcraftAlreadyRunningException;
+import common.exceptions.AllStarcraftInstanceSlotsAlreadyUsedException;
 import common.file.CopyFile;
 import common.file.MyFile;
 import common.file.PackedFile;
@@ -42,7 +42,7 @@ public class Client extends RunnableUnicastRemoteObject implements RemoteClient
 	
 	public final ClientEnvironment env;
 	private RemoteServer server = null;
-	private ArrayList<Starcraft> starcrafts = new ArrayList<>();
+	private ArrayList<Starcraft> runningStarcrafts = new ArrayList<>();
 
 	public Client(ClientEnvironment env) throws RemoteException
 	{
@@ -50,7 +50,7 @@ public class Client extends RunnableUnicastRemoteObject implements RemoteClient
 	}
 	
 	@Override
-	public synchronized void onRun() throws InterruptedException, IOException, StarcraftAlreadyRunningException
+	public synchronized void onRun() throws InterruptedException, IOException, AllStarcraftInstanceSlotsAlreadyUsedException
 	{
 		if (env.killOtherStarcraftProcessesOnStartup)
 			WindowsCommandTools.killProcess("StarCraft.exe");
@@ -136,9 +136,9 @@ public class Client extends RunnableUnicastRemoteObject implements RemoteClient
 				log("server disconnected");
 			}
 			
-			for (Starcraft starcraft : starcrafts)
+			for (Starcraft starcraft : runningStarcrafts)
 				starcraft.kill();
-			starcrafts.clear();
+			runningStarcrafts.clear();
 		}
 	}
 	
@@ -148,19 +148,31 @@ public class Client extends RunnableUnicastRemoteObject implements RemoteClient
 		if (server != null)
 			server.disconnect(this);
 		
-		for (Starcraft starcraft : starcrafts)
+		for (Starcraft starcraft : runningStarcrafts)
 			starcraft.kill();
-		starcrafts.clear();
+		runningStarcrafts.clear();
 	}
 	
 	@Override
-	public RemoteStarcraft startMatch(Game game, int index) throws RemoteException, StarcraftAlreadyRunningException
+	public RemoteStarcraft startMatch(Game game, int index) throws RemoteException, AllStarcraftInstanceSlotsAlreadyUsedException
 	{
-		if (!starcrafts.isEmpty() && !env.multiInstance)
-			throw new StarcraftAlreadyRunningException();
-		Starcraft starcraft = new Starcraft(env, game, index);
+		if (getNumberOfUnusedStarcraftInstanceSlots() <= 0)
+			throw new AllStarcraftInstanceSlotsAlreadyUsedException(env.maxStarcraftInstances);
+		Starcraft starcraft = new Starcraft(this, game, index);
+		runningStarcrafts.add(starcraft);
 		new Thread(starcraft).start();
 		return starcraft;
+	}
+
+	public void onMatchDone(Starcraft starcraft)
+	{
+		runningStarcrafts.remove(starcraft);
+	}
+	
+	@Override
+	public int getNumberOfUnusedStarcraftInstanceSlots()
+	{
+		return env.maxStarcraftInstances - runningStarcrafts.size();
 	}
 	
 	@Override
@@ -208,6 +220,12 @@ public class Client extends RunnableUnicastRemoteObject implements RemoteClient
 		String timeStamp = new SimpleDateFormat("[HH:mm:ss]").format(Calendar.getInstance().getTime());
 		String line = timeStamp+" "+String.format(format, args);
 		System.out.print(line + (line.endsWith("\r")?"":"\n"));
+	}
+	
+	@Override
+	public String endpointAddress()
+	{
+		return Helper.getEndpointAddress(this);
 	}
 	
 	@Override

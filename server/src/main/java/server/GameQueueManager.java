@@ -21,15 +21,13 @@ import server.exceptions.ServerGameResultsDirAlreadyExistsException;
 public class GameQueueManager extends FileAlterationListenerAdaptor
 {
 	private HashMap<File, ServerGame> games = new HashMap<>();
-	public final Server server;
-	private final ServerEnvironment env;
+	private final Server server;
 	private final FileAlterationObserver obs;
 
 	public GameQueueManager(Server server)
 	{
 		this.server = server;
-		this.env = server.env;
-		this.obs = new FileAlterationObserver(env.gameQueueDir, new SuffixFileFilter(".yaml",IOCase.INSENSITIVE));
+		this.obs = new FileAlterationObserver(server.env.gameQueueDir, new SuffixFileFilter(".yaml",IOCase.INSENSITIVE));
 		obs.addListener(this);
 	}
 	
@@ -51,7 +49,7 @@ public class GameQueueManager extends FileAlterationListenerAdaptor
 	{
 		try
 		{
-			return ServerGame.load(this, file);
+			return ServerGame.load(server, file);
 		}
 		catch (ServerGameResultsDirAlreadyExistsException e)
 		{
