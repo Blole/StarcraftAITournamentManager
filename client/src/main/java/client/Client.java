@@ -197,8 +197,8 @@ public class Client extends RunnableUnicastRemoteObject implements RemoteClient
 	public void kill()
 	{
 		log("killed by server");
-		if (thread != null)
-			thread.interrupt();
+		if (thread() != null)
+			thread().interrupt();
 	}
 
 	@Override

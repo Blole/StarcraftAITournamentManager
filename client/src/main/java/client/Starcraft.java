@@ -48,6 +48,7 @@ public class Starcraft extends RunnableUnicastRemoteObject implements RemoteStar
 
 	public Starcraft(Client client, Game game, int index) throws RemoteException
 	{
+		super(false); //don't unexport automatically
 		this.client = client;
 		this.env = client.env;
 		this.game = game;
@@ -184,8 +185,8 @@ public class Starcraft extends RunnableUnicastRemoteObject implements RemoteStar
 	
 	public void killLocal()
 	{
-		if (thread != null && thread.isAlive())
-			thread.interrupt();
+		if (thread() != null && thread().isAlive())
+			thread().interrupt();
 	}
 	
 	@Override
@@ -199,11 +200,14 @@ public class Starcraft extends RunnableUnicastRemoteObject implements RemoteStar
 	public boolean isFinished() throws StarcraftException
 	{
 		if (exception != null)
+		{
+			tryUnexport(true); //unexport now that we've thrown the exception
 			throw exception;
-		else if (thread == null)
+		}
+		else if (thread() == null)
 			return false;
 		else
-			return !thread.isAlive();
+			return !thread().isAlive();
 	}
 	
 	private void checkFinished() throws StarcraftException

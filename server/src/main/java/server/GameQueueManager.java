@@ -2,7 +2,6 @@ package server;
 
 import java.io.File;
 import java.io.IOException;
-import java.rmi.RemoteException;
 import java.util.HashMap;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -63,23 +62,6 @@ public class GameQueueManager extends FileAlterationListenerAdaptor
 		return null;
 	}
 	
-	/**
-	 * @return true if the game was running and stopped
-	 */
-	private boolean tryStop(ServerGame game)
-	{
-		try
-		{
-			return game.stop();
-		}
-		catch (RemoteException e)
-		{
-			server.log(game+" error stopping");
-			e.printStackTrace();
-		}
-		return false;
-	}
-	
 	@Override
 	public void onFileCreate(File file)
 	{
@@ -95,7 +77,7 @@ public class GameQueueManager extends FileAlterationListenerAdaptor
 	public void onFileChange(File file)
 	{
 		ServerGame game = games.get(file);
-		if (game != null && tryStop(game))
+		if (game != null && game.stop())
 			server.log(game+" stopped");
 		
 		game = tryRead(file);
@@ -116,7 +98,7 @@ public class GameQueueManager extends FileAlterationListenerAdaptor
 		ServerGame game = games.remove(file);
 		if (game != null)
 		{
-			if (tryStop(game))
+			if (game.stop())
 				server.log(game+" stopped");
 			else
 				server.log(game+" unqueued");

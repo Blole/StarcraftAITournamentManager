@@ -121,8 +121,6 @@ public class Server extends RunnableUnicastRemoteObject implements RemoteServer
 	{
 		if (serverGame.state() == ServerGameState.DONE)
 			log("%s: done", serverGame);
-		else
-			log("%s: error", serverGame);
 		notifyAll();
 	}
 	

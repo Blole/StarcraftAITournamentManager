@@ -12,15 +12,40 @@ public abstract class RunnableUnicastRemoteObject extends UnicastRemoteObject im
 	
 	private boolean hasExited = false;
 	private Exception exception = null;
-	public Thread thread;
+	private Thread thread = null;
+	private final boolean unexportAfterExit;
+	
 	
 	protected RunnableUnicastRemoteObject() throws RemoteException
 	{
+		this(true);
+	}
+	
+	protected RunnableUnicastRemoteObject(boolean unexportAfterExit) throws RemoteException
+	{
+		this.unexportAfterExit = unexportAfterExit;
 	}
 	
 	protected Exception getException()
 	{
 		return exception;
+	}
+	
+	public Thread thread()
+	{
+		return thread;
+	}
+
+	protected void tryUnexport(boolean force)
+	{
+		try
+		{
+			unexportObject(this, force);
+		}
+		catch (NoSuchObjectException e1)
+		{
+			//already unexported
+		}
 	}
 
 	@Override
@@ -70,14 +95,8 @@ public abstract class RunnableUnicastRemoteObject extends UnicastRemoteObject im
 				exception.addSuppressed(e);
 		}
 		
-		try
-		{
-			unexportObject(this, true);
-		}
-		catch (NoSuchObjectException e1)
-		{
-			//already unexported
-		}
+		if (unexportAfterExit)
+			tryUnexport(true);
 		
 		if (exception != null)
 		{

@@ -79,7 +79,7 @@ public class ServerGame
 	/**
 	 * @return true if the game was running and stopped
 	 */
-	public boolean stop() throws RemoteException
+	public boolean stop()
 	{
 		if (runningGame == null)
 			return false;
@@ -140,7 +140,7 @@ public class ServerGame
 		public void run()
 		{
 			Exception exception = null;
-			server.log(game + " starting");
+			server.log("%s starting", this);
 			try
 			{
 				while (true)

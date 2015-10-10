@@ -83,7 +83,7 @@ public class ServerGUI
             	//int confirmed = JOptionPane.showConfirmDialog(mainFrame, "Shutdown Server: This will stop the entire tournament.", "Shutdown Confirmation", JOptionPane.YES_NO_OPTION);
     			//if (confirmed == JOptionPane.YES_OPTION)
     			{
-    				server.thread.interrupt();
+    				server.thread().interrupt();
     			}
             }
         });
@@ -151,7 +151,7 @@ public class ServerGUI
     			//int confirmed = JOptionPane.showConfirmDialog(mainFrame, "Shutdown Server: Are you sure?", "Shutdown Confirmation", JOptionPane.YES_NO_OPTION);
     			//if (confirmed == JOptionPane.YES_OPTION)
     			{
-    				server.thread.interrupt();
+    				server.thread().interrupt();
     			}
             }
 	    });
