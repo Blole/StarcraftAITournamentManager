@@ -126,7 +126,7 @@ public class Server extends RunnableUnicastRemoteObject implements RemoteServer
 		notifyAll();
 	}
 	
-	public void getAndDisplayScreenshotFromClient(RemoteClient client)
+	public void getAndDisplayScreenshotFromClient(ProxyClient client)
 	{
 		try
 		{
@@ -160,7 +160,7 @@ public class Server extends RunnableUnicastRemoteObject implements RemoteServer
 	@Override
 	public void disconnect(RemoteClient client)
 	{
-		clientManager.disconnected(client);
+		clientManager.clientWantsToDisconnect(client);
 		gui.RemoveClient(client.toString());
 	}
 

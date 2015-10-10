@@ -23,7 +23,7 @@ import org.yaml.snakeyaml.Yaml;
 
 import common.Game;
 import common.RunnableUnicastRemoteObject;
-import common.exceptions.AllStarcraftInstanceSlotsAlreadyUsedException;
+import common.exceptions.AllStarcraftInstanceSlotsAlreadyBusyException;
 import common.file.CopyFile;
 import common.file.MyFile;
 import common.file.PackedFile;
@@ -50,7 +50,7 @@ public class Client extends RunnableUnicastRemoteObject implements RemoteClient
 	}
 	
 	@Override
-	public synchronized void onRun() throws InterruptedException, IOException, AllStarcraftInstanceSlotsAlreadyUsedException
+	public synchronized void onRun() throws InterruptedException, IOException, AllStarcraftInstanceSlotsAlreadyBusyException
 	{
 		if (env.killOtherStarcraftProcessesOnStartup)
 			WindowsCommandTools.killProcess("StarCraft.exe");
@@ -119,12 +119,11 @@ public class Client extends RunnableUnicastRemoteObject implements RemoteClient
 			else
 				log("'"+extraFiles+"' not found, ignoring");
 			
-			
-			server.connect(this);
-			log("connected");
-			
 			try
 			{
+				server.connect(this);
+				log("connected");
+				
 				while (true)
 				{
 					Thread.sleep((long) (env.serverAlivePollPeriod*1000));
@@ -133,44 +132,58 @@ public class Client extends RunnableUnicastRemoteObject implements RemoteClient
 			}
 			catch (RemoteException e)
 			{
-				log("server disconnected");
+				log("server disconnected, reconnecting");
 			}
 			
-			for (Starcraft starcraft : runningStarcrafts)
-				starcraft.kill();
-			runningStarcrafts.clear();
+			killAllStarcrafts();
 		}
 	}
 	
 	@Override
-	public void onExit() throws RemoteException
+	public void onExit()
 	{
 		if (server != null)
-			server.disconnect(this);
+		{
+			try
+			{
+				server.disconnect(this); //courtesy
+			}
+			catch (RemoteException e)
+			{
+			}
+		}
 		
-		for (Starcraft starcraft : runningStarcrafts)
-			starcraft.kill();
-		runningStarcrafts.clear();
+		killAllStarcrafts();
 	}
 	
 	@Override
-	public RemoteStarcraft startMatch(Game game, int index) throws RemoteException, AllStarcraftInstanceSlotsAlreadyUsedException
+	public RemoteStarcraft startMatch(Game game, int index) throws RemoteException, AllStarcraftInstanceSlotsAlreadyBusyException
 	{
-		if (getNumberOfUnusedStarcraftInstanceSlots() <= 0)
-			throw new AllStarcraftInstanceSlotsAlreadyUsedException(env.maxStarcraftInstances);
+		if (getOpenStarcraftInstanceSlotCount() <= 0)
+			throw new AllStarcraftInstanceSlotsAlreadyBusyException(env.maxStarcraftInstances);
 		Starcraft starcraft = new Starcraft(this, game, index);
 		runningStarcrafts.add(starcraft);
 		new Thread(starcraft).start();
 		return starcraft;
 	}
 
-	public void onMatchDone(Starcraft starcraft)
+	public void onStarcraftExit(Starcraft starcraft)
 	{
 		runningStarcrafts.remove(starcraft);
 	}
 	
+	private void killAllStarcrafts()
+	{
+		if (!runningStarcrafts.isEmpty())
+		{
+			for (Starcraft starcraft : new ArrayList<Starcraft>(runningStarcrafts))
+				starcraft.killLocal();
+			log("killed all starcraft instances");
+		}
+	}
+	
 	@Override
-	public int getNumberOfUnusedStarcraftInstanceSlots()
+	public int getOpenStarcraftInstanceSlotCount()
 	{
 		return env.maxStarcraftInstances - runningStarcrafts.size();
 	}

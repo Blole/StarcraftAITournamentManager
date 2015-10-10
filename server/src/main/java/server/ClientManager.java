@@ -16,26 +16,22 @@ public class ClientManager
 		this.server = server;
 	}
 
-	public void connected(RemoteClient client_) throws RemoteException
+	public void connected(RemoteClient remoteClient) throws RemoteException
 	{
-		ProxyClient client = new ProxyClient(client_);
+		ProxyClient client = new ProxyClient(server, remoteClient);
 		clients.add(client);
 		server.log("%s connected", client);
 	}
 
-	public void disconnected(RemoteClient client_)
+	public void clientWantsToDisconnect(RemoteClient remoteClient)
 	{
-		ProxyClient client;
-		if (client_ instanceof ProxyClient)
-			client = (ProxyClient) client_;
-		else
-		{
-			Optional<ProxyClient> cliento = clients.stream().filter(pc->pc.remote.equals(client_)).findFirst();
-			if (!cliento.isPresent())
-				return;
-			client = cliento.get();
-		}
-		
+		Optional<ProxyClient> cliento = clients.stream().filter(pc->pc.remote.equals(remoteClient)).findFirst();
+		if (cliento.isPresent())
+			disconnected(cliento.get());
+	}
+	
+	public void disconnected(ProxyClient client)
+	{
 		clients.remove(client);
 		server.log("%s disconnected", client);
 	}
@@ -50,18 +46,25 @@ public class ClientManager
 		int sum = 0;
 		
 		for (ProxyClient client : clients())
+			sum += client.getOpenStarcraftInstanceSlotCountOrZero();
+		
+		return sum;
+	}
+	
+	void killAll()
+	{
+		server.log("killing all clients");
+		for (ProxyClient client : clients())
 		{
 			try
 			{
-				sum += client.getNumberOfUnusedStarcraftInstanceSlots();
+				client.kill();
 			}
 			catch (RemoteException e)
 			{
-				disconnected(client);
 			}
 		}
-		
-		return sum;
+		clients.clear();
 	}
 
 	public void sendCommandToAll(String command)
@@ -76,25 +79,7 @@ public class ClientManager
 			catch (RemoteException e)
 			{
 				server.log("error sending command to "+client);
-				disconnected(client);
 			}
 		}
-	}
-	
-	void killAll()
-	{
-		server.log("killing all clients");
-		for (ProxyClient client : clients())
-		{
-			try
-			{
-				client.kill();
-			}
-			catch (RemoteException e)
-			{
-				server.log("error killing "+client);
-			}
-		}
-		clients.clear();
 	}
 }

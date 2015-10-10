@@ -3,17 +3,19 @@ package server;
 import java.rmi.RemoteException;
 
 import common.Game;
-import common.exceptions.AllStarcraftInstanceSlotsAlreadyUsedException;
+import common.exceptions.AllStarcraftInstanceSlotsAlreadyBusyException;
 import common.protocols.RemoteClient;
 import common.protocols.RemoteStarcraft;
 
 public class ProxyClient implements RemoteClient
 {
+	private final Server server;
 	public final RemoteClient remote;
-	private final String cachedEndpointAddress;
+	private String cachedEndpointAddress = null;
 	
-	ProxyClient(RemoteClient remote) throws RemoteException
+	ProxyClient(Server server, RemoteClient remote) throws RemoteException
 	{
+		this.server = server;
 		this.remote = remote;
 		this.cachedEndpointAddress = remote.endpointAddress();
 	}
@@ -21,31 +23,50 @@ public class ProxyClient implements RemoteClient
 	@Override
 	public String toString()
 	{
-		String addr;
+		return String.format("{ProxyClient %s%s}", endpointAddress(), isAlive()?"":"(dead)");
+	}
+	
+	
+	
+	
+	@Override
+	public RemoteStarcraft startMatch(Game game, int index) throws RemoteException, AllStarcraftInstanceSlotsAlreadyBusyException
+	{
 		try
 		{
-			addr = remote.endpointAddress();
+			return remote.startMatch(game, index);
 		}
 		catch (RemoteException e)
 		{
-			addr = cachedEndpointAddress+"(disconnected)";
+			server.clientManager.disconnected(this);
+			throw e;
 		}
-		return String.format("{ProxyClient %s}", addr);
 	}
 	
-	
-	
-	
-	
-	@Override
-	public RemoteStarcraft startMatch(Game game, int index) throws RemoteException, AllStarcraftInstanceSlotsAlreadyUsedException
+	public boolean isAlive()
 	{
-		return remote.startMatch(game, index);
+		try
+		{
+			checkAlive();
+			return true;
+		} catch (RemoteException e)
+		{
+			return false;
+		}
 	}
+	
 	@Override
 	public void checkAlive() throws RemoteException
 	{
-		remote.checkAlive();
+		try
+		{
+			remote.checkAlive();
+		}
+		catch (RemoteException e)
+		{
+			server.clientManager.disconnected(this);
+			throw e;
+		}
 	}
 	@Override
 	public void kill() throws RemoteException
@@ -55,22 +76,58 @@ public class ProxyClient implements RemoteClient
 	@Override
 	public void executeCommand(String command) throws RemoteException
 	{
-		remote.executeCommand(command);
+		try
+		{
+			remote.executeCommand(command);
+		}
+		catch (RemoteException e)
+		{
+			server.clientManager.disconnected(this);
+			throw e;
+		}
 	}
 	@Override
 	public byte[] screenshot() throws RemoteException
 	{
-		return remote.screenshot();
+		try
+		{
+			return remote.screenshot();
+		}
+		catch (RemoteException e)
+		{
+			server.clientManager.disconnected(this);
+			throw e;
+		}
 	}
 	@Override
-	public String endpointAddress() throws RemoteException
+	public String endpointAddress()
 	{
-		return remote.endpointAddress();
+		return cachedEndpointAddress;
 	}
-
+	
 	@Override
-	public int getNumberOfUnusedStarcraftInstanceSlots() throws RemoteException
+	public int getOpenStarcraftInstanceSlotCount() throws RemoteException
 	{
-		return remote.getNumberOfUnusedStarcraftInstanceSlots();
+		try
+		{
+			return remote.getOpenStarcraftInstanceSlotCount();
+		}
+		catch (RemoteException e)
+		{
+			server.clientManager.disconnected(this);
+			throw e;
+		}
+	}
+	
+	public int getOpenStarcraftInstanceSlotCountOrZero()
+	{
+		try
+		{
+			return getOpenStarcraftInstanceSlotCount();
+		}
+		catch (RemoteException e)
+		{
+			return 0;
+		}
 	}
 }

@@ -10,7 +10,7 @@ import org.yaml.snakeyaml.Yaml;
 
 import common.Game;
 import common.GameResults;
-import common.exceptions.AllStarcraftInstanceSlotsAlreadyUsedException;
+import common.exceptions.AllStarcraftInstanceSlotsAlreadyBusyException;
 import common.exceptions.InvalidResultsException;
 import common.exceptions.StarcraftException;
 import common.file.MyFile;
@@ -61,7 +61,7 @@ public class ServerGame
 			{
 				server.clientManager.disconnected(client);
 			}
-			catch (AllStarcraftInstanceSlotsAlreadyUsedException e)
+			catch (AllStarcraftInstanceSlotsAlreadyBusyException e)
 			{
 			}
 		}

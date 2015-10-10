@@ -57,7 +57,7 @@ public class Starcraft extends RunnableUnicastRemoteObject implements RemoteStar
 	}
 	
 	@Override
-	protected void onRun() throws IOException
+	protected void onRun()
 	{
 		startTime = System.currentTimeMillis();
 		try
@@ -179,26 +179,20 @@ public class Starcraft extends RunnableUnicastRemoteObject implements RemoteStar
 	protected void onExit()
 	{
 		FileUtils.deleteQuietly(instanceDir);
-		client.onMatchDone(this);
+		client.onStarcraftExit(this);
+	}
+	
+	public void killLocal()
+	{
+		if (thread != null && thread.isAlive())
+			thread.interrupt();
 	}
 	
 	@Override
 	public void kill()
 	{
-		if (thread == null || !thread.isAlive())
-			return;
-		
-		try
-		{
-			thread.interrupt();
-			thread.join();
-			Client.log("killed (by remote?)");
-		}
-		catch (InterruptedException e)
-		{
-			Client.log("interrupted while stopping starcraft game thread");
-			e.printStackTrace();
-		}
+		Client.log("killed by server");
+		killLocal();
 	}
 
 	@Override
