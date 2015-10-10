@@ -1,5 +1,6 @@
 package server;
 
+import java.rmi.ConnectException;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.Optional;
@@ -23,17 +24,29 @@ public class ClientManager
 		server.log("%s connected", client);
 	}
 
-	public void clientWantsToDisconnect(RemoteClient remoteClient)
+	public void clientCalledDisconnect(RemoteClient remoteClient)
 	{
-		Optional<ProxyClient> cliento = clients.stream().filter(pc->pc.remote.equals(remoteClient)).findFirst();
-		if (cliento.isPresent())
-			disconnected(cliento.get());
+		Optional<ProxyClient> optionalClient = clients.stream().filter(pc->pc.remote.equals(remoteClient)).findFirst();
+		if (optionalClient.isPresent())
+		{
+			ProxyClient client = optionalClient.get();
+			clients.remove(client);
+			server.log("%s disconnected", client);
+		}
 	}
 	
-	public void disconnected(ProxyClient client)
+	public void onRemoteException(ProxyClient client, RemoteException e)
 	{
-		clients.remove(client);
-		server.log("%s disconnected", client);
+		if (clients.remove(client))
+		{
+			if (e instanceof ConnectException)
+				server.log("%s died", client);
+			else
+			{
+				server.log("%s disconnected due to exception: %s", client, e.getMessage());
+				e.printStackTrace();
+			}
+		}
 	}
 	
 	public ArrayList<ProxyClient> clients()
@@ -55,15 +68,7 @@ public class ClientManager
 	{
 		server.log("killing all clients");
 		for (ProxyClient client : clients())
-		{
-			try
-			{
-				client.kill();
-			}
-			catch (RemoteException e)
-			{
-			}
-		}
+			client.tryKill();
 		clients.clear();
 	}
 

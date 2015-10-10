@@ -26,6 +26,10 @@ public class ProxyClient implements RemoteClient
 		return String.format("{ProxyClient %s%s}", endpointAddress(), isAlive()?"":"(dead)");
 	}
 	
+	private void onRemoteException(RemoteException e)
+	{
+		server.clientManager.onRemoteException(this, e);
+	}
 	
 	
 	
@@ -38,7 +42,7 @@ public class ProxyClient implements RemoteClient
 		}
 		catch (RemoteException e)
 		{
-			server.clientManager.disconnected(this);
+			onRemoteException(e);
 			throw e;
 		}
 	}
@@ -49,7 +53,8 @@ public class ProxyClient implements RemoteClient
 		{
 			checkAlive();
 			return true;
-		} catch (RemoteException e)
+		}
+		catch (RemoteException e)
 		{
 			return false;
 		}
@@ -64,10 +69,22 @@ public class ProxyClient implements RemoteClient
 		}
 		catch (RemoteException e)
 		{
-			server.clientManager.disconnected(this);
+			onRemoteException(e);
 			throw e;
 		}
 	}
+	
+	public void tryKill()
+	{
+		try
+		{
+			kill();
+		}
+		catch (RemoteException e)
+		{
+		}
+	}
+	
 	@Override
 	public void kill() throws RemoteException
 	{
@@ -82,7 +99,7 @@ public class ProxyClient implements RemoteClient
 		}
 		catch (RemoteException e)
 		{
-			server.clientManager.disconnected(this);
+			onRemoteException(e);
 			throw e;
 		}
 	}
@@ -95,7 +112,7 @@ public class ProxyClient implements RemoteClient
 		}
 		catch (RemoteException e)
 		{
-			server.clientManager.disconnected(this);
+			onRemoteException(e);
 			throw e;
 		}
 	}
@@ -114,7 +131,7 @@ public class ProxyClient implements RemoteClient
 		}
 		catch (RemoteException e)
 		{
-			server.clientManager.disconnected(this);
+			onRemoteException(e);
 			throw e;
 		}
 	}

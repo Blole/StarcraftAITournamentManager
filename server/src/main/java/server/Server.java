@@ -160,7 +160,7 @@ public class Server extends RunnableUnicastRemoteObject implements RemoteServer
 	@Override
 	public void disconnect(RemoteClient client)
 	{
-		clientManager.clientWantsToDisconnect(client);
+		clientManager.clientCalledDisconnect(client);
 		gui.RemoveClient(client.toString());
 	}
 

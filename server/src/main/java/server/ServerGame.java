@@ -2,6 +2,7 @@ package server;
 
 import java.io.File;
 import java.io.IOException;
+import java.rmi.ConnectException;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
 
@@ -59,7 +60,6 @@ public class ServerGame
 			}
 			catch (RemoteException e)
 			{
-				server.clientManager.disconnected(client);
 			}
 			catch (AllStarcraftInstanceSlotsAlreadyBusyException e)
 			{
@@ -117,7 +117,9 @@ public class ServerGame
 	
 	public void onException(Exception e)
 	{
-		if (!(e instanceof InterruptedException))
+		if (!(
+				e instanceof InterruptedException ||
+				e instanceof ConnectException))
 			e.printStackTrace();
 		state = ServerGameState.ERROR;
 		//state = ServerGameState.QUEUED; //TODO: requeue?
@@ -170,6 +172,11 @@ public class ServerGame
 			catch (InterruptedException e)
 			{
 				server.log("%s: interrupted", this);
+				exception = e;
+			}
+			catch (ConnectException e)
+			{
+				server.log("%s: remote starcraft died", this);
 				exception = e;
 			}
 			catch (RemoteException e)
