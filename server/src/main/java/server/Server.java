@@ -23,6 +23,7 @@ import common.file.PackedFile;
 import common.protocols.RemoteClient;
 import common.protocols.RemoteServer;
 import common.utils.Helper;
+import server.ServerGame.ServerGameState;
 import server.exceptions.NotEnoughStarcraftInstancesCouldBeStartedException;
 
 public class Server extends RunnableUnicastRemoteObject implements RemoteServer
@@ -31,7 +32,7 @@ public class Server extends RunnableUnicastRemoteObject implements RemoteServer
 	
 	
 	public final ServerEnvironment	env;
-	public final GameQueueManager	gameManager;
+	public final GameQueueManager	gameQueueManager;
 	public final ClientManager		clientManager;
 	public final ServerGUI			gui;
 	
@@ -42,12 +43,12 @@ public class Server extends RunnableUnicastRemoteObject implements RemoteServer
 	{
 		this.env = env;
 		this.clientManager = new ClientManager(this);
-		this.gameManager = new GameQueueManager(this);
+		this.gameQueueManager = new GameQueueManager(this);
 		this.gui = new ServerGUI(this);
 	}
 	
 	@Override
-	public void onRun() throws RemoteException, MalformedURLException, InterruptedException, IOException
+	public synchronized void onRun() throws RemoteException, MalformedURLException, InterruptedException, IOException
 	{
 		registry = LocateRegistry.createRegistry(env.port);
 		registry.rebind(env.serverUrlPath, this);
@@ -56,19 +57,22 @@ public class Server extends RunnableUnicastRemoteObject implements RemoteServer
 		int finishedRound = -1;
 		int printedWaitingForRoundToFinish = -1;
 		ServerGame prevGame = null;
-		while (!gameManager.allDone())
+		while (!gameQueueManager.allDone())
 		{
-			ServerGame nextGame = gameManager.getNextUnstartedGame();
+			ServerGame nextGame = gameQueueManager.getNextUnstartedGame();
 			
 			// if new round
 			if (prevGame != null && (nextGame == null || nextGame.game.round > prevGame.game.round) && prevGame.game.round != finishedRound)
 			{
 				
-				if (gameManager.running().count() == 0 && finishedRound < prevGame.game.round)
+				if (gameQueueManager.running().count() == 0 && finishedRound < prevGame.game.round)
 				{
 					log("Round %d finished, moving write directory to read directory", prevGame.game.round);
-					for (Bot bot : gameManager.getAllBots())
-						FileUtils.copyDirectory(bot.getWriteDir(env), bot.getReadDir(env));
+					for (Bot bot : gameQueueManager.getAllBots())
+					{
+						if (bot.getWriteDir(env).exists())
+							FileUtils.copyDirectory(bot.getWriteDir(env), bot.getReadDir(env));
+					}
 					
 					finishedRound = prevGame.game.round;
 					continue;
@@ -79,7 +83,7 @@ public class Server extends RunnableUnicastRemoteObject implements RemoteServer
 					printedWaitingForRoundToFinish = prevGame.game.round;
 				}
 			}
-			else if (nextGame != null && clientManager.getOpenSlotCount() > nextGame.game.bots.length)
+			else if (nextGame != null && clientManager.getOpenSlotCount() >= nextGame.game.bots.length)
 			{
 				try
 				{
@@ -111,6 +115,15 @@ public class Server extends RunnableUnicastRemoteObject implements RemoteServer
 		
 		if (gui != null)
 			gui.mainFrame.dispose();
+	}
+	
+	public synchronized void onMatchDone(ServerGame serverGame)
+	{
+		if (serverGame.state() == ServerGameState.DONE)
+			log("%s: done", serverGame);
+		else
+			log("%s: error", serverGame);
+		notifyAll();
 	}
 	
 	public void getAndDisplayScreenshotFromClient(RemoteClient client)

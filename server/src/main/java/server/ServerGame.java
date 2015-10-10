@@ -112,15 +112,15 @@ public class ServerGame
 			throw e;
 		}
 		state = ServerGameState.DONE;
-		server.gameManager.checkAndNotify();
+		server.gameQueueManager.checkAndNotify();
 	}
 	
 	public void onException(Exception e)
 	{
 		if (!(e instanceof InterruptedException))
-			state = ServerGameState.ERROR;
+			e.printStackTrace();
+		state = ServerGameState.ERROR;
 		//state = ServerGameState.QUEUED; //TODO: requeue?
-		e.printStackTrace();
 	}
 	
 	
@@ -137,6 +137,7 @@ public class ServerGame
 		@Override
 		public void run()
 		{
+			Exception exception = null;
 			server.log(game + " starting");
 			try
 			{
@@ -166,26 +167,60 @@ public class ServerGame
 				}
 				onDone(results, replay, writeDirs);
 			}
-			catch (InterruptedException|StarcraftException|IOException|InvalidResultsException e)
+			catch (InterruptedException e)
 			{
-				onException(e);
-				for (RemoteStarcraft starcraft : starcrafts)
-				{
-					try
-					{
-						starcraft.kill();
-					}
-					catch (RemoteException e2)
-					{
-						server.log("%s: error killing remote StarCraft", ServerGame.this);
-						e2.printStackTrace();
-					}
-				}
+				server.log("%s: interrupted", this);
+				exception = e;
+			}
+			catch (RemoteException e)
+			{
+				server.log("%s: remote starcraft died: %s", this, e.getMessage());
+				exception = e;
+			}
+			catch (StarcraftException e)
+			{
+				server.log("%s: remote starcraft exception: %s", this, e.getMessage());
+				exception = e;
+			}
+			catch (InvalidResultsException e)
+			{
+				server.log("%s: invalid results: %s", this, e.getMessage());
+				exception = e;
+			}
+			catch (IOException e)
+			{
+				server.log("%s: error writing results dir: %s", this, e.getMessage());
+				exception = e;
 			}
 			finally
 			{
-				server.notifyAll();
+				if (exception != null)
+				{
+					onException(exception);
+					tryKillAllStarcrafts();
+				}
+				server.onMatchDone(ServerGame.this);
 			}
+		}
+		
+		private void tryKillAllStarcrafts()
+		{
+			for (RemoteStarcraft starcraft : starcrafts)
+			{
+				try
+				{
+					starcraft.kill();
+				}
+				catch (RemoteException e2)
+				{
+				}
+			}
+		}
+		
+		@Override
+		public String toString()
+		{
+			return ServerGame.this.toString();
 		}
 	}
 	

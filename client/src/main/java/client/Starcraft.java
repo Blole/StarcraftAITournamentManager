@@ -107,7 +107,7 @@ public class Starcraft extends RunnableUnicastRemoteObject implements RemoteStar
 			}
 			
 			
-			log("starting starcraft");
+			log("starting starcraft "+game);
 			starcraftProcess = pb.start();
 			while (!statusFile.exists())
 			{
@@ -206,6 +206,8 @@ public class Starcraft extends RunnableUnicastRemoteObject implements RemoteStar
 	{
 		if (exception != null)
 			throw exception;
+		else if (thread == null)
+			return false;
 		else
 			return !thread.isAlive();
 	}

@@ -76,7 +76,7 @@ public abstract class RunnableUnicastRemoteObject extends UnicastRemoteObject im
 		}
 		catch (NoSuchObjectException e1)
 		{
-			//not that important
+			//already unexported
 		}
 		
 		if (exception != null)
