@@ -8,7 +8,8 @@ import common.exceptions.AllStarcraftInstanceSlotsAlreadyBusyException;
 
 public interface RemoteClient extends Remote
 {
-	RemoteStarcraft startMatch(Game game, int index) throws RemoteException, AllStarcraftInstanceSlotsAlreadyBusyException;
+	RemoteStarcraft hostMatch(Game game, int index) throws RemoteException, AllStarcraftInstanceSlotsAlreadyBusyException;
+	RemoteStarcraft joinMatch(Game game, int index, RemoteStarcraft host) throws RemoteException, AllStarcraftInstanceSlotsAlreadyBusyException;
 	
 	void checkAlive() throws RemoteException;
 	void kill() throws RemoteException;

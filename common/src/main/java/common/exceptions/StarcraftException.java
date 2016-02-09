@@ -18,4 +18,9 @@ public class StarcraftException extends Exception
 	{
 		super(e);
 	}
+
+	public StarcraftException(String msg, Exception e)
+	{
+		super(msg, e);
+	}
 }

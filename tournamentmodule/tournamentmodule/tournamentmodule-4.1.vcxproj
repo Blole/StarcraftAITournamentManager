@@ -40,6 +40,7 @@
     <Import Project="..\output.props" />
     <Import Project="..\bwapi_4.1.props" />
     <Import Project="..\boost.props" />
+    <Import Project="..\serverdir.props" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup>

@@ -29,6 +29,7 @@ public class ClientEnvironment extends CommonEnvironment implements Serializable
 	public double serverAlivePollPeriod = 10;
 	
 	public int maxStarcraftInstances = 1;
+	public double hostingTimeout = 40;
 	public double matchStartingTimeout = 60;
 	public double matchAlivePollPeriod = 5;
 	public double starcraftClosingTimeout = 10;

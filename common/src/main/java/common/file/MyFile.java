@@ -4,6 +4,8 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.Serializable;
+import java.nio.file.FileSystems;
+import java.nio.file.Path;
 import java.util.Iterator;
 
 import org.apache.commons.io.FileUtils;
@@ -76,6 +78,17 @@ public class MyFile extends File implements Serializable
 	public String getName()
 	{
 		return super.getName() + (isDirectory() ? File.separatorChar : "");
+	}
+	
+	@Override
+	public Path toPath()
+	{
+		 return FileSystems.getDefault().getPath(super.getPath());
+	}
+
+	public MyFile getRelativePath(File other)
+	{
+		return new MyFile(toPath().toAbsolutePath().relativize(other.toPath().toAbsolutePath()).toFile());
 	}
 	
 	public String getNameWithoutExtension()

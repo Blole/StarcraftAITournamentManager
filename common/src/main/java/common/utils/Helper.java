@@ -23,7 +23,7 @@ public abstract class Helper
 		return endpointAddress;
 	}
 	
-	public int getUnusedPortAbove(int start) throws IOException
+	public static int getUnusedPortAbove(int start) throws IOException
 	{
 		try (ServerSocket socket = new ServerSocket(start))
 		{

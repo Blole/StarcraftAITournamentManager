@@ -135,7 +135,7 @@ public class Client extends RunnableUnicastRemoteObject implements RemoteClient
 				log("server disconnected, reconnecting");
 			}
 			
-			killAllStarcrafts();
+			killAllStarcrafts("killed by server disconnect");
 		}
 	}
 	
@@ -153,15 +153,21 @@ public class Client extends RunnableUnicastRemoteObject implements RemoteClient
 			}
 		}
 		
-		killAllStarcrafts();
+		killAllStarcrafts("killed by client exit");
 	}
 	
 	@Override
-	public RemoteStarcraft startMatch(Game game, int index) throws RemoteException, AllStarcraftInstanceSlotsAlreadyBusyException
+	public RemoteStarcraft hostMatch(Game game, int index) throws RemoteException, AllStarcraftInstanceSlotsAlreadyBusyException
+	{
+		return joinMatch(game, index, null);
+	}
+	
+	@Override
+	public RemoteStarcraft joinMatch(Game game, int index, RemoteStarcraft host) throws RemoteException, AllStarcraftInstanceSlotsAlreadyBusyException
 	{
 		if (getOpenStarcraftInstanceSlotCount() <= 0)
 			throw new AllStarcraftInstanceSlotsAlreadyBusyException(env.maxStarcraftInstances);
-		Starcraft starcraft = new Starcraft(this, game, index);
+		Starcraft starcraft = new Starcraft(this, game, index, host);
 		runningStarcrafts.add(starcraft);
 		new Thread(starcraft).start();
 		return starcraft;
@@ -172,12 +178,12 @@ public class Client extends RunnableUnicastRemoteObject implements RemoteClient
 		runningStarcrafts.remove(starcraft);
 	}
 	
-	private void killAllStarcrafts()
+	private void killAllStarcrafts(String reason)
 	{
 		if (!runningStarcrafts.isEmpty())
 		{
 			for (Starcraft starcraft : new ArrayList<Starcraft>(runningStarcrafts))
-				starcraft.killLocal();
+				starcraft.kill(reason);
 			log("killed all starcraft instances");
 		}
 	}

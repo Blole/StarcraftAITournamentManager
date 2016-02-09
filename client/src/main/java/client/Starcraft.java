@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.ProcessBuilder.Redirect;
 import java.rmi.RemoteException;
+import java.rmi.server.ServerNotActiveException;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.io.FileUtils;
@@ -15,6 +16,7 @@ import common.Game;
 import common.RunnableUnicastRemoteObject;
 import common.exceptions.StarcraftException;
 import common.exceptions.StarcraftMatchNotFinishedException;
+import common.exceptions.StarcraftNotHostException;
 import common.file.CopyFile;
 import common.file.MyFile;
 import common.file.PackedFile;
@@ -33,8 +35,11 @@ public class Starcraft extends RunnableUnicastRemoteObject implements RemoteStar
 	final private Client client;
 	final private ClientEnvironment env;
 	final private Game game;
-	final private int index;
 	final private Bot bot;
+	final private int playerIndex;
+	
+	final private RemoteStarcraft host;
+	private int localPort = -1;
 	
 	private StarcraftException exception = null;
 	private long startTime;
@@ -43,18 +48,23 @@ public class Starcraft extends RunnableUnicastRemoteObject implements RemoteStar
 	private PackedFile packedReplay = null;
 	private PackedFile packedWriteDirectory = null;
 	
-	private MyFile instanceDir;
+	final private MyFile instanceDir;
+	final private MyFile localPortFile;
 	private Process starcraftProcess = null;
 
-	public Starcraft(Client client, Game game, int index) throws RemoteException
+	private String interruptReason = null;
+
+	public Starcraft(Client client, Game game, int playerIndex, RemoteStarcraft host) throws RemoteException
 	{
 		super(false); //don't unexport automatically
 		this.client = client;
 		this.env = client.env;
 		this.game = game;
-		this.index = index;
-		this.bot = game.bots[index];
-		instanceDir = new MyFile("game"+game.id+"_player"+index);
+		this.playerIndex = playerIndex;
+		this.bot = game.bots[playerIndex];
+		this.host = host;
+		instanceDir = new MyFile("game"+game.id+"_player"+playerIndex);
+		localPortFile = new MyFile(instanceDir, "localport.txt");
 	}
 	
 	@Override
@@ -63,9 +73,6 @@ public class Starcraft extends RunnableUnicastRemoteObject implements RemoteStar
 		startTime = System.currentTimeMillis();
 		try
 		{
-			File starcraftDir = env.starcraftDir;
-			File configDir = new MyFile(starcraftDir, "bwapi-data");
-			
 			FileUtils.forceMkdir(instanceDir);
 			FileUtils.cleanDirectory(instanceDir);
 			FileUtils.forceDeleteOnExit(instanceDir);
@@ -73,21 +80,27 @@ public class Starcraft extends RunnableUnicastRemoteObject implements RemoteStar
 			MyFile replayFile = new MyFile(instanceDir, "replay.rep");
 			MyFile statusFile = new MyFile(instanceDir, env.gamestatusFileName);
 			MyFile tournamentYaml = env.tournamentModuleYaml();
+			RequiredFile injectory = new RequiredFile(env.dataDir, "injectory.x86.exe");
 			
 			// If this is a proxy bot, start the proxy bot script before StarCraft starts
 			if (bot.type == BotExecutableType.proxy)
 				WindowsCommandTools.RunWindowsCommand(new RequiredFile(env.dataDir, "run_proxy.bat").getAbsolutePath(), false, false);
 			
+			if (bot.extraFiles != null)
+			{
+				for (CopyFile file : bot.extraFiles)
+					file.copyDiffering(env.lookupFile(file.extractTo));
+			}
+			
 			ProcessBuilder pb = new ProcessBuilder();
-			pb.command("data/injectory.exe", "--launch", "starcraft_multiinstance.exe", "--inject", bot.bwapiVersion.getDll(env).getAbsolutePath(), "--kill-on-exit", "--wait-for-exit");
-			pb.directory(starcraftDir);
+			pb.command(injectory.toString(), "--launch", "starcraft_multiinstance.exe", "--inject", bot.bwapiVersion.getDll(env).getAbsolutePath(), "--kill-on-exit", "--wait-for-exit");
+			pb.directory(env.starcraftDir);
 			pb.environment().put("BWAPI_CONFIG_INI", 	    				env.iniFile().require().getAbsolutePath());
 			pb.environment().put("BWAPI_CONFIG_AI__AI",     				bot.getDll(env).require().getAbsolutePath());
 			pb.environment().put("BWAPI_CONFIG_AI__AI_DBG", 				bot.getDll(env).require().getAbsolutePath());
 			pb.environment().put("BWAPI_CONFIG_AI__TOURNAMENT",				bot.bwapiVersion.getTournamentDll(env).require().getAbsolutePath());
 			pb.environment().put("BWAPI_CONFIG_AUTO_MENU__CHARACTER_NAME",	bot.displayName());
 			pb.environment().put("BWAPI_CONFIG_AUTO_MENU__AUTO_RESTART",	"EXIT");
-			pb.environment().put("BWAPI_CONFIG_AUTO_MENU__MAP",				index==0?game.map.getFile(env).require().getAbsolutePath():"");
 			pb.environment().put("BWAPI_CONFIG_AUTO_MENU__GAME",			game.id+"");
 			//TODO: pb.environment().put("BWAPI_CONFIG_AUTO_MENU__GAME_TYPE", game.type);
 			pb.environment().put("BWAPI_CONFIG_AUTO_MENU__RACE",			bot.race.toString());
@@ -97,23 +110,56 @@ public class Starcraft extends RunnableUnicastRemoteObject implements RemoteStar
 			//TODO tournament environment config
 			pb.environment().put("SCAITM_TOURNAMENT_CONFIG",				tournamentYaml.require().getAbsolutePath());
 			pb.environment().put("SCAITM_TOURNAMENT_STATUS_FILE",			statusFile.getAbsolutePath());
+			
+			pb.environment().put("DIRECT_IP_LOCAL_PORT_OUTPUT_FILE",		localPortFile.getAbsolutePath());
 			pb.redirectError(Redirect.INHERIT);
 			pb.redirectOutput(Redirect.INHERIT);
-			//log(String.join(" ", pb.command()));
 			
-			if (bot.extraFiles != null)
+			if (isHost())
 			{
-				for (CopyFile file : bot.extraFiles)
-					file.copyDiffering(env.lookupFile(file.extractTo));
+				pb.environment().put("BWAPI_CONFIG_AUTO_MENU__MAP",				env.starcraftDir.getRelativePath(game.map.getFile(env).require()).getPath());
+				pb.environment().put("DIRECT_IP_HOST_IP",						"127.0.0.1");
+				pb.environment().put("DIRECT_IP_HOST_PORT",						"0");
+				pb.environment().put("DIRECT_IP_LOCAL_PORT",					"6112");
+
+				log("starting starcraft, hosting %s", game);
+				starcraftProcess = pb.start();
+			}
+			else
+			{
+				int hostPort;
+				while ((hostPort = host.getLocalPort()) == -1)
+				{
+					if (System.currentTimeMillis()-startTime > env.hostingTimeout*1000)
+						throw new StarcraftException("timeout getting host port");
+					Thread.sleep(200);
+				}
+				
+				String hostIP = host.getIP();
+				pb.environment().put("BWAPI_CONFIG_AUTO_MENU__MAP",				"");
+				pb.environment().put("DIRECT_IP_HOST_IP",						hostIP);
+				pb.environment().put("DIRECT_IP_HOST_PORT",						""+hostPort);
+				pb.environment().put("DIRECT_IP_LOCAL_PORT",					"30000");
+				
+				log("starting starcraft, joining %s %s:%d", game, hostIP, hostPort);
+				starcraftProcess = pb.start();
 			}
 			
-			
-			log("starting starcraft "+game);
-			starcraftProcess = pb.start();
+			while (!localPortFile.exists())
+			{
+				if (!starcraftProcess.isAlive())
+					throw new StarcraftException("starcraft died before getting local port");
+				if (System.currentTimeMillis()-startTime > env.hostingTimeout*1000)
+					throw new StarcraftException("timeout getting local port");
+				
+				Thread.sleep(200);
+			}
+			localPort = readLocalPortFile();
+
 			while (!statusFile.exists())
 			{
 				if (!starcraftProcess.isAlive())
-					throw new StarcraftException("starcraft died while starting match");
+					throw new StarcraftException("starcraft died before match start");
 				if (System.currentTimeMillis()-startTime > env.matchStartingTimeout*1000)
 					throw new StarcraftException("timeout starting match");
 				
@@ -155,10 +201,23 @@ public class Starcraft extends RunnableUnicastRemoteObject implements RemoteStar
 			
 			log("match ended correctly");
 		}
+		catch (java.rmi.ConnectException e)
+		{
+			exception = new StarcraftException("host died.");
+			log("host died.");
+		}
+		catch (java.rmi.NoSuchObjectException e)
+		{
+			exception = new StarcraftException("host died");
+			log("host died");
+		}
 		catch (InterruptedException e)
 		{
-			exception = new StarcraftException("match interrupted");
-			log("match interrupted");
+			if (interruptReason==null)
+				interruptReason = "unknown interrupt";
+			
+			exception = new StarcraftException(interruptReason);
+			log(interruptReason);
 		}
 		catch (StarcraftException e)
 		{
@@ -170,44 +229,45 @@ public class Starcraft extends RunnableUnicastRemoteObject implements RemoteStar
 			exception = new StarcraftException(e);
 			e.printStackTrace();
 		}
-		finally
-		{
-			starcraftProcess.destroyForcibly();
-		}
 	}
 	
 	@Override
 	protected void onExit()
 	{
+		if (starcraftProcess != null)
+			starcraftProcess.destroyForcibly();
+		
 		FileUtils.deleteQuietly(instanceDir);
 		client.onStarcraftExit(this);
 	}
 	
-	public void killLocal()
+	@Override
+	public void kill(String reason)
 	{
 		if (thread() != null && thread().isAlive())
+		{
+			this.interruptReason = reason;
 			thread().interrupt();
-	}
-	
-	@Override
-	public void kill()
-	{
-		Client.log("killed by server");
-		killLocal();
+		}
 	}
 
 	@Override
 	public boolean isFinished() throws StarcraftException
+	{
+		throwAndUnexportIfException();
+		if (thread() == null)
+			return false;
+		else
+			return !thread().isAlive();
+	}
+	
+	private void throwAndUnexportIfException() throws StarcraftException
 	{
 		if (exception != null)
 		{
 			tryUnexport(true); //unexport now that we've thrown the exception
 			throw exception;
 		}
-		else if (thread() == null)
-			return false;
-		else
-			return !thread().isAlive();
 	}
 	
 	private void checkFinished() throws StarcraftException
@@ -237,7 +297,53 @@ public class Starcraft extends RunnableUnicastRemoteObject implements RemoteStar
 		return packedWriteDirectory;
 	}
 	
+	@Override
+	public String getIP() throws StarcraftException
+	{
+		try
+		{
+			return getClientHost();
+		}
+		catch (ServerNotActiveException e)
+		{
+			throw new StarcraftException(e);
+		}
+	}
 	
+	@Override
+	public int getLocalPort() throws StarcraftException
+	{
+		if (isHost())
+			return localPort;
+		else
+			throw new StarcraftNotHostException();
+	}
+	
+	private boolean isHost()
+	{
+		return host == null;
+	}
+	
+	private int readLocalPortFile() throws StarcraftException, IOException
+	{
+		if (!localPortFile.exists())
+			throw new StarcraftException("'"+localPortFile.getAbsolutePath()+"' doesn't exist (yet)");
+		
+		try
+		{
+			String portString = FileUtils.readFileToString(localPortFile);
+			
+			int localPort = Integer.parseInt(portString);
+			if (localPort == -1)
+				throw new StarcraftException("error opening a local port");
+			else
+				return localPort;
+		}
+		catch (NumberFormatException e)
+		{
+			throw new StarcraftException("unexpected text in '"+localPortFile.getAbsolutePath()+"': "+e.getMessage(), e);
+		}
+	}
 	
 	private GameStatusFile getStatus(File statusFile) throws IOException, StarcraftException
 	{
@@ -248,8 +354,8 @@ public class Starcraft extends RunnableUnicastRemoteObject implements RemoteStar
 	private void log(String format, Object... args)
 	{
 		double sinceMatchStart = (System.currentTimeMillis() - startTime)/1000.0;
-		String matchTimeStamp = String.format("[%02d:%02d] ", (int)(sinceMatchStart/60), (int)(sinceMatchStart%60));
-		Client.log(matchTimeStamp+format, args);
+		String prefix = String.format("g%sp%d [%02d:%02d] ", game.id, playerIndex, (int)(sinceMatchStart/60), (int)(sinceMatchStart%60));
+		Client.log(prefix+format, args);
 	}
 	
 	@Override

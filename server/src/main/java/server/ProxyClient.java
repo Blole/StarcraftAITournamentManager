@@ -34,11 +34,25 @@ public class ProxyClient implements RemoteClient
 	
 	
 	@Override
-	public RemoteStarcraft startMatch(Game game, int index) throws RemoteException, AllStarcraftInstanceSlotsAlreadyBusyException
+	public RemoteStarcraft joinMatch(Game game, int index, RemoteStarcraft host) throws RemoteException, AllStarcraftInstanceSlotsAlreadyBusyException
 	{
 		try
 		{
-			return remote.startMatch(game, index);
+			return remote.joinMatch(game, index, host);
+		}
+		catch (RemoteException e)
+		{
+			onRemoteException(e);
+			throw e;
+		}
+	}
+	
+	@Override
+	public RemoteStarcraft hostMatch(Game game, int index) throws RemoteException, AllStarcraftInstanceSlotsAlreadyBusyException
+	{
+		try
+		{
+			return remote.hostMatch(game, index);
 		}
 		catch (RemoteException e)
 		{

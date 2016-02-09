@@ -17,5 +17,7 @@ public interface RemoteStarcraft extends Remote
 	Done getResult() throws RemoteException, StarcraftException;
 	PackedFile getReplay() throws RemoteException, StarcraftException;
 	PackedFile getWriteDirectory() throws RemoteException, StarcraftException;
-	void kill() throws RemoteException;
+	void kill(String reason) throws RemoteException;
+	int getLocalPort() throws RemoteException, StarcraftException;
+	String getIP() throws RemoteException, StarcraftException;
 }

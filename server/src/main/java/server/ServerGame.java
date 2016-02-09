@@ -51,12 +51,21 @@ public class ServerGame
 	public void start() throws NotEnoughStarcraftInstancesCouldBeStartedException
 	{
 		ArrayList<RemoteStarcraft> starcrafts = new ArrayList<>();
+		RemoteStarcraft host = null;
 		for (ProxyClient client : server.clientManager.clients())
 		{
 			try
 			{
 				while (starcrafts.size() < game.bots.length)
-					starcrafts.add(client.startMatch(game, starcrafts.size()));
+				{
+					if (host == null)
+					{
+						host = client.hostMatch(game, starcrafts.size());
+						starcrafts.add(host);
+					}
+					else
+						starcrafts.add(client.joinMatch(game, starcrafts.size(), host));
+				}
 			}
 			catch (RemoteException e)
 			{
@@ -204,19 +213,19 @@ public class ServerGame
 				if (exception != null)
 				{
 					onException(exception);
-					tryKillAllStarcrafts();
+					tryKillAllStarcrafts("killed by server");
 				}
 				server.onMatchDone(ServerGame.this);
 			}
 		}
 		
-		private void tryKillAllStarcrafts()
+		private void tryKillAllStarcrafts(String reason)
 		{
 			for (RemoteStarcraft starcraft : starcrafts)
 			{
 				try
 				{
-					starcraft.kill();
+					starcraft.kill(reason);
 				}
 				catch (RemoteException e2)
 				{

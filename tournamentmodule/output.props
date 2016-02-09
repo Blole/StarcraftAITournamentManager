@@ -3,7 +3,6 @@
   <ImportGroup Label="PropertySheets" />
   <PropertyGroup Label="UserMacros">
     <BuildDir>$(SolutionDir)/build/$(Configuration)/</BuildDir>
-    <ServerDir>$(SolutionDir)/../server/src/main/resources/</ServerDir>
   </PropertyGroup>
   <PropertyGroup>
     <OutDir Condition="'$(ConfigurationType)'=='DynamicLibrary'">$(BuildDir)/bin/</OutDir>
@@ -19,7 +18,6 @@
       <ProfileGuidedDatabase>$(BuildDir)/lib/$(TargetName).pgd</ProfileGuidedDatabase>
       <ImportLibrary>$(BuildDir)/lib/$(TargetName).lib</ImportLibrary>
     </Link>
-    <Lib />
     <Lib>
       <OutputFile>$(BuildDir)/lib/$(TargetFileName)</OutputFile>
     </Lib>
@@ -30,11 +28,6 @@
   <ItemGroup>
     <BuildMacro Include="BuildDir">
       <Value>$(BuildDir)</Value>
-      <EnvironmentVariable>true</EnvironmentVariable>
-    </BuildMacro>
-    <BuildMacro Include="ServerDir">
-      <Value>$(ServerDir)</Value>
-      <EnvironmentVariable>true</EnvironmentVariable>
     </BuildMacro>
   </ItemGroup>
 </Project>
