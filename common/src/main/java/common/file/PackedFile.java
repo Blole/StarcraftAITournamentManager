@@ -4,6 +4,8 @@ import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
 import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.HashMap;
 
 import org.apache.commons.io.FileUtils;
@@ -63,9 +65,13 @@ public class PackedFile implements Serializable
 	public void syncTo(File destDir) throws IOException
 	{
 		assert(isDir);
-		File srcDir = Files.createTempDirectory("scaitm_sync").toFile();
+		Path syncDir = Paths.get(FileUtils.getTempDirectoryPath(), "scaitm/sync");
+		FileUtils.forceMkdir(syncDir.toFile());
+		File srcDir = Files.createTempDirectory(syncDir, null).toFile();
+		FileUtils.forceDeleteOnExit(srcDir);
 		writeTo(srcDir);
-		new MyFile(srcDir).syncToDirectory(destDir);;
+		new MyFile(srcDir).syncToDirectory(destDir);
+		FileUtils.deleteQuietly(srcDir);
 	}
 	
 	@Override

@@ -21,6 +21,7 @@ public class Game implements Serializable
 	public String id = null;
 	public final int round;
 	public final Map map;
+	public final GameType type;
 	public final Bot[] bots;
 	
 	
@@ -28,14 +29,16 @@ public class Game implements Serializable
 	{
 		round = 0;
 		map = null;
+		type = null;
 		bots = null;
 	}
 	
-	public Game(String id, int round, Map map, Bot... bots)
+	public Game(String id, int round, Map map, GameType type, Bot... bots)
 	{
 		this.id = id;
 		this.round = round;
 		this.map = map;
+		this.type = type;
 		this.bots = bots;
 	}
 	

@@ -86,11 +86,8 @@ public class Starcraft extends RunnableUnicastRemoteObject implements RemoteStar
 			if (bot.type == BotExecutableType.proxy)
 				WindowsCommandTools.RunWindowsCommand(new RequiredFile(env.dataDir, "run_proxy.bat").getAbsolutePath(), false, false);
 			
-			if (bot.extraFiles != null)
-			{
-				for (CopyFile file : bot.extraFiles)
-					file.copyDiffering(env.lookupFile(file.extractTo));
-			}
+			for (CopyFile file : bot.extraFiles)
+				file.copyDiffering(env.lookupFile(file.extractTo));
 			
 			ProcessBuilder pb = new ProcessBuilder();
 			pb.command(injectory.toString(), "--launch", "starcraft_multiinstance.exe", "--inject", bot.bwapiVersion.getDll(env).getAbsolutePath(), "--kill-on-exit", "--wait-for-exit");
@@ -102,7 +99,7 @@ public class Starcraft extends RunnableUnicastRemoteObject implements RemoteStar
 			pb.environment().put("BWAPI_CONFIG_AUTO_MENU__CHARACTER_NAME",	bot.displayName());
 			pb.environment().put("BWAPI_CONFIG_AUTO_MENU__AUTO_RESTART",	"EXIT");
 			pb.environment().put("BWAPI_CONFIG_AUTO_MENU__GAME",			game.id+"");
-			//TODO: pb.environment().put("BWAPI_CONFIG_AUTO_MENU__GAME_TYPE", game.type);
+			pb.environment().put("BWAPI_CONFIG_AUTO_MENU__GAME_TYPE",		game.type.toString());
 			pb.environment().put("BWAPI_CONFIG_AUTO_MENU__RACE",			bot.race.toString());
 			pb.environment().put("BWAPI_CONFIG_AUTO_MENU__SAVE_REPLAY",		replayFile.getAbsolutePath());
 			pb.environment().put("BWAPI_CONFIG_AUTO_MENU__WAIT_FOR_MIN_PLAYERS", game.bots.length+"");
@@ -114,6 +111,8 @@ public class Starcraft extends RunnableUnicastRemoteObject implements RemoteStar
 			pb.environment().put("DIRECT_IP_LOCAL_PORT_OUTPUT_FILE",		localPortFile.getAbsolutePath());
 			pb.redirectError(Redirect.INHERIT);
 			pb.redirectOutput(Redirect.INHERIT);
+			
+			pb.environment().putAll(bot.environmentVariables);
 			
 			if (isHost())
 			{

@@ -257,7 +257,7 @@ public class ServerGame
 	@Override
 	public String toString()
 	{
-		return game.toString().replace("Game", "ServerGame").replace("}", " "+state().name()+"}");
+		return game.toString().replace("Game", "ServerGame");
 	}
 
 	public static ServerGame load(Server server, File file_) throws ServerGameResultsDirAlreadyExistsException, IOException

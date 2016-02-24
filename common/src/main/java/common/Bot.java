@@ -4,6 +4,8 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 
 import org.apache.commons.io.FileUtils;
@@ -21,6 +23,7 @@ public class Bot implements Serializable
 	static
 	{
 		typeDescription.putListPropertyType("extraFiles", CopyFile.class);
+		typeDescription.putMapPropertyType("env", String.class, String.class);
 	}
 	
 	
@@ -30,6 +33,7 @@ public class Bot implements Serializable
 	public final BotExecutableType type;
 	public final BwapiVersion bwapiVersion;
 	public final List<CopyFile> extraFiles;
+	public final LinkedHashMap<String,String> environmentVariables;
 	
 	private Bot() //dummy constructor for yaml
 	{
@@ -37,7 +41,8 @@ public class Bot implements Serializable
 		race = null;
 		type = null;
 		bwapiVersion = null;
-		extraFiles = null;
+		extraFiles = new ArrayList<CopyFile>();
+		environmentVariables = new LinkedHashMap<String,String>();
 	}
 	
 	public static Bot load(CommonEnvironment env, String name) throws IOException

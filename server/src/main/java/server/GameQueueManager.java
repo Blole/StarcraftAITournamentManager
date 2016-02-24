@@ -110,7 +110,14 @@ public class GameQueueManager extends FileAlterationListenerAdaptor
 	private Stream<ServerGame> gamesInState(ServerGameState state)
 	{
 		obs.checkAndNotify();
-		return games.values().stream().filter(g-> g.state() == state);
+		return games.values().stream().filter(g-> g.state() == state).sorted(
+				(ServerGame a, ServerGame b)->
+				{
+					if (a.game.round != b.game.round)
+						return a.game.round-b.game.round;
+					else
+						return a.game.id.compareTo(b.game.id);
+				});
 	}
 	public Stream<ServerGame> queued()
 	{
@@ -126,7 +133,7 @@ public class GameQueueManager extends FileAlterationListenerAdaptor
 	}
 	public boolean allDone()
 	{
-		return queued().count() == 0;
+		return queued().count() == 0 && running().count() == 0;
 	}
 	
 	
