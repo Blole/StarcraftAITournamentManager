@@ -1,0 +1,103 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="../../yaml-cpp/binary.cpp" />
+    <ClCompile Include="../../yaml-cpp/contrib\graphbuilder.cpp" />
+    <ClCompile Include="../../yaml-cpp/contrib\graphbuilderadapter.cpp" />
+    <ClCompile Include="../../yaml-cpp/convert.cpp" />
+    <ClCompile Include="../../yaml-cpp/directives.cpp" />
+    <ClCompile Include="../../yaml-cpp/emit.cpp" />
+    <ClCompile Include="../../yaml-cpp/emitfromevents.cpp" />
+    <ClCompile Include="../../yaml-cpp/emitter.cpp" />
+    <ClCompile Include="../../yaml-cpp/emitterstate.cpp" />
+    <ClCompile Include="../../yaml-cpp/emitterutils.cpp" />
+    <ClCompile Include="../../yaml-cpp/exp.cpp" />
+    <ClCompile Include="../../yaml-cpp/memory.cpp" />
+    <ClCompile Include="../../yaml-cpp/node.cpp" />
+    <ClCompile Include="../../yaml-cpp/nodebuilder.cpp" />
+    <ClCompile Include="../../yaml-cpp/nodeevents.cpp" />
+    <ClCompile Include="../../yaml-cpp/node_data.cpp" />
+    <ClCompile Include="../../yaml-cpp/null.cpp" />
+    <ClCompile Include="../../yaml-cpp/ostream_wrapper.cpp" />
+    <ClCompile Include="../../yaml-cpp/parse.cpp" />
+    <ClCompile Include="../../yaml-cpp/parser.cpp" />
+    <ClCompile Include="../../yaml-cpp/regex_yaml.cpp" />
+    <ClCompile Include="../../yaml-cpp/scanner.cpp" />
+    <ClCompile Include="../../yaml-cpp/scanscalar.cpp" />
+    <ClCompile Include="../../yaml-cpp/scantag.cpp" />
+    <ClCompile Include="../../yaml-cpp/scantoken.cpp" />
+    <ClCompile Include="../../yaml-cpp/simplekey.cpp" />
+    <ClCompile Include="../../yaml-cpp/singledocparser.cpp" />
+    <ClCompile Include="../../yaml-cpp/stream.cpp" />
+    <ClCompile Include="../../yaml-cpp/tag.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="../../yaml-cpp/collectionstack.h" />
+    <ClInclude Include="../../yaml-cpp/contrib\graphbuilderadapter.h" />
+    <ClInclude Include="../../yaml-cpp/directives.h" />
+    <ClInclude Include="../../yaml-cpp/emitterstate.h" />
+    <ClInclude Include="../../yaml-cpp/emitterutils.h" />
+    <ClInclude Include="../../yaml-cpp/exp.h" />
+    <ClInclude Include="../../yaml-cpp/indentation.h" />
+    <ClInclude Include="../../yaml-cpp/nodebuilder.h" />
+    <ClInclude Include="../../yaml-cpp/nodeevents.h" />
+    <ClInclude Include="../../yaml-cpp/ptr_stack.h" />
+    <ClInclude Include="../../yaml-cpp/ptr_vector.h" />
+    <ClInclude Include="../../yaml-cpp/regeximpl.h" />
+    <ClInclude Include="../../yaml-cpp/regex_yaml.h" />
+    <ClInclude Include="../../yaml-cpp/scanner.h" />
+    <ClInclude Include="../../yaml-cpp/scanscalar.h" />
+    <ClInclude Include="../../yaml-cpp/scantag.h" />
+    <ClInclude Include="../../yaml-cpp/setting.h" />
+    <ClInclude Include="../../yaml-cpp/singledocparser.h" />
+    <ClInclude Include="../../yaml-cpp/stream.h" />
+    <ClInclude Include="../../yaml-cpp/streamcharsource.h" />
+    <ClInclude Include="../../yaml-cpp/stringsource.h" />
+    <ClInclude Include="../../yaml-cpp/tag.h" />
+    <ClInclude Include="../../yaml-cpp/token.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="license.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{65C13300-68F6-4F16-9FED-2247D2615296}</ProjectGuid>
+    <RootNamespace>ExampleAIModule</RootNamespace>
+    <Keyword>Win32Proj</Keyword>
+    <ProjectName>yaml-cpp-2010</ProjectName>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <CharacterSet>Unicode</CharacterSet>
+    <PlatformToolset>v100</PlatformToolset>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="PropertySheets">
+    <Import Project="..\..\packages\builddir.3.2.1\tools\builddir.props" Condition="exists('..\..\packages\builddir.3.2.1\tools\builddir.props')" />
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="..\..\packages\bloles-defaults.1.0.1\tools\bloles-defaults.props" Condition="exists('..\..\packages\bloles-defaults.1.0.1\tools\bloles-defaults.props')" />
+  </ImportGroup>
+  <ItemDefinitionGroup />
+  <!-- ^ needed line -->
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+    <Import Project="..\..\packages\boost.1.60.0.0\build\native\boost.targets" Condition="Exists('..\..\packages\boost.1.60.0.0\build\native\boost.targets')" />
+  </ImportGroup>
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('..\..\packages\boost.1.60.0.0\build\native\boost.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\..\packages\boost.1.60.0.0\build\native\boost.targets'))" />
+  </Target>
+</Project>

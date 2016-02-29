@@ -1,36 +1,39 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
-VisualStudioVersion = 14.0.23107.0
+VisualStudioVersion = 14.0.24720.0
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "yaml-cpp-2008", "yaml-cpp\yaml-cpp-2008.vcxproj", "{2BBFF4D9-363E-49D4-A87B-9B43D8635D8C}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "yaml-cpp-2008", "projectfiles\yaml-cpp-2008\yaml-cpp-2008.vcxproj", "{2BBFF4D9-363E-49D4-A87B-9B43D8635D8C}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "yaml-cpp-2010", "yaml-cpp\yaml-cpp-2010.vcxproj", "{65C13300-68F6-4F16-9FED-2247D2615296}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "yaml-cpp-2010", "projectfiles\yaml-cpp-2010\yaml-cpp-2010.vcxproj", "{65C13300-68F6-4F16-9FED-2247D2615296}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "yaml-cpp-2013", "yaml-cpp\yaml-cpp-2013.vcxproj", "{479CC519-67AF-4D9E-BCC5-62D4697837B1}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "yaml-cpp-2013", "projectfiles\yaml-cpp-2013\yaml-cpp-2013.vcxproj", "{479CC519-67AF-4D9E-BCC5-62D4697837B1}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "tournamentmodule-3.7", "tournamentmodule\tournamentmodule-3.7.vcxproj", "{F32E5BB8-002D-486C-B11E-D73865BB9573}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "tournamentmodule-4.1", "projectfiles\tournamentmodule-4.1\tournamentmodule-4.1.vcxproj", "{A7E2405B-BC7F-4231-8DB7-3A2F683B8DBA}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "tournamentmodule-4.0", "tournamentmodule\tournamentmodule-4.0.vcxproj", "{49078FE5-D467-44B3-8011-6C069D607A6D}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "tournamentmodule-4.0", "projectfiles\tournamentmodule-4.0\tournamentmodule-4.0.vcxproj", "{49078FE5-D467-44B3-8011-6C069D607A6D}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "tournamentmodule-4.1", "tournamentmodule\tournamentmodule-4.1.vcxproj", "{A7E2405B-BC7F-4231-8DB7-3A2F683B8DBA}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "tournamentmodule-3.7", "projectfiles\tournamentmodule-3.7\tournamentmodule-3.7.vcxproj", "{F32E5BB8-002D-486C-B11E-D73865BB9573}"
+	ProjectSection(ProjectDependencies) = postProject
+		{2BBFF4D9-363E-49D4-A87B-9B43D8635D8C} = {2BBFF4D9-363E-49D4-A87B-9B43D8635D8C}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
-		Release|Win32 = Release|Win32
+		Release|x86 = Release|x86
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{2BBFF4D9-363E-49D4-A87B-9B43D8635D8C}.Release|Win32.ActiveCfg = Release|Win32
-		{2BBFF4D9-363E-49D4-A87B-9B43D8635D8C}.Release|Win32.Build.0 = Release|Win32
-		{65C13300-68F6-4F16-9FED-2247D2615296}.Release|Win32.ActiveCfg = Release|Win32
-		{65C13300-68F6-4F16-9FED-2247D2615296}.Release|Win32.Build.0 = Release|Win32
-		{479CC519-67AF-4D9E-BCC5-62D4697837B1}.Release|Win32.ActiveCfg = Release|Win32
-		{479CC519-67AF-4D9E-BCC5-62D4697837B1}.Release|Win32.Build.0 = Release|Win32
-		{F32E5BB8-002D-486C-B11E-D73865BB9573}.Release|Win32.ActiveCfg = Release|Win32
-		{F32E5BB8-002D-486C-B11E-D73865BB9573}.Release|Win32.Build.0 = Release|Win32
-		{49078FE5-D467-44B3-8011-6C069D607A6D}.Release|Win32.ActiveCfg = Release|Win32
-		{49078FE5-D467-44B3-8011-6C069D607A6D}.Release|Win32.Build.0 = Release|Win32
-		{A7E2405B-BC7F-4231-8DB7-3A2F683B8DBA}.Release|Win32.ActiveCfg = Release|Win32
-		{A7E2405B-BC7F-4231-8DB7-3A2F683B8DBA}.Release|Win32.Build.0 = Release|Win32
+		{2BBFF4D9-363E-49D4-A87B-9B43D8635D8C}.Release|x86.ActiveCfg = Release|Win32
+		{2BBFF4D9-363E-49D4-A87B-9B43D8635D8C}.Release|x86.Build.0 = Release|Win32
+		{65C13300-68F6-4F16-9FED-2247D2615296}.Release|x86.ActiveCfg = Release|Win32
+		{65C13300-68F6-4F16-9FED-2247D2615296}.Release|x86.Build.0 = Release|Win32
+		{479CC519-67AF-4D9E-BCC5-62D4697837B1}.Release|x86.ActiveCfg = Release|Win32
+		{479CC519-67AF-4D9E-BCC5-62D4697837B1}.Release|x86.Build.0 = Release|Win32
+		{A7E2405B-BC7F-4231-8DB7-3A2F683B8DBA}.Release|x86.ActiveCfg = Release|Win32
+		{A7E2405B-BC7F-4231-8DB7-3A2F683B8DBA}.Release|x86.Build.0 = Release|Win32
+		{49078FE5-D467-44B3-8011-6C069D607A6D}.Release|x86.ActiveCfg = Release|Win32
+		{49078FE5-D467-44B3-8011-6C069D607A6D}.Release|x86.Build.0 = Release|Win32
+		{F32E5BB8-002D-486C-B11E-D73865BB9573}.Release|x86.ActiveCfg = Release|Win32
+		{F32E5BB8-002D-486C-B11E-D73865BB9573}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -1,0 +1,65 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="..\..\packages\bwapi-vc120.4.1.2.8\build\native\bwapi-vc120.props" Condition="Exists('..\..\packages\bwapi-vc120.4.1.2.8\build\native\bwapi-vc120.props')" />
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="../../tournamentmodule/dll.cpp" />
+    <ClCompile Include="../../tournamentmodule/tournamentmodule.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="../../tournamentmodule/Timer.h" />
+    <ClInclude Include="../../tournamentmodule/tournamentmodule.hpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\yaml-cpp-2013\yaml-cpp-2013.vcxproj">
+      <Project>{479cc519-67af-4d9e-bcc5-62d4697837b1}</Project>
+    </ProjectReference>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{A7E2405B-BC7F-4231-8DB7-3A2F683B8DBA}</ProjectGuid>
+    <RootNamespace>ExampleAIModule</RootNamespace>
+    <Keyword>Win32Proj</Keyword>
+    <ProjectName>tournamentmodule-4.1</ProjectName>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <CharacterSet>Unicode</CharacterSet>
+    <PlatformToolset>v120</PlatformToolset>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="PropertySheets">
+    <Import Project="..\..\packages\builddir.3.2.1\tools\builddir.props" Condition="exists('..\..\packages\builddir.3.2.1\tools\builddir.props')" />
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="..\..\packages\bloles-defaults.1.0.1\tools\bloles-defaults.props" Condition="exists('..\..\packages\bloles-defaults.1.0.1\tools\bloles-defaults.props')" />
+    <Import Project="..\..\packages\bwapi-vc120.4.1.2.8\build\native\bwapi-vc120.ps.props" Condition="exists('..\..\packages\bwapi-vc120.4.1.2.8\build\native\bwapi-vc120.ps.props')" />
+  </ImportGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <StarcraftDir>C:\tm\starcraft\</StarcraftDir>
+  </PropertyGroup>
+  <ItemDefinitionGroup />
+  <!-- ^ needed line -->
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+    <Import Project="..\..\packages\boost.1.60.0.0\build\native\boost.targets" Condition="Exists('..\..\packages\boost.1.60.0.0\build\native\boost.targets')" />
+    <Import Project="..\..\packages\bwapi-vc120.4.1.2.8\build\native\bwapi-vc120.targets" Condition="Exists('..\..\packages\bwapi-vc120.4.1.2.8\build\native\bwapi-vc120.targets')" />
+  </ImportGroup>
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('..\..\packages\boost.1.60.0.0\build\native\boost.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\..\packages\boost.1.60.0.0\build\native\boost.targets'))" />
+    <Error Condition="!Exists('..\..\packages\bwapi-vc120.4.1.2.8\build\native\bwapi-vc120.props')" Text="$([System.String]::Format('$(ErrorText)', '..\..\packages\bwapi-vc120.4.1.2.8\build\native\bwapi-vc120.props'))" />
+    <Error Condition="!Exists('..\..\packages\bwapi-vc120.4.1.2.8\build\native\bwapi-vc120.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\..\packages\bwapi-vc120.4.1.2.8\build\native\bwapi-vc120.targets'))" />
+  </Target>
+</Project>
