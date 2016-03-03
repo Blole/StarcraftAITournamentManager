@@ -8,9 +8,8 @@
 using namespace BWAPI;
 using namespace std;
 
-string getDllFilename();
-string getExeFilename();
-
+fs::path dll();
+fs::path exe();
 
 
 class TimeLimit
@@ -38,27 +37,42 @@ double cameraMoveTime;
 double cameraMoveTimeOnUnitCreate;
 double statusFileUpdateInterval;
 
-string statusFilename;
+fs::path statusFile;
 
 int totalFrameLimit;
 vector<TimeLimit> timeLimits;
 vector<int> frameTimes(100000,0);
 
+optional<fs::path> env(const std::string& envvar)
+{
+	const char* buf;
+#pragma warning(suppress: 4996)
+	if (buf = std::getenv(envvar.c_str()))
+		return buf;
+	else
+		return none;
+}
+
 void ExampleTournamentAI::onStart()
 {
-	string starcraftDir = getExeFilename();
-	string dllFilename = getDllFilename();
-	string yamlFilename = dllFilename.substr(0, dllFilename.find_last_of('.')) + ".yaml";
+	fs::path yamlFile = env("SCAITM_TOURNAMENT_CONFIG_FILE")
+		.value_or(dll().parent_path() / (fs::basename(dll()) + ".yaml"));
+
+	statusFile = env("SCAITM_TOURNAMENT_STATUS_FILE")
+		.value_or(exe().parent_path() / "gamestatus.yaml");
+	
+	//std::cout << "tournament settings: " << yamlFile.string() << std::endl;
+	//std::cout << "game status:         " << statusFile.string() << std::endl;
 
 	YAML::Node yaml;
 	try
 	{
-		yaml = YAML::LoadFile(yamlFilename);
+		yaml = YAML::LoadFile(yamlFile.string());
 	}
 	catch (std::exception e)
 	{
 		Broodwar->printf("error loading tournament module settings from:\n");
-		Broodwar->printf("'%s':\n", yamlFilename.c_str());
+		Broodwar->printf("'%s':\n", yamlFile.c_str());
 		Broodwar->printf("%s\n", e.what());
 		return;
 	}
@@ -70,8 +84,6 @@ void ExampleTournamentAI::onStart()
 	cameraMoveTime = yaml["cameraMoveTime"].as<double>(2.0);
 	cameraMoveTimeOnUnitCreate = yaml["cameraMoveTimeOnUnitCreate"].as<double>(6.0);
 	statusFileUpdateInterval = yaml["statusFileUpdateInterval"].as<double>(1.0);
-
-	statusFilename  = yaml["statusFilename"].as<string>("gamestatus.yaml");
 
 	totalFrameLimit = yaml["totalFrameLimit"].as<int>(0);
 	for each (const pair<double, int>& item in yaml["timeLimits"].as<map<double, int>>(map<double, int>()))
@@ -93,7 +105,7 @@ void ExampleTournamentAI::onFrame()
 	if (lastStatusWriteTime < gameTimer.getElapsedTimeInMilliSec() - statusFileUpdateInterval)
 	{
 		lastStatusWriteTime = gameTimer.getElapsedTimeInMilliSec();
-		writeTo(statusFilename, false);
+		writeTo(statusFile, false);
 	}
 
 	if (0 < totalFrameLimit && totalFrameLimit < Broodwar->getFrameCount())
@@ -132,13 +144,13 @@ void ExampleTournamentAI::onFrame()
 
 void ExampleTournamentAI::onEnd(bool isWinner)
 {
-	writeTo(statusFilename, true);
+	writeTo(statusFile, true);
 }
 
 
-void ExampleTournamentAI::writeTo(const string& filename, bool end)
+void ExampleTournamentAI::writeTo(const fs::path& file, bool end)
 {
-	std::ofstream outfile(filename.c_str(), std::ios::out);
+	std::ofstream outfile(file.c_str(), std::ios::out);
 	if (outfile.is_open())
 	{
 		int selfScore = Broodwar->self()->getKillScore()
@@ -260,16 +272,16 @@ void ExampleTournamentAI::onUnitComplete(unit_t*)			{ frameTimes[Broodwar->getFr
 ////////////////////////////////////////////////////////////////
 
 EXTERN_C IMAGE_DOS_HEADER __ImageBase;
-string getDllFilename()
+fs::path dll()
 {
-	char dllFilename[MAX_PATH];
-	GetModuleFileNameA((HINSTANCE)&__ImageBase, dllFilename, MAX_PATH);
-	return dllFilename;
+	char buf[MAX_PATH];
+	GetModuleFileNameA((HINSTANCE)&__ImageBase, buf, MAX_PATH);
+	return fs::path(buf);
 }
 
-string getExeFilename()
+fs::path exe()
 {
-	char exeFilename[MAX_PATH];
-	GetDllDirectoryA(MAX_PATH, exeFilename);
-	return exeFilename;
+	char buf[MAX_PATH];
+	GetModuleFileNameA(nullptr, buf, MAX_PATH);
+	return fs::path(buf);
 }

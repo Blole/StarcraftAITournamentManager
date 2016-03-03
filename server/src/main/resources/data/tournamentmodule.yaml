@@ -6,8 +6,6 @@ cameraMoveTime:             2.0
 cameraMoveTimeOnUnitCreate: 6.0
 statusFileUpdateInterval:   1.0
 
-statusFilename:   gamestatus.yaml
-
 totalFrameLimit: 85714
 timeLimits:
     55:     320

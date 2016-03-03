@@ -1,6 +1,6 @@
 #pragma once
+#include "tournamentmodule/common.hpp"
 #include <BWAPI.h>
-#include <vector>
 #include <windows.h>
 
 #if (BWAPI_VER == 307) //3.7.x
@@ -37,5 +37,5 @@ public:
   virtual void onUnitComplete(unit_t *unit_t);
   virtual void onPlayerDropped(player_t* player);
   virtual void moveCamera();
-  virtual void writeTo(const std::string & filename, bool end);
+  virtual void writeTo(const fs::path& file, bool end);
 };
