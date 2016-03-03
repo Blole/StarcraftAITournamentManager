@@ -57,7 +57,7 @@ public class Server extends RunnableUnicastRemoteObject implements RemoteServer
 		int finishedRound = -1;
 		int printedWaitingForRoundToFinish = -1;
 		ServerGame prevGame = null;
-		while (!gameQueueManager.allDone())
+		while (!(env.exitWhenQueueDone && gameQueueManager.allDone()))
 		{
 			ServerGame nextGame = gameQueueManager.getNextUnstartedGame();
 			
@@ -99,9 +99,7 @@ public class Server extends RunnableUnicastRemoteObject implements RemoteServer
 			wait((long)(env.gameReschedulePeriod*1000));
 		}
 		
-		log("Done");
-		if (!env.exitWhenDone)
-			Thread.sleep(Long.MAX_VALUE);
+		log("done, exiting");
 	}
 
 	@Override
@@ -146,7 +144,9 @@ public class Server extends RunnableUnicastRemoteObject implements RemoteServer
 	public synchronized void log(String format, Object... args)
 	{
 		String timeStamp = new SimpleDateFormat("[HH:mm:ss]").format(Calendar.getInstance().getTime());
-		gui.logText(timeStamp+" "+String.format(format, args)+"\n");
+		String text = timeStamp+" "+String.format(format, args)+"\n";
+		gui.logText(text);
+		System.out.print(text);
 	}
 	
 	@Override

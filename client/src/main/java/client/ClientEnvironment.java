@@ -25,6 +25,7 @@ public class ClientEnvironment extends CommonEnvironment implements Serializable
 	
 	public boolean killOtherStarcraftProcessesOnStartup = false;
 	public boolean addStarcraftFirewallExceptionOnStartup = false;
+	public boolean deleteInstanceDirs = true;
 	
 	public double serverAlivePollPeriod = 10;
 	

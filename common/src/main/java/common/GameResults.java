@@ -27,7 +27,7 @@ public class GameResults implements Serializable
 		
 		if (result.individual != null)
 		{
-			while (individual.size() < index)
+			while (individual.size() <= index)
 				individual.add(null);
 			individual.set(index, result.individual);
 		}

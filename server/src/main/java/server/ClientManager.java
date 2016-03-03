@@ -66,10 +66,13 @@ public class ClientManager
 	
 	void killAll()
 	{
-		server.log("killing all clients");
-		for (ProxyClient client : clients())
-			client.tryKill();
-		clients.clear();
+		if (clients.size() > 0)
+		{
+			server.log("killing all clients (%d)", clients.size());
+			for (ProxyClient client : clients())
+				client.tryKill();
+			clients.clear();
+		}
 	}
 
 	public void sendCommandToAll(String command)

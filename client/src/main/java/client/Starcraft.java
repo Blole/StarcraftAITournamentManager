@@ -75,7 +75,8 @@ public class Starcraft extends RunnableUnicastRemoteObject implements RemoteStar
 		{
 			FileUtils.forceMkdir(instanceDir);
 			FileUtils.cleanDirectory(instanceDir);
-			FileUtils.forceDeleteOnExit(instanceDir);
+			if (env.deleteInstanceDirs)
+				FileUtils.forceDeleteOnExit(instanceDir);
 			
 			MyFile replayFile = new MyFile(instanceDir, "replay.rep");
 			MyFile statusFile = new MyFile(instanceDir, env.gamestatusFileName);
@@ -236,7 +237,8 @@ public class Starcraft extends RunnableUnicastRemoteObject implements RemoteStar
 		if (starcraftProcess != null)
 			starcraftProcess.destroyForcibly();
 		
-		FileUtils.deleteQuietly(instanceDir);
+		if (env.deleteInstanceDirs)
+			FileUtils.deleteQuietly(instanceDir);
 		client.onStarcraftExit(this);
 	}
 	
@@ -347,7 +349,7 @@ public class Starcraft extends RunnableUnicastRemoteObject implements RemoteStar
 	private GameStatusFile getStatus(File statusFile) throws IOException, StarcraftException
 	{
 		String statusString = FileUtils.readFileToString(statusFile);
-		return new Yaml(new MyConstructor(env)).loadAs(statusString, GameStatusFile.class);
+		return (GameStatusFile) new Yaml(new MyConstructor(env)).load(statusString);
 	}
 	
 	private void log(String format, Object... args)

@@ -272,7 +272,7 @@ public class ServerGUI
 		}
 	}
 	
-	public void logText(String s)
+	public synchronized void logText(String s)
 	{
 		bottomText.append(s);
 		bottomText.setCaretPosition(bottomText.getDocument().getLength());

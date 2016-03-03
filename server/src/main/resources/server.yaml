@@ -5,7 +5,7 @@ port:           1099
 matchFinishedPollPeriod: 0.7
 gameReschedulePeriod: 2
 killClientsOnExit: true
-exitWhenDone: true
+exitWhenQueueDone: true
 
 gameQueueDir:   !required  game_queue
 gameResultsDir: !file      game_results

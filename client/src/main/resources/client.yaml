@@ -1,8 +1,9 @@
 # client settings
-serverUrl:  //bjorn-cellar:1099/scaitm_server
+serverUrl:  //cellar:1099/scaitm_server
 
 starcraftDir:    !required  C:/tm/starcraft/
 gamestatusFileName: gamestatus.yaml
+deleteInstanceDirs: false
 
 shortcuts:
     $starcraft:  !required  C:/tm/starcraft/

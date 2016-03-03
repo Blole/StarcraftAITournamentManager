@@ -23,7 +23,7 @@ public class ProxyClient implements RemoteClient
 	@Override
 	public String toString()
 	{
-		return String.format("{ProxyClient %s%s}", endpointAddress(), isAlive()?"":"(dead)");
+		return String.format("{Client %s%s}", endpointAddress(), isAlive()?"":"(dead)");
 	}
 	
 	private void onRemoteException(RemoteException e)

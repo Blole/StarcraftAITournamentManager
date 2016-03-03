@@ -21,7 +21,7 @@ public class ServerEnvironment extends CommonEnvironment implements Serializable
 	public double matchFinishedPollPeriod = 1.0;
 	public double gameReschedulePeriod = 2.0;
 	public boolean killClientsOnExit = false;
-	public boolean exitWhenDone = false;
+	public boolean exitWhenQueueDone = false;
 	
 	public RequiredFile gameQueueDir;
 	public MyFile gameResultsDir;

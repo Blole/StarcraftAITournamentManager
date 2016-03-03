@@ -8,7 +8,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.apache.commons.io.IOCase;
-import org.apache.commons.io.filefilter.SuffixFileFilter;
+import org.apache.commons.io.filefilter.FileFilterUtils;
 import org.apache.commons.io.monitor.FileAlterationListenerAdaptor;
 import org.apache.commons.io.monitor.FileAlterationObserver;
 import org.yaml.snakeyaml.error.YAMLException;
@@ -19,15 +19,15 @@ import server.exceptions.ServerGameResultsDirAlreadyExistsException;
 
 public class GameQueueManager extends FileAlterationListenerAdaptor
 {
-	private HashMap<File, ServerGame> games = new HashMap<>();
+	private final HashMap<File, ServerGame> games = new HashMap<>();
 	private final Server server;
 	private final FileAlterationObserver obs;
 
 	public GameQueueManager(Server server)
 	{
 		this.server = server;
-		this.obs = new FileAlterationObserver(server.env.gameQueueDir, new SuffixFileFilter(".yaml",IOCase.INSENSITIVE));
-		obs.addListener(this);
+		this.obs = new FileAlterationObserver(server.env.gameQueueDir, FileFilterUtils.suffixFileFilter(".yaml",IOCase.INSENSITIVE));
+		this.obs.addListener(this);
 	}
 	
 	
@@ -41,36 +41,29 @@ public class GameQueueManager extends FileAlterationListenerAdaptor
 	
 	
 	
-	/**
-	 * @return the read game or null if error
-	 */
-	private ServerGame tryRead(File file)
+	private void read(File file, String action)
 	{
 		try
 		{
-			return ServerGame.load(server, file);
+			ServerGame game = ServerGame.load(server, file);
+			games.put(file, game);
+			server.log("%s %sd", game, action);
 		}
 		catch (ServerGameResultsDirAlreadyExistsException e)
 		{
-			server.log(e.getMessage());
+			server.log("'%s' not %sd, results dir '%s' already exists", e.gameFile, action, e.resultsDir);
 		}
 		catch (IOException|YAMLException e)
 		{
-			server.log("error parsing queued game file '%s'", file);
+			server.log("'%s' not %sd, error parsing file", file, action);
 			e.printStackTrace();
 		}
-		return null;
 	}
 	
 	@Override
 	public void onFileCreate(File file)
 	{
-		ServerGame game = tryRead(file);
-		if (game != null)
-		{
-			games.put(file, game);
-			server.log(game+" queued");
-		}
+		read(file, "queue");
 	}
 	
 	@Override
@@ -80,12 +73,7 @@ public class GameQueueManager extends FileAlterationListenerAdaptor
 		if (game != null && game.stop())
 			server.log(game+" stopped");
 		
-		game = tryRead(file);
-		if (game != null)
-		{
-			games.put(file, game);
-			server.log(game+" updated");
-		}
+		read(file, "update");
 	}
 	
 	/**
