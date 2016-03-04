@@ -21,7 +21,6 @@ import common.protocols.RemoteStarcraft;
 import common.yaml.MyConstructor;
 import common.yaml.MyRepresenter;
 import server.exceptions.NotEnoughStarcraftInstancesCouldBeStartedException;
-import server.exceptions.ServerGameResultsDirAlreadyExistsException;
 
 /**
  * This class "takes ownership" of the yamlFile, and will move it
@@ -38,15 +37,12 @@ public class ServerGame implements Runnable
 	private Thread thread = null;
 	private Exception exception = null;
 	
-	public ServerGame(Game game, MyFile file, Server server) throws ServerGameResultsDirAlreadyExistsException
+	public ServerGame(Game game, MyFile file, Server server)
 	{
 		this.server = server;
 		this.state = ServerGameState.QUEUED;
 		this.file = file;
 		this.game = game;
-		
-		if (resultsDir().exists())
-			throw new ServerGameResultsDirAlreadyExistsException(file, resultsDir());
 	}
 	
 	@Override
@@ -112,7 +108,7 @@ public class ServerGame implements Runnable
 			for (int i=0; i<game.bots.length; i++)
 			{
 				writeDirs[i] = completeResults[i].writeDirectory;
-				results.add(i,  completeResults[i].result);
+				results.add(i, completeResults[i].result);
 			}
 			
 			Yaml yaml = new Yaml(new MyRepresenter());
@@ -196,9 +192,13 @@ public class ServerGame implements Runnable
 	}
 	
 	
-	private MyFile resultsDir()
+	public static MyFile resultsDir(Server server, MyFile file)
 	{
 		return new MyFile(server.env.gameResultsDir, file.getNameWithoutExtension());
+	}
+	private MyFile resultsDir()
+	{
+		return resultsDir(server, file);
 	}
 	private MyFile resultsFile()
 	{
@@ -231,7 +231,7 @@ public class ServerGame implements Runnable
 		}
 	}
 	
-	public static ServerGame load(Server server, File file_) throws ServerGameResultsDirAlreadyExistsException, IOException
+	public static ServerGame load(Server server, File file_) throws IOException
 	{
 		MyFile file = new MyFile(file_);
 		String gameText = FileUtils.readFileToString(file);

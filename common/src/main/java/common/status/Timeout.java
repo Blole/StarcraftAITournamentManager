@@ -5,7 +5,6 @@ import java.io.Serializable;
 import org.yaml.snakeyaml.TypeDescription;
 
 import common.Bot;
-import common.exceptions.BotTimeoutException;
 
 public class Timeout extends GameStatusFile implements Serializable
 {
@@ -14,8 +13,10 @@ public class Timeout extends GameStatusFile implements Serializable
 	
 	
 	
-	public Timeout(Bot bot) throws BotTimeoutException
+	public final Bot bot;
+	
+	public Timeout(Bot bot)
 	{
-		throw new BotTimeoutException(bot);
+		this.bot = bot;
 	}
 }

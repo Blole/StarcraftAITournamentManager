@@ -5,7 +5,6 @@ import java.io.Serializable;
 import org.yaml.snakeyaml.TypeDescription;
 
 import common.Bot;
-import common.exceptions.BotCrashException;
 
 public class Crash extends GameStatusFile implements Serializable
 {
@@ -14,8 +13,10 @@ public class Crash extends GameStatusFile implements Serializable
 	
 	
 	
-	public Crash(Bot bot) throws BotCrashException
+	public final Bot bot;
+	
+	public Crash(Bot bot)
 	{
-		throw new BotCrashException(bot);
+		this.bot = bot;
 	}
 }

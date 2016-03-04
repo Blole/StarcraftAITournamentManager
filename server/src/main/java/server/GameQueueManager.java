@@ -14,8 +14,8 @@ import org.apache.commons.io.monitor.FileAlterationObserver;
 import org.yaml.snakeyaml.error.YAMLException;
 
 import common.Bot;
+import common.file.MyFile;
 import server.ServerGame.ServerGameState;
-import server.exceptions.ServerGameResultsDirAlreadyExistsException;
 
 public class GameQueueManager extends FileAlterationListenerAdaptor
 {
@@ -43,15 +43,18 @@ public class GameQueueManager extends FileAlterationListenerAdaptor
 	
 	private void read(File file, String action)
 	{
+		File resultsDir = ServerGame.resultsDir(server, new MyFile(file));
+		if (resultsDir.exists())
+		{
+			server.log("'%s' not %sd, results dir '%s' already exists", file, action, resultsDir);
+			return;
+		}
+		
 		try
 		{
 			ServerGame game = ServerGame.load(server, file);
 			games.put(file, game);
 			server.log("%s %sd", game, action);
-		}
-		catch (ServerGameResultsDirAlreadyExistsException e)
-		{
-			server.log("'%s' not %sd, results dir '%s' already exists", e.gameFile, action, e.resultsDir);
 		}
 		catch (IOException|YAMLException e)
 		{

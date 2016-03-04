@@ -15,6 +15,8 @@ import common.BotExecutableType;
 import common.CompleteGameResults;
 import common.Game;
 import common.RunnableUnicastRemoteObject;
+import common.exceptions.BotCrashException;
+import common.exceptions.BotTimeoutException;
 import common.exceptions.StarcraftException;
 import common.exceptions.StarcraftNotHostException;
 import common.file.CopyFile;
@@ -22,8 +24,10 @@ import common.file.MyFile;
 import common.file.PackedFile;
 import common.file.RequiredFile;
 import common.protocols.RemoteStarcraft;
+import common.status.Crash;
 import common.status.Done;
 import common.status.GameStatusFile;
+import common.status.Timeout;
 import common.utils.Helper;
 import common.utils.WindowsCommandTools;
 import common.yaml.MyConstructor;
@@ -170,12 +174,19 @@ public class Starcraft extends RunnableUnicastRemoteObject implements RemoteStar
 			while (starcraftProcess.isAlive())
 			{
 				GameStatusFile status = getStatus(statusFile);
-				if (status != null && status instanceof Done)
+				if (status != null)
 				{
-					log("waiting for starcraft to close");
-					if (!starcraftProcess.waitFor((long)(env.starcraftClosingTimeout*1000), TimeUnit.MILLISECONDS))
-						throw new StarcraftException("timeout waiting for starcraft to close");
-					break;
+					if (status instanceof Crash)
+						throw new BotCrashException(((Crash)status).bot);
+					else if (status instanceof Timeout)
+						throw new BotTimeoutException(((Timeout)status).bot);
+					else if (status instanceof Done)
+					{
+						log("waiting for starcraft to close");
+						if (!starcraftProcess.waitFor((long)(env.starcraftClosingTimeout*1000), TimeUnit.MILLISECONDS))
+							throw new StarcraftException("timeout waiting for starcraft to close");
+						break;
+					}
 				}
 				
 				long timeSinceModification = System.currentTimeMillis() - statusFile.lastModified();
