@@ -12,10 +12,10 @@ import org.yaml.snakeyaml.Yaml;
 
 import common.Bot;
 import common.BotExecutableType;
+import common.CompleteGameResults;
 import common.Game;
 import common.RunnableUnicastRemoteObject;
 import common.exceptions.StarcraftException;
-import common.exceptions.StarcraftMatchNotFinishedException;
 import common.exceptions.StarcraftNotHostException;
 import common.file.CopyFile;
 import common.file.MyFile;
@@ -247,55 +247,28 @@ public class Starcraft extends RunnableUnicastRemoteObject implements RemoteStar
 	{
 		if (thread() != null && thread().isAlive())
 		{
+			tryUnexport(true);
 			this.interruptReason = reason;
 			thread().interrupt();
 		}
 	}
 
 	@Override
-	public boolean isFinished() throws StarcraftException
-	{
-		throwAndUnexportIfException();
-		if (thread() == null)
-			return false;
-		else
-			return !thread().isAlive();
-	}
-	
-	private void throwAndUnexportIfException() throws StarcraftException
+	public CompleteGameResults getResults() throws StarcraftException
 	{
 		if (exception != null)
 		{
 			tryUnexport(true); //unexport now that we've thrown the exception
 			throw exception;
 		}
-	}
-	
-	private void checkFinished() throws StarcraftException
-	{
-		if (!isFinished())
-			throw new StarcraftMatchNotFinishedException();
-	}
-	
-	@Override
-	public Done getResult() throws StarcraftException
-	{
-		checkFinished();
-		return result;
-	}
-	
-	@Override
-	public PackedFile getReplay() throws StarcraftException
-	{
-		checkFinished();
-		return packedReplay;
-	}
-
-	@Override
-	public PackedFile getWriteDirectory() throws StarcraftException
-	{
-		checkFinished();
-		return packedWriteDirectory;
+		
+		if (thread() == null || thread().isAlive())
+			return null; //not done yet
+		else
+		{
+			tryUnexport(true);
+			return new CompleteGameResults(result, packedReplay, packedWriteDirectory);
+		}
 	}
 	
 	@Override

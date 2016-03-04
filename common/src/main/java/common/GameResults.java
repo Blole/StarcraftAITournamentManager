@@ -5,7 +5,7 @@ import java.util.ArrayList;
 
 import org.yaml.snakeyaml.TypeDescription;
 
-import common.exceptions.InvalidResultsException;
+import common.exceptions.DifferingCommonResultsException;
 import common.status.Done;
 
 public class GameResults implements Serializable
@@ -18,12 +18,12 @@ public class GameResults implements Serializable
 	public Object common = null;
 	public ArrayList<Object> individual = new ArrayList<>();
 	
-	public void add(int index, Done result) throws InvalidResultsException
+	public void add(int index, Done result) throws DifferingCommonResultsException
 	{
 		if (common == null)
 			common = result.common;
 		else if (!common.equals(result.common))
-			throw new InvalidResultsException("reported common results don't agree");
+			throw new DifferingCommonResultsException();
 		
 		if (result.individual != null)
 		{

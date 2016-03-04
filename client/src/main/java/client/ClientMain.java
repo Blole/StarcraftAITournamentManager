@@ -8,6 +8,7 @@ import java.rmi.RemoteException;
 import org.apache.commons.io.FileUtils;
 import org.yaml.snakeyaml.Yaml;
 
+import common.RunnableUnicastRemoteObject;
 import common.yaml.MyConstructor;
 
 
@@ -30,6 +31,7 @@ public class ClientMain
 			
 			Client client = new Client(env);
 			client.run();
+			RunnableUnicastRemoteObject.unexportAll(true);
 		}
 	}
 }

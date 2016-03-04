@@ -3,10 +3,12 @@ package common;
 import java.rmi.NoSuchObjectException;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
+import java.util.ArrayList;
 
 public abstract class RunnableUnicastRemoteObject extends UnicastRemoteObject implements Runnable
 {
 	private static final long serialVersionUID = -2098573351518535490L;
+	private static ArrayList<RunnableUnicastRemoteObject> exported = new ArrayList<>();
 	
 	
 	
@@ -24,6 +26,7 @@ public abstract class RunnableUnicastRemoteObject extends UnicastRemoteObject im
 	protected RunnableUnicastRemoteObject(boolean unexportAfterExit) throws RemoteException
 	{
 		this.unexportAfterExit = unexportAfterExit;
+		exported.add(this);
 	}
 	
 	protected Exception getException()
@@ -41,6 +44,7 @@ public abstract class RunnableUnicastRemoteObject extends UnicastRemoteObject im
 		try
 		{
 			unexportObject(this, force);
+			exported.remove(this);
 		}
 		catch (NoSuchObjectException e1)
 		{
@@ -124,4 +128,12 @@ public abstract class RunnableUnicastRemoteObject extends UnicastRemoteObject im
 	 * shutdown hook, and would then deadlock.
 	 */
 	protected abstract void onExit() throws Exception;
+	
+	
+	
+	public static void unexportAll(boolean force)
+	{
+		for (RunnableUnicastRemoteObject o : exported)
+			o.tryUnexport(force);
+	}
 }

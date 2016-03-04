@@ -8,6 +8,7 @@ import java.rmi.RemoteException;
 import org.apache.commons.io.FileUtils;
 import org.yaml.snakeyaml.Yaml;
 
+import common.RunnableUnicastRemoteObject;
 import common.yaml.MyConstructor;
 import common.yaml.MyRepresenter;
 
@@ -32,6 +33,7 @@ public class ServerMain
 			
 			Server server = new Server(env);
 			server.run();
+			RunnableUnicastRemoteObject.unexportAll(true);
 		}
 	}
 }

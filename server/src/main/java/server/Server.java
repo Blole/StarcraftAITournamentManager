@@ -24,7 +24,6 @@ import common.protocols.RemoteClient;
 import common.protocols.RemoteServer;
 import common.utils.Helper;
 import server.ServerGame.ServerGameState;
-import server.exceptions.NotEnoughStarcraftInstancesCouldBeStartedException;
 
 public class Server extends RunnableUnicastRemoteObject implements RemoteServer
 {
@@ -85,15 +84,8 @@ public class Server extends RunnableUnicastRemoteObject implements RemoteServer
 			}
 			else if (nextGame != null && clientManager.getOpenSlotCount() >= nextGame.game.bots.length)
 			{
-				try
-				{
-					nextGame.start();
-					prevGame = nextGame;
-				}
-				catch (NotEnoughStarcraftInstancesCouldBeStartedException e)
-				{
-					log("error starting %s, not enough starcraft instances could be started", nextGame);
-				}
+				new Thread(nextGame).start();
+				prevGame = nextGame;
 			}
 			
 			wait((long)(env.gameReschedulePeriod*1000));
