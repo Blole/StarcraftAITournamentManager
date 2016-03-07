@@ -1,2 +1,0 @@
-#files to copy somewhere special on startup
-- !copy [data/starcraft/, $starcraft/]

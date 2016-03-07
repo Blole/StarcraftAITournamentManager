@@ -22,8 +22,9 @@ public class Bot implements Serializable
 	public static final TypeDescription typeDescription = new TypeDescription(Bot.class, "!bot");
 	static
 	{
-		typeDescription.putListPropertyType("extraFiles", CopyFile.class);
-		typeDescription.putMapPropertyType("env", String.class, String.class);
+		typeDescription.putListPropertyType("copyFiles", CopyFile.class);
+		typeDescription.putListPropertyType("injectoryArguments", String.class);
+		typeDescription.putMapPropertyType("environmentVariables", String.class, String.class);
 	}
 	
 	
@@ -32,7 +33,8 @@ public class Bot implements Serializable
 	public final Race race;
 	public final BotExecutableType type;
 	public final BwapiVersion bwapiVersion;
-	public final List<CopyFile> extraFiles;
+	public final List<CopyFile> copyFiles;
+	public final List<String> injectoryArguments;
 	public final LinkedHashMap<String,String> environmentVariables;
 	
 	private Bot() //dummy constructor for yaml
@@ -41,7 +43,8 @@ public class Bot implements Serializable
 		race = null;
 		type = null;
 		bwapiVersion = null;
-		extraFiles = new ArrayList<CopyFile>();
+		copyFiles = new ArrayList<CopyFile>();
+		injectoryArguments = new ArrayList<>();
 		environmentVariables = new LinkedHashMap<String,String>();
 	}
 	

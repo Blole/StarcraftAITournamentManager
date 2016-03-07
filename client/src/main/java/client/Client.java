@@ -14,7 +14,6 @@ import java.rmi.RemoteException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.List;
 
 import javax.imageio.ImageIO;
 
@@ -43,6 +42,7 @@ public class Client extends RunnableUnicastRemoteObject implements RemoteClient
 	public final ClientEnvironment env;
 	private RemoteServer server = null;
 	private ArrayList<Starcraft> runningStarcrafts = new ArrayList<>();
+	public CommonClientEnvironment commonEnv = new CommonClientEnvironment();
 
 	public Client(ClientEnvironment env) throws RemoteException
 	{
@@ -103,21 +103,10 @@ public class Client extends RunnableUnicastRemoteObject implements RemoteClient
 			serverDataDir.syncTo(env.dataDir); //don't recover if this throws
 			log("got files");
 			
-			MyFile extraFiles = new MyFile(env.dataDir, "extrafiles.yaml");
-			if (extraFiles.exists())
-			{
-				String extraFilesString = FileUtils.readFileToString(extraFiles);
-				Yaml yaml = new Yaml(new MyConstructor(env));
-				@SuppressWarnings("unchecked")
-				List<CopyFile> copyFiles = yaml.loadAs(extraFilesString, List.class);
-				if (copyFiles != null)
-				{
-					for (CopyFile copyFile : copyFiles)
-						copyFile.copyDiffering(env.lookupFile(copyFile.extractTo));
-				}
-			}
-			else
-				log("'"+extraFiles+"' not found, ignoring");
+			loadCommonEnv();
+
+			for (CopyFile file : commonEnv.copyFiles)
+				file.copyDiffering(env.lookupFile(file.extractTo));
 			
 			try
 			{
@@ -156,6 +145,19 @@ public class Client extends RunnableUnicastRemoteObject implements RemoteClient
 		killAllStarcrafts("killed by client exit");
 	}
 	
+	private void loadCommonEnv() throws IOException
+	{
+		MyFile commonEnvFile = new MyFile(env.dataDir, "clientcommon.yaml");
+		if (!commonEnvFile.exists())
+			log("'%s' not found, ignoring", commonEnvFile);
+		else
+		{
+			String commonEnvString = FileUtils.readFileToString(commonEnvFile);
+			Yaml yaml = new Yaml(new MyConstructor(env));
+			commonEnv = yaml.loadAs(commonEnvString, CommonClientEnvironment.class);
+		}
+	}
+
 	@Override
 	public RemoteStarcraft hostMatch(Game game, int index) throws RemoteException, AllStarcraftInstanceSlotsAlreadyBusyException
 	{

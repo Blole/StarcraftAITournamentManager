@@ -1,0 +1,9 @@
+#files to copy somewhere special on startup
+copyFiles:
+- !copy [data/starcraft/, $starcraft/]
+
+#extra arguments to injectory when starting starcraft
+injectoryArguments: []
+
+#extra environment variables to injectory when starting starcraft
+environmentVariables: []

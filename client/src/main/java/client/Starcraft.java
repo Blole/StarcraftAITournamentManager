@@ -91,12 +91,16 @@ public class Starcraft extends RunnableUnicastRemoteObject implements RemoteStar
 			if (bot.type == BotExecutableType.proxy)
 				WindowsCommandTools.RunWindowsCommand(new RequiredFile(env.dataDir, "run_proxy.bat").getAbsolutePath(), false, false);
 			
-			for (CopyFile file : bot.extraFiles)
+			for (CopyFile file : bot.copyFiles)
 				file.copyDiffering(env.lookupFile(file.extractTo));
 			
 			ProcessBuilder pb = new ProcessBuilder();
 			pb.command(injectory.toString(), "--launch", "starcraft_multiinstance.exe", "--inject", bot.bwapiVersion.getDll(env).getAbsolutePath(), "--kill-on-exit", "--wait-for-exit");
 			pb.directory(env.starcraftDir);
+			pb.redirectError(Redirect.INHERIT);
+			pb.redirectOutput(Redirect.INHERIT);
+			
+			// environment
 			pb.environment().put("BWAPI_CONFIG_INI", 	    				env.iniFile().require().getAbsolutePath());
 			pb.environment().put("BWAPI_CONFIG_AI__AI",     				bot.getDll(env).require().getAbsolutePath());
 			pb.environment().put("BWAPI_CONFIG_AI__AI_DBG", 				bot.getDll(env).require().getAbsolutePath());
@@ -109,16 +113,13 @@ public class Starcraft extends RunnableUnicastRemoteObject implements RemoteStar
 			pb.environment().put("BWAPI_CONFIG_AUTO_MENU__SAVE_REPLAY",		replayFile.getAbsolutePath());
 			pb.environment().put("BWAPI_CONFIG_AUTO_MENU__WAIT_FOR_MIN_PLAYERS", game.bots.length+"");
 			pb.environment().put("BWAPI_CONFIG_AUTO_MENU__WAIT_FOR_MAX_PLAYERS", game.bots.length+"");
-			//TODO tournament environment config
+			// tournament environment config
 			pb.environment().put("SCAITM_TOURNAMENT_CONFIG_FILE",			tournamentYaml.require().getAbsolutePath());
 			pb.environment().put("SCAITM_TOURNAMENT_STATUS_FILE",			statusFile.getAbsolutePath());
-			
+			// direct IP
 			pb.environment().put("DIRECT_IP_LOCAL_PORT_OUTPUT_FILE",		localPortFile.getAbsolutePath());
-			pb.redirectError(Redirect.INHERIT);
-			pb.redirectOutput(Redirect.INHERIT);
 			
-			pb.environment().putAll(bot.environmentVariables);
-			
+			// host/join specifics
 			if (isHost())
 			{
 				pb.environment().put("BWAPI_CONFIG_AUTO_MENU__MAP",				env.starcraftDir.getRelativePath(game.map.getFile(env).require()).getPath());
@@ -127,7 +128,6 @@ public class Starcraft extends RunnableUnicastRemoteObject implements RemoteStar
 				pb.environment().put("DIRECT_IP_LOCAL_PORT",					"6112");
 
 				log("starting starcraft, hosting %s", game);
-				starcraftProcess = pb.start();
 			}
 			else
 			{
@@ -146,8 +146,20 @@ public class Starcraft extends RunnableUnicastRemoteObject implements RemoteStar
 				pb.environment().put("DIRECT_IP_LOCAL_PORT",					"30000");
 				
 				log("starting starcraft, joining %s %s:%d", game, hostIP, hostPort);
-				starcraftProcess = pb.start();
 			}
+			
+			// extensions
+			pb.command().addAll(client.commonEnv.injectoryArguments);
+			pb.command().addAll(bot.injectoryArguments);
+			pb.environment().putAll(client.commonEnv.environmentVariables);
+			pb.environment().putAll(bot.environmentVariables);
+			
+			
+			
+			
+			
+			// start
+			starcraftProcess = pb.start();
 			
 			while (!localPortFile.exists())
 			{
