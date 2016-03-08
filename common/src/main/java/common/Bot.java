@@ -30,6 +30,7 @@ public class Bot implements Serializable
 	
 	
 	public final String name;
+	public final String nick;
 	public final Race race;
 	public final BotExecutableType type;
 	public final BwapiVersion bwapiVersion;
@@ -37,16 +38,29 @@ public class Bot implements Serializable
 	public final List<String> injectoryArguments;
 	public final LinkedHashMap<String,String> environmentVariables;
 	
-	private Bot() //dummy constructor for yaml
+	private Bot(String name, BotLoadable o)
 	{
-		name = null;
-		race = null;
-		type = null;
-		bwapiVersion = null;
-		copyFiles = new ArrayList<CopyFile>();
-		injectoryArguments = new ArrayList<>();
-		environmentVariables = new LinkedHashMap<String,String>();
+		this.name = name;
+		this.nick = o.nick;
+		this.race = o.race;
+		this.type = o.type;
+		this.bwapiVersion = o.bwapiVersion;
+		this.copyFiles = o.copyFiles!=null ? o.copyFiles : new ArrayList<CopyFile>();
+		this.injectoryArguments = o.injectoryArguments!=null ? o.injectoryArguments : new ArrayList<>();
+		this.environmentVariables = o.environmentVariables!=null ? o.environmentVariables : new LinkedHashMap<String,String>();
 	}
+	
+	private static class BotLoadable
+	{
+		public String nick;
+		public Race race;
+		public BotExecutableType type;
+		public BwapiVersion bwapiVersion;
+		public List<CopyFile> copyFiles;
+		public List<String> injectoryArguments;
+		public LinkedHashMap<String,String> environmentVariables;
+	}
+
 	
 	public static Bot load(CommonEnvironment env, String name) throws IOException
 	{
@@ -55,7 +69,8 @@ public class Bot implements Serializable
 			throw new FileNotFoundException("Bot directory '"+dir+"' does not exist");
 		Yaml yaml = new Yaml(new MyConstructor(env));
 		String yamlData = FileUtils.readFileToString(new File(dir, "bot.yaml"));
-		return yaml.loadAs(yamlData, Bot.class);
+		BotLoadable o = yaml.loadAs(yamlData, BotLoadable.class);
+		return new Bot(name, o);
 	}
 	
 	
@@ -84,10 +99,5 @@ public class Bot implements Serializable
 	public MyFile getDll(CommonEnvironment env)
 	{
 		return new MyFile(getDir(env), name+".dll");
-	}
-
-	public String displayName()
-	{
-		return name;
 	}
 }

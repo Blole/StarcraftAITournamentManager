@@ -105,7 +105,7 @@ public class Starcraft extends RunnableUnicastRemoteObject implements RemoteStar
 			pb.environment().put("BWAPI_CONFIG_AI__AI",     				bot.getDll(env).require().getAbsolutePath());
 			pb.environment().put("BWAPI_CONFIG_AI__AI_DBG", 				bot.getDll(env).require().getAbsolutePath());
 			pb.environment().put("BWAPI_CONFIG_AI__TOURNAMENT",				bot.bwapiVersion.getTournamentDll(env).require().getAbsolutePath());
-			pb.environment().put("BWAPI_CONFIG_AUTO_MENU__CHARACTER_NAME",	bot.displayName());
+			pb.environment().put("BWAPI_CONFIG_AUTO_MENU__CHARACTER_NAME",	bot.nick);
 			pb.environment().put("BWAPI_CONFIG_AUTO_MENU__AUTO_RESTART",	"EXIT");
 			pb.environment().put("BWAPI_CONFIG_AUTO_MENU__GAME",			game.id+"");
 			pb.environment().put("BWAPI_CONFIG_AUTO_MENU__GAME_TYPE",		game.type.toString());
@@ -209,7 +209,7 @@ public class Starcraft extends RunnableUnicastRemoteObject implements RemoteStar
 				
 				Thread.sleep((long)(env.matchAlivePollPeriod*1000 - timeSinceModification));
 			}
-			log("starcraft closed");
+			// starcraft closed
 			
 			GameStatusFile gameStatusFile = getStatus(statusFile);
 			
