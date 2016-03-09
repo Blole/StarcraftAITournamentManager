@@ -66,7 +66,7 @@ public class Server extends RunnableUnicastRemoteObject implements RemoteServer
 				
 				if (gameQueueManager.running().count() == 0 && finishedRound < prevGame.game.round)
 				{
-					log("Round %d finished, moving write directory to read directory", prevGame.game.round);
+					log("round %d finished, moving write directory to read directory", prevGame.game.round);
 					for (Bot bot : gameQueueManager.getAllBots())
 					{
 						if (bot.getWriteDir(env).exists())
@@ -78,7 +78,7 @@ public class Server extends RunnableUnicastRemoteObject implements RemoteServer
 				}
 				else if (printedWaitingForRoundToFinish < prevGame.game.round)
 				{
-					log("Waiting for ongoing games in round %d to finish", prevGame.game.round);
+					log("waiting for ongoing games in round %d to finish", prevGame.game.round);
 					printedWaitingForRoundToFinish = prevGame.game.round;
 				}
 			}
@@ -97,14 +97,23 @@ public class Server extends RunnableUnicastRemoteObject implements RemoteServer
 	@Override
 	public void onExit() throws RemoteException, AccessException, NotBoundException
 	{
-		if (env.killClientsOnExit)
-			clientManager.killAll();
+		if (gameQueueManager.running().count() > 0)
+		{
+			log("killing all starcraft instances (%d)", gameQueueManager.running().count());
+			gameQueueManager.running().forEach(g->g.stop("server shutting down"));
+		}
 		
-		if (registry != null)
-			registry.unbind(env.serverUrlPath);
+		if (env.killClientsOnExit && clientManager.clients().size() > 0)
+		{
+			log("killing all clients (%d)", clientManager.clients().size());
+			clientManager.killAll("server shutting down");
+		}
 		
 		if (gui != null)
 			gui.mainFrame.dispose();
+		
+		if (registry != null)
+			registry.unbind(env.serverUrlPath);
 	}
 	
 	public synchronized void onMatchDone(ServerGame serverGame)

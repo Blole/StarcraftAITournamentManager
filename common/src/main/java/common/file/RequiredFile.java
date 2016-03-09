@@ -41,6 +41,6 @@ public class RequiredFile extends MyFile implements Serializable
 	private void check() throws FileNotFoundException
 	{
 		if (!exists())
-			throw new FileNotFoundException("File '" + this + "' does not exist");
+			throw new FileNotFoundException("file '" + this + "' does not exist");
 	}
 }

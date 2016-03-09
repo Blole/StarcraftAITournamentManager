@@ -56,6 +56,7 @@ public abstract class RunnableUnicastRemoteObject extends UnicastRemoteObject im
 	final public void run()
 	{
 		thread = Thread.currentThread();
+		thread.setName(toString());
 		
 		Runtime.getRuntime().addShutdownHook(new Thread()
 		{

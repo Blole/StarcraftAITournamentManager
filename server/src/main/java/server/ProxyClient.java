@@ -88,11 +88,11 @@ public class ProxyClient implements RemoteClient
 		}
 	}
 	
-	public void tryKill()
+	public void tryKill(String reason)
 	{
 		try
 		{
-			kill();
+			kill(reason);
 		}
 		catch (RemoteException e)
 		{
@@ -100,9 +100,9 @@ public class ProxyClient implements RemoteClient
 	}
 	
 	@Override
-	public void kill() throws RemoteException
+	public void kill(String reason) throws RemoteException
 	{
-		remote.kill();
+		remote.kill(reason);
 	}
 	@Override
 	public void executeCommand(String command) throws RemoteException

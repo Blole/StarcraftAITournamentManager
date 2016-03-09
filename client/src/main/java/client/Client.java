@@ -124,7 +124,7 @@ public class Client extends RunnableUnicastRemoteObject implements RemoteClient
 				log("server disconnected, reconnecting");
 			}
 			
-			killAllStarcrafts("killed by server disconnect");
+			killAllStarcrafts("server disconnected");
 		}
 	}
 	
@@ -142,7 +142,7 @@ public class Client extends RunnableUnicastRemoteObject implements RemoteClient
 			}
 		}
 		
-		killAllStarcrafts("killed by client exit");
+		killAllStarcrafts("client exit");
 	}
 	
 	private void loadCommonEnv() throws IOException
@@ -184,9 +184,9 @@ public class Client extends RunnableUnicastRemoteObject implements RemoteClient
 	{
 		if (!runningStarcrafts.isEmpty())
 		{
+			log("killing all starcraft instances (%d): %s", runningStarcrafts.size(), reason);
 			for (Starcraft starcraft : new ArrayList<Starcraft>(runningStarcrafts))
-				starcraft.kill(reason);
-			log("killed all starcraft instances");
+				starcraft.kill("");
 		}
 	}
 	
@@ -202,11 +202,18 @@ public class Client extends RunnableUnicastRemoteObject implements RemoteClient
 	}
 	
 	@Override
-	public void kill()
+	public void kill(String reason)
 	{
-		log("killed by server");
-		if (thread() != null)
+		if (thread() != null && thread().isAlive())
+		{
+			if (reason==null)
+				reason = "reason=null";
+			
+			if (!reason.isEmpty())
+				log("killed: "+reason);
+			
 			thread().interrupt();
+		}
 	}
 
 	@Override

@@ -66,7 +66,7 @@ public class Bot implements Serializable
 	{
 		MyFile dir = new MyFile(env.botDir(), name);
 		if (!dir.exists())
-			throw new FileNotFoundException("Bot directory '"+dir+"' does not exist");
+			throw new FileNotFoundException("bot directory '"+dir+"' does not exist");
 		Yaml yaml = new Yaml(new MyConstructor(env));
 		String yamlData = FileUtils.readFileToString(new File(dir, "bot.yaml"));
 		BotLoadable o = yaml.loadAs(yamlData, BotLoadable.class);

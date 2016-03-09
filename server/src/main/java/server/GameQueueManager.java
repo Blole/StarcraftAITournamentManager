@@ -73,8 +73,8 @@ public class GameQueueManager extends FileAlterationListenerAdaptor
 	public void onFileChange(File file)
 	{
 		ServerGame game = games.get(file);
-		if (game != null && game.stop())
-			server.log(game+" stopped");
+		if (game != null)
+			game.stop("gamefile updated");
 		
 		read(file, "update");
 	}
@@ -87,16 +87,16 @@ public class GameQueueManager extends FileAlterationListenerAdaptor
 	public void onFileDelete(File file)
 	{
 		ServerGame game = games.remove(file);
-		if (game != null)
-		{
-			if (game.stop())
-				server.log(game+" stopped");
-			else
-				server.log(game+" unqueued");
-		}
+		if (game != null && !game.stop("gamefile deleted"))
+			server.log("%s dequeued: gamefile deleted", game);
 	}
 	
 	
+	
+	public void quietlyDequeue(File file)
+	{
+		games.remove(file);
+	}
 	
 	private Stream<ServerGame> gamesInState(ServerGameState state)
 	{

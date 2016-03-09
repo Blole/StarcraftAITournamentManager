@@ -38,6 +38,7 @@ public class ImageWindow
                 @Override
                 public void run()
                 {
+                	Thread.currentThread().setName("ImageWindow");
                     createAndShowGUI();
                 }
             });

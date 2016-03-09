@@ -163,29 +163,26 @@ public class Starcraft extends RunnableUnicastRemoteObject implements RemoteStar
 			
 			while (!localPortFile.exists())
 			{
-				if (!starcraftProcess.isAlive())
-					throw new StarcraftException("starcraft died before getting local port");
 				if (System.currentTimeMillis()-startTime > env.hostingTimeout*1000)
 					throw new StarcraftException("timeout getting local port");
-				
-				Thread.sleep(200);
+				if (starcraftProcess.waitFor(200, TimeUnit.MILLISECONDS))
+					throw new StarcraftException("starcraft died before getting local port");
 			}
 			localPort = readLocalPortFile();
 
 			while (!statusFile.exists())
 			{
-				if (!starcraftProcess.isAlive())
-					throw new StarcraftException("starcraft died before match start");
 				if (System.currentTimeMillis()-startTime > env.matchStartingTimeout*1000)
 					throw new StarcraftException("timeout starting match");
-				
-				Thread.sleep(200);
+				if (starcraftProcess.waitFor(200, TimeUnit.MILLISECONDS))
+					throw new StarcraftException("starcraft died before match start");
 			}
 			
 			log("match started");
+			GameStatusFile status = null;
 			while (starcraftProcess.isAlive())
 			{
-				GameStatusFile status = getStatus(statusFile);
+				status = getStatus(statusFile);
 				if (status != null)
 				{
 					if (status instanceof Crash)
@@ -193,34 +190,29 @@ public class Starcraft extends RunnableUnicastRemoteObject implements RemoteStar
 					else if (status instanceof Timeout)
 						throw new BotTimeoutException(((Timeout)status).bot);
 					else if (status instanceof Done)
-					{
-						log("waiting for starcraft to close");
-						if (!starcraftProcess.waitFor((long)(env.starcraftClosingTimeout*1000), TimeUnit.MILLISECONDS))
-							throw new StarcraftException("timeout waiting for starcraft to close");
 						break;
-					}
 				}
 				
 				long timeSinceModification = System.currentTimeMillis() - statusFile.lastModified();
 				if (timeSinceModification > env.matchAlivePollPeriod*1000)
 					throw new StarcraftException("status file '"+statusFile+"' not updated in time");
 				starcraftProcess.waitFor((long)(env.matchAlivePollPeriod*1000)-timeSinceModification, TimeUnit.MILLISECONDS);
-				
-				
-				Thread.sleep((long)(env.matchAlivePollPeriod*1000 - timeSinceModification));
 			}
-			// starcraft closed
+			// got done status or starcraft died
 			
-			GameStatusFile gameStatusFile = getStatus(statusFile);
+			if (!(status instanceof Done))
+				throw new StarcraftException("starcraft died");
 			
-			if (!(gameStatusFile instanceof Done))
-				throw new StarcraftException(statusFile+" does not contain a !done-object");
+			// wait for starcraft to close
+			if (!starcraftProcess.waitFor((long)(env.starcraftClosingTimeout*1000), TimeUnit.MILLISECONDS))
+				throw new StarcraftException("timeout waiting for starcraft to close");
+			
 			if (!replayFile.exists())
-				throw new StarcraftException("starcraft died without creating the replay file '"+replayFile+"'");
+				throw new StarcraftException("got done status, but starcraft died without creating the replay file '"+replayFile+"'");
 			
 			packedWriteDirectory = new PackedFile(new MyFile(instanceDir, "write/"));
 			packedReplay = new PackedFile(replayFile);
-			result = (Done) gameStatusFile;
+			result = (Done) status;
 			
 			log("match ended correctly");
 		}
@@ -237,10 +229,12 @@ public class Starcraft extends RunnableUnicastRemoteObject implements RemoteStar
 		catch (InterruptedException e)
 		{
 			if (interruptReason==null)
-				interruptReason = "unknown interrupt";
+				interruptReason = "reason==null";
 			
-			exception = new StarcraftException(interruptReason);
-			log(interruptReason);
+			if (!interruptReason.isEmpty())
+				log("interrupted: "+interruptReason);
+			
+			exception = new StarcraftException("interrupted: "+interruptReason);
 		}
 		catch (StarcraftException e)
 		{
@@ -249,7 +243,7 @@ public class Starcraft extends RunnableUnicastRemoteObject implements RemoteStar
 		}
 		catch (IOException e)
 		{
-			exception = new StarcraftException(e);
+			exception = new StarcraftException(e.getMessage());
 			e.printStackTrace();
 		}
 	}
@@ -271,7 +265,7 @@ public class Starcraft extends RunnableUnicastRemoteObject implements RemoteStar
 		if (thread() != null && thread().isAlive())
 		{
 			tryUnexport(true);
-			this.interruptReason = reason;
+			interruptReason = reason;
 			thread().interrupt();
 		}
 	}
@@ -352,7 +346,7 @@ public class Starcraft extends RunnableUnicastRemoteObject implements RemoteStar
 	{
 		double sinceMatchStart = (System.currentTimeMillis() - startTime)/1000.0;
 		String prefix = String.format("g%sp%d [%02d:%02d] ", game.id, playerIndex, (int)(sinceMatchStart/60), (int)(sinceMatchStart%60));
-		Client.log(prefix+format, args);
+		Client.log(prefix+String.format(format, args));
 	}
 	
 	@Override

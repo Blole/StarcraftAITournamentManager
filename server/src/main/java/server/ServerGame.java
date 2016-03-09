@@ -35,7 +35,7 @@ public class ServerGame implements Runnable
 	
 	private ServerGameState state;
 	private Thread thread = null;
-	private Exception exception = null;
+	private String interruptReason = null;
 	
 	public ServerGame(Game game, MyFile file, Server server)
 	{
@@ -49,6 +49,8 @@ public class ServerGame implements Runnable
 	public void run()
 	{
 		thread = Thread.currentThread();
+		thread.setName(toString());
+		String errorText = null;
 		
 		//start starcrafts
 		ArrayList<RemoteStarcraft> starcrafts = new ArrayList<>();
@@ -82,7 +84,7 @@ public class ServerGame implements Runnable
 				throw new NotEnoughStarcraftInstancesCouldBeStartedException(this, starcrafts.size());
 			
 			state = ServerGameState.RUNNING;
-			server.log("%s all starcraft instances started", this);
+			log("all starcraft instances started");
 			//server.gui.UpdateRunningStats(player, game, i, startTime);
 		
 			CompleteGameResults[] completeResults = new CompleteGameResults[starcrafts.size()];
@@ -100,7 +102,7 @@ public class ServerGame implements Runnable
 					break;
 				Thread.sleep((long) (server.env.matchFinishedPollPeriod*1000));
 			}
-			server.log(game+" results collected");
+			log("results collected");
 			
 			PackedFile[] writeDirs = new PackedFile[game.bots.length];
 			GameResults results = new GameResults();
@@ -120,6 +122,7 @@ public class ServerGame implements Runnable
 			for (int i=0; i<writeDirs.length; i++)
 				writeDirs[i].writeTo(game.bots[i].getWriteDir(server.env));
 			
+			server.gameQueueManager.quietlyDequeue(file);
 			FileUtils.moveFileToDirectory(file, resultsDir(), false);
 			
 			state = ServerGameState.DONE;
@@ -127,50 +130,50 @@ public class ServerGame implements Runnable
 		}
 		catch (NotEnoughStarcraftInstancesCouldBeStartedException e)
 		{
-			server.log("%s: error starting, only %d/%d starcraft instances could be started", this, e.started, game.bots.length);
-			exception = e;
+			errorText = String.format("only %d/%d starcraft instances could be started", e.started, game.bots.length);
 		}
 		catch (InterruptedException e)
 		{
-			server.log("%s: interrupted", this);
-			exception = e;
+			if (interruptReason==null)
+				interruptReason = "reason==null";
+			errorText = interruptReason.isEmpty() ? "" : "match interrupted: "+interruptReason;
 		}
 		catch (ConnectException e)
 		{
-			server.log("%s: remote starcraft died", this);
-			exception = e;
+			errorText = "remote starcraft died";
 		}
 		catch (RemoteException e)
 		{
-			server.log("%s: remote starcraft died: %s", this, e.getMessage());
 			e.printStackTrace();
-			exception = e;
+			errorText = "remote starcraft died: " + e.getMessage();
 		}
 		catch (StarcraftException e)
 		{
-			server.log("%s: remote starcraft exception: %s", this, e.getMessage());
-			e.printStackTrace();
-			exception = e;
+			errorText = "remote starcraft exception: " + e.getMessage();
 		}
 		catch (DifferingCommonResultsException e)
 		{
-			server.log("%s: collected common results differ", this);
-			exception = e;
+			errorText = "collected common results differ";
 		}
 		catch (IOException e)
 		{
-			FileUtils.deleteQuietly(resultsDir());
-			server.log("%s: error writing results dir: %s", this, e.getMessage());
 			e.printStackTrace();
-			exception = e;
+			FileUtils.deleteQuietly(resultsDir());
+			errorText = "error writing results dir: " + e.getMessage();
 		}
 		finally
 		{
-			if (exception != null)
+			if (errorText != null)
 			{
 				state = ServerGameState.ERROR;
 				//state = ServerGameState.QUEUED; //TODO: requeue?
-				tryKillAllStarcrafts(starcrafts, "killed by server");
+				if (!errorText.isEmpty())
+				{
+					log(errorText);
+					tryKillAllStarcrafts(starcrafts, "server exception: "+errorText);
+				}
+				else
+					tryKillAllStarcrafts(starcrafts, "");
 			}
 			server.onMatchDone(ServerGame.this);
 		}
@@ -179,16 +182,16 @@ public class ServerGame implements Runnable
 	/**
 	 * @return true if the game was running and stopped
 	 */
-	public boolean stop()
+	public boolean stop(String reason)
 	{
-		if (thread == null)
-			return false;
-		else
+		if (thread != null && thread.isAlive())
 		{
+			interruptReason = reason;
 			thread.interrupt();
-			thread = null;
 			return true;
 		}
+		else
+			return false;
 	}
 	
 	
@@ -217,6 +220,11 @@ public class ServerGame implements Runnable
 	
 	
 
+	private void log(String format, Object... args)
+	{
+		server.log(this+": "+String.format(format, args));
+	}
+	
 	private static void tryKillAllStarcrafts(Iterable<RemoteStarcraft> starcrafts, String reason)
 	{
 		for (RemoteStarcraft starcraft : starcrafts)
@@ -225,7 +233,7 @@ public class ServerGame implements Runnable
 			{
 				starcraft.kill(reason);
 			}
-			catch (RemoteException e2)
+			catch (RemoteException e)
 			{
 			}
 		}

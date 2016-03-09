@@ -64,13 +64,12 @@ public class ClientManager
 		return sum;
 	}
 	
-	void killAll()
+	void killAll(String reason)
 	{
 		if (clients.size() > 0)
 		{
-			server.log("killing all clients (%d)", clients.size());
 			for (ProxyClient client : clients())
-				client.tryKill();
+				client.tryKill(reason);
 			clients.clear();
 		}
 	}
